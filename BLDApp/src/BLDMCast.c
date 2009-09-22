@@ -16,6 +16,8 @@
 
 #include "epicsVersion.h"
 #include "epicsExport.h"
+#include "epicsEvent.h"
+#include "epicsMutex.h"
 #include "cadef.h"
 #include "dbDefs.h"
 #include "db_access.h"
@@ -40,7 +42,7 @@ int BLDMCastStart(int enable)
 {/* This funciton will be called in st.cmd after iocInit() */
     /* Do we need to use RTEMS task priority to get higher priority? */
     BLD_MCAST_ENABLE = enable;
-    return (epicsThreadMustCreate("BLDMCast", TASK_PRIORITY, 20480, (EPICSTHREADFUNC)BLDMCastTask, NULL));
+    return (int)(epicsThreadMustCreate("BLDMCast", TASK_PRIORITY, 20480, (EPICSTHREADFUNC)BLDMCastTask, NULL));
 }
 
 int EVRFire()
@@ -64,7 +66,7 @@ static void exceptionCallback(struct exception_handler_args args)
     const char  *channel;
     static char *noname = "unknown";
 
-    channel = (pvChId ? ca_name(pcChId) : noname);
+    channel = (pvChId ? ca_name(pvChId) : noname);
 
     if(pvChId) printChIdInfo(pvChId,"exceptionCallback");
     errlogPrintf("exceptionCallback stat %s channel %s\n", ca_message(stat),channel);
@@ -99,7 +101,7 @@ static void eventCallback(struct event_handler_args args)
         else
             pPV->dataAvailable = TRUE;
 
-        if(BLD_MCAST_DEBUG) errlogPrintf("Event Callback: %s, copy type %d, elements %d, severity %d\n", ca_name(args.chid), args.type, args.count, pPV->pTD->severity);
+        if(BLD_MCAST_DEBUG) errlogPrintf("Event Callback: %s, copy type %ld, elements %ld, severity %d\n", ca_name(args.chid), args.type, args.count, pPV->pTD->severity);
     }
     else
     {
@@ -111,10 +113,10 @@ static void eventCallback(struct event_handler_args args)
 static int BLDMCastTask(void * parg)
 {
     int		loop;
-    int		rtcode;
+    int		rtncode;
 
     int		sFd;
-    sockaddr_in sockaddrSrc;
+    struct sockaddr_in sockaddrSrc;
 
     mutexLock = epicsMutexMustCreate();
 
@@ -126,7 +128,7 @@ static int BLDMCastTask(void * parg)
     for(loop=0; loop<N_STATIC_PVS; loop++)
     {
         rtncode = ECA_NORMAL;
-	SEVCHK(ca_create_channel(staticPVs[loop].name, connectionCallback, &(staticPVs[loop]), DEFAULT_CA_PRIORITY ,&(staticPVs[loop].pvChId)), "ca_create_channel");
+	SEVCHK(ca_create_channel(staticPVs[loop].name, connectionCallback, &(staticPVs[loop]), CA_PRIORITY ,&(staticPVs[loop].pvChId)), "ca_create_channel");
 	SEVCHK(ca_replace_access_rights_event(staticPVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event");
 
         /* We could do subscription in connetion callback. But in this case, better to enforce all connection */
@@ -160,7 +162,7 @@ static int BLDMCastTask(void * parg)
     for(loop=0; loop<N_PULSE_PVS; loop++)
     {
         rtncode = ECA_NORMAL;
-	SEVCHK(ca_create_channel(pulsePVs[loop].name, connectionCallback, &(pulsePVs[loop]), DEFAULT_CA_PRIORITY ,&(pulsePVs[loop].pvChId)), "ca_create_channel");
+	SEVCHK(ca_create_channel(pulsePVs[loop].name, connectionCallback, &(pulsePVs[loop]), CA_PRIORITY ,&(pulsePVs[loop].pvChId)), "ca_create_channel");
 	SEVCHK(ca_replace_access_rights_event(pulsePVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event");
 
         /* We could do subscription in connetion callback. But in this case, better to enforce all connection */
@@ -320,7 +322,7 @@ static int BLDMCastTask(void * parg)
 	        ebeamInfo.uDamageMask |= 0x3C;
 	    }
 
-            epicsMutexLock(mutexUnlock);
+            epicsMutexUnlock(mutexLock);
        }
 
        /* do MultiCast */

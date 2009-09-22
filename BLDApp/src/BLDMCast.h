@@ -21,6 +21,10 @@
 
 #define MAX_PV_NAME_LEN 40
 
+#ifndef BOOL
+#define BOOL int
+#endif
+
 /* Structure representing one PV (= channel) */
 typedef struct BLDPV
 {
@@ -77,7 +81,7 @@ enum PULSEPVSINDEX
     BMPOSITION4Y
 };/* the definition here must match the PV definition below, the order is critival as well */
 
-static PVS pulsePVs[]=
+static BLDPV pulsePVs[]=
 {
 #if 0
     Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
