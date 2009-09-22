@@ -1,0 +1,2 @@
+variable(BLD_MCAST_DEBUG)
+variable(BLD_MCAST_ENABLE)

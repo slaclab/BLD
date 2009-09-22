@@ -1,0 +1,69 @@
+#RELEASE Location of external products
+#
+# IF YOU MAKE ANY CHANGES to this file you MUST at least run
+# "gnumake" in this directory afterwards; you usually need
+# to run "gnumake rebuild" in the application's top level
+# directory each time this file is changed.
+#
+# NOTE: The build does not check dependencies against files
+# that are outside this application, thus you should run
+# "gnumake distclean install" in the top directory each time
+# EPICS_BASE, SNCSEQ, or any other external module defined
+# in the RELEASE file is rebuilt.
+#
+# Host/target specific settings can be specified in files named
+#  RELEASE.$(EPICS_HOST_ARCH).Common
+#  RELEASE.Common.$(T_A)
+#  RELEASE.$(EPICS_HOST_ARCH).$(T_A)
+
+# Pickup the path to your EPICS top level directory
+# This is where EPICS lives at your site.
+include $(TOP)/RELEASE_SITE
+
+
+TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
+
+# =============================================================
+# Define location of module tree with respect to
+# EPICS_SITE_TOP
+# =============================================================
+EPICS_MODULES=$(EPICS_SITE_TOP)/modules
+
+
+# ==============================================================
+# Define the version of EPICS BASE that you will use
+# =============================================================
+BASE_MODULE_VERSION=base-R3-14-10
+
+# ===============================================================
+# Define the version of modules needed by
+# IOC apps or other Support apps
+# Make sure that you look at the website to discover
+# the appropriate version dependencies
+# http://www-group.slac.stanford.edu/cdsoft/epics/swModules3.htm
+# ===============================================================
+SEQ_MODULE_VERSION=sncseq-2.0.12
+
+
+# ============================================================
+# External Support
+# ============================================================
+SNCSEQ=$(EPICS_MODULES)/sncseq/$(SEQ_MODULE_VERSION)
+
+
+# ========================================================================================
+#If using macro substitutions, point MSI at the binary:
+EXTENSIONS_MODULE_VERSION=extensions-R3-14-10
+MSI=$(EPICS_SITE_TOP)/extensions/$(EXTENSIONS_MODULE_VERSION)/bin/$(EPICS_HOST_ARCH)/msi
+# ========================================================================================
+
+# =================================================================
+# Define EPICS_BASE
+# EPICS_BASE usually appears last so other apps can override stuff:
+# =================================================================
+# EPICS_BASE usually appears last so other apps can override stuff:
+# EPICS_BASE=/PTx/epics/base/base-R3-14-10
+
+EPICS_BASE=$(EPICS_SITE_TOP)/base/$(BASE_MODULE_VERSION)
+# =================================================================
+
