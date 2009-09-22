@@ -75,7 +75,7 @@ enum PULSEPVSINDEX
     BMPOSITION2Y,
     BMPOSITION3Y,
     BMPOSITION4Y
-};/* the definition here must match the PV definition below */
+};/* the definition here must match the PV definition below, the order is critival as well */
 
 static PVS pulsePVs[]=
 {
@@ -89,10 +89,10 @@ static PVS pulsePVs[]=
     where E0 is the final desired energy at the LTU (the magnet setting BEND:LTU0:125:BDES*1000)
     dspr1,2  = Dx for the chosen dispersion BPMs (from design model database twiss parameters) (we can store these in BLD IOC PVs)
     BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
-    BPM2x = [BPMS:LTU1:250:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
+    BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
 #endif
     {"BPM:LTU1:250:XBR", 1, FALSE, NULL, NULL},	/* Energy in MeV */
-    {"BPM:LTU1:250:XBR", 1, FALSE, NULL, NULL},	/* Energy in MeV */
+    {"BPM:LTU1:450:XBR", 1, FALSE, NULL, NULL},	/* Energy in MeV */
 
 #if 0
     Position X, Y, Angle X, Y at LTU:
@@ -134,15 +134,65 @@ static PVS pulsePVs[]=
 typedef struct EBEAMINFO
 {
     epicsTimeStamp	timestamp;
-    double		ebeamCharge;	/* in nC */
-    double		ebeamL3Energy;	/* in MeV */
-    double		ebeamLTUPosX;	/* in mm */
-    double		ebeamLTUPosY;	/* in mm */
-    double		ebeamLTUAngX;	/* in mrad */
-    double		ebeamLTUAngY;	/* in mrad */
-} EBEAMINFO;
-static EBEAMINFO ebeamInfo;
+    unsigned int uMBZ1;
+    unsigned int uFiducialId;
+    unsigned int uMBZ2;
 
-#define MCAST_DEST_IP	(inet_addr("239.255.24.2"))
-#define MCAST_DEST_PORT	50000
+    /* Xtc Section 1 */
+    unsigned int uDamage;
+    unsigned int uLogicalId; /* source 1 */
+    unsigned int uPhysicalId;/* source 2 */
+    unsigned int uDataType;  /* Contains */
+    unsigned int uExtentSize;/* Extent */
+
+    /* Xtc Section 2 */
+    unsigned int uDamage2;
+    unsigned int uLogicalId2;
+    unsigned int uPhysicalId2;
+    unsigned int uDataType2;
+    unsigned int uExtentSize2;
+
+    unsigned int uDamageMask;
+
+    double	ebeamCharge;	/* in nC */
+    double	ebeamL3Energy;	/* in MeV */
+    double	ebeamLTUPosX;	/* in mm */
+    double	ebeamLTUPosY;	/* in mm */
+    double	ebeamLTUAngX;	/* in mrad */
+    double	ebeamLTUAngY;	/* in mrad */
+} EBEAMINFO;
+
+#define EBEAM_INFO_ERROR 0x4000
+
+static EBEAMINFO ebeamInfo =
+{
+    {0,0},/* to be changed pulse by pulse */
+    0,
+    0,	/* to be changed pulse by pulse, low 17 bits of timestamp nSec */
+    0,
+
+    0, /* to be changed, if error, 0x4000 */
+    0x06000000,
+    0,
+    15,
+    72,
+
+    0, /* to be changed, if error, 0x4000 */
+    0x06000000,
+    0,
+    15,
+    72,
+
+    0, /* to be changed, mask */
+
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+};
+
+#define MCAST_DEST_IP	(inet_addr("239.255.24.0"))
+#define MCAST_DEST_PORT	10148
 #endif
