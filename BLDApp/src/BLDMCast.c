@@ -94,11 +94,12 @@ static void eventCallback(struct event_handler_args args)
     if (args.status == ECA_NORMAL)
     {
         memcpy(pPV->pTD, args.dbr, dbr_size_n(args.type, args.count));
-        if(BLD_MCAST_DEBUG) errlogPrintf("Event Callback: %s, copy type %d, elements %d\n", ca_name(args.chid), args.type, args.count);
         if(pPV->pTD->severity >= INVALID_ALARM)	/* We don't care timestamp for staticPVs. As long as it is not invalid, they are ok */
             pPV->dataAvailable = FALSE;
         else
             pPV->dataAvailable = TRUE;
+
+        if(BLD_MCAST_DEBUG) errlogPrintf("Event Callback: %s, copy type %d, elements %d, severity %d\n", ca_name(args.chid), args.type, args.count, pPV->pTD->severity);
     }
     else
     {
@@ -111,7 +112,6 @@ static int BLDMCastTask(void * parg)
 {
     int		loop;
     int		rtcode;
-    BOOL	dataValid = FALSE;
 
     int		sFd;
     sockaddr_in sockaddrSrc;
@@ -235,37 +235,93 @@ static int BLDMCastTask(void * parg)
         if (rtncode != ECA_NORMAL)
         {
             if(BLD_MCAST_DEBUG) errlogPrintf("Something wrong when fetch pulse-by-pulse PVs.\n");
-            continue;
+            ebeamInfo.uDamageMask = 0x0; /* no information available */
+	    ebeamInfo.uDamage = ebeamInfo.uDamage2 = EBEAM_INFO_ERROR;
         }
+	else
+	{/* Got all PVs, do calculation including checking severity and timestamp */
+	    /* Assume the first timestamp is right */
+            ebeamInfo.timestamp = pulsePVs[BMCHARGE].pTD->stamp;
+	    ebeamInfo.uFiducialId = (ebeamInfo.timestamp.nsec & 0x1FFFF);
 
-       /* Got all PVs, do calculation including checking dataAvailability and timestamp */
-       epicsMutexLock(mutexLock);
-       /* Data validation */
-       dataValid = TRUE;
-       ebeamInfo.timestamp = pulsePVs[0].pTD->stamp;
+            for(loop=0; loop<N_PULSE_PVS; loop++)
+            {
+                if(pulsePVs[loop].pTD->severity >= INVALID_ALARM )
+                {
+                    pulsePVs[loop].dataAvailable = FALSE;
+                    if(BLD_MCAST_DEBUG) errlogPrintf("%s has severity %d\n", pulsePVs[loop].name, pulsePVs[loop].pTD->severity);
+                }
+		if( 0 != memcmp(&(ebeamInfo.timestamp), &(pulsePVs[loop].pTD->stamp), sizeof(epicsTimeStamp)) )
+                {
+                    pulsePVs[loop].dataAvailable = FALSE;
+                    if(BLD_MCAST_DEBUG) errlogPrintf("%s has unmatched timestamp\n", pulsePVs[loop].name);
+                }
+            }
 
-       for(loop=0; loop<N_STATIC_PVS; loop++)
-       {
-           if(!staticPVs[loop].dataAvailable)
-           {
-               dataValid = FALSE;
-               break;
-           }
+            epicsMutexLock(mutexLock);
+
+	    ebeamInfo.uDamage = ebeamInfo.uDamage2 = 0;
+	    ebeamInfo.uDamageMask = 0;
+
+	    /* Calculate beam charge */
+	    if(pulsePVs[BMCHARGE].dataAvailable)
+	    {
+                ebeamInfo.ebeamCharge = pulsePVs[BMCHARGE].pTD->value * 1.602e-10;
+	    }
+	    else
+	    {
+	        ebeamInfo.uDamage = ebeamInfo.uDamage2 = EBEAM_INFO_ERROR;
+	        ebeamInfo.uDamageMask |= 0x1;
+	    }
+
+	    /* Calculate beam energy */
+	    if(pulsePVs[BMENERGY1X].dataAvailable && pulsePVs[BMENERGY2X].dataAvailable
+	      && staticPVs[DSPR1].dataAvailable && staticPVs[DSPR2].dataAvailable && staticPVs[E0BDES].dataAvailable)
+	    {
+		double tempD;
+		tempD = pulsePVs[BMENERGY1X].pTD->value/(1000.0 * staticPVs[DSPR1].pTD->value);
+		tempD += pulsePVs[BMENERGY2X].pTD->value/(1000.0 * staticPVs[DSPR2].pTD->value);
+		tempD = tempD/2.0 + 1.0;
+		tempD *= staticPVs[E0BDES].pTD->value * 1000.0;
+		ebeamInfo.ebeamL3Energy = tempD;
+	    }
+	    else
+	    {
+	        ebeamInfo.uDamage = ebeamInfo.uDamage2 = EBEAM_INFO_ERROR;
+	        ebeamInfo.uDamageMask |= 0x2;
+	    }
+
+	    /* Calculate beam position */
+	    if(pulsePVs[BMPOSITION1X].dataAvailable && pulsePVs[BMPOSITION1Y].dataAvailable
+	      && pulsePVs[BMPOSITION2X].dataAvailable && pulsePVs[BMPOSITION2Y].dataAvailable
+	      && pulsePVs[BMPOSITION3X].dataAvailable && pulsePVs[BMPOSITION3Y].dataAvailable
+	      && pulsePVs[BMPOSITION4X].dataAvailable && pulsePVs[BMPOSITION4Y].dataAvailable
+	      && staticPVs[FMTRX].dataAvailable)
+	    {
+		dbr_double_t *pMatrixValue;
+		double tempDA[4];
+		int i,j;
+
+		pMatrixValue = &(staticPVs[FMTRX].pTD->value);
+		for(i=0;i<4;i++)
+		{
+		    tempDA[i] = 0.0;
+		    for(j=0;j<8;j++)
+		        tempDA[i] += pMatrixValue[i*8+j] * pulsePVs[BMPOSITION1X+j].pTD->value;
+		}
+		ebeamInfo.ebeamLTUPosX = tempDA[0];
+		ebeamInfo.ebeamLTUPosY = tempDA[1];
+		ebeamInfo.ebeamLTUAngX = tempDA[2];
+		ebeamInfo.ebeamLTUAngY = tempDA[3];
+	    }
+	    else
+	    {
+	        ebeamInfo.uDamage = ebeamInfo.uDamage2 = EBEAM_INFO_ERROR;
+	        ebeamInfo.uDamageMask |= 0x3C;
+	    }
+
+            epicsMutexLock(mutexUnlock);
        }
-
-       for(loop=0; loop<N_PULSE_PVS; loop++)
-       {
-           if(pulsePVs[loop].pTD->severity >= INVALID_ALARM)
-           {
-               pulsePVs[loop].dataAvailable = FALSE;
-               dataValid = FALSE;
-               break;
-           }
-           if(memcmp
-       }
-
-       /* Calculate Beam Charge */
-       epicsMutexLock(mutexUnlock);
 
        /* do MultiCast */
        if(BLD_MCAST_ENABLE)
