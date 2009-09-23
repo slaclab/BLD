@@ -8,7 +8,7 @@ include $(TOP)/configure/CONFIG
 #=============================
 # Build the IOC application
 
-PROD_IOC = BLD
+PROD_IOC_RTEMS = BLD
 # BLD.dbd will be created and installed
 DBD += BLD.dbd
 
@@ -17,9 +17,19 @@ BLD_DBD += base.dbd
 
 # Include dbd files from all support applications:
 BLD_DBD += BLDMCast.dbd
+BLD_DBD += evrSupport.dbd
+BLD_DBD += devMrfEr.dbd
+BLD_DBD += dbRestore.dbd
+BLD_DBD += iocAdmin.dbd
 
 # Add all the support libraries needed by this IOC
-#BLD_LIBS += xxx
+BLD_LIBS += evrSupport
+BLD_LIBS += sSubRecord
+BLD_LIBS += generalTime
+BLD_LIBS += devMrfEr
+BLD_LIBS += mrfVme64x
+BLD_LIBS += restore
+BLD_LIBS += iocAdmin
 
 # BLD_registerRecordDeviceDriver.cpp derives from BLD.dbd
 BLD_SRCS += BLDMCast.c
