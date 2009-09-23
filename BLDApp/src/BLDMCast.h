@@ -197,6 +197,7 @@ static EBEAMINFO ebeamInfo =
     0.0
 };
 
-#define MCAST_DEST_IP	(inet_addr("239.255.24.0"))
-#define MCAST_DEST_PORT	10148
+#define MCAST_DST_IP	(inet_addr("239.255.24.0"))
+#define MCAST_DST_PORT	(htons(10148))
+#define MCAST_TTL	8
 #endif

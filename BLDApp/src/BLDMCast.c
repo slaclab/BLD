@@ -36,12 +36,20 @@ epicsExportAddress(int, BLD_MCAST_DEBUG);
 static epicsEventId EVRFireEvent = NULL;
 static epicsMutexId mutexLock = NULL;	/* Protect staticPVs' values */
 
+static in_addr_t mcastIntfIp = 0;
 static int BLDMCastTask(void * parg);
 
-int BLDMCastStart(int enable)
+int BLDMCastStart(int enable, const char * NIC)
 {/* This funciton will be called in st.cmd after iocInit() */
     /* Do we need to use RTEMS task priority to get higher priority? */
     BLD_MCAST_ENABLE = enable;
+    if(NIC && NIC[0] != 0)
+        mcastIntfIp = inet_addr(NIC);
+    if(mcastIntfIp == (in_addr_t)(-1))
+    {
+	errlogPrintf("Illegal MultiCast NIC IP\n");
+	return -1;
+    }
     return (int)(epicsThreadMustCreate("BLDMCast", TASK_PRIORITY, 20480, (EPICSTHREADFUNC)BLDMCastTask, NULL));
 }
 
@@ -117,13 +125,84 @@ static int BLDMCastTask(void * parg)
 
     int		sFd;
     struct sockaddr_in sockaddrSrc;
+    struct sockaddr_in sockaddrDst;
+    unsigned char mcastTTL;
 
     mutexLock = epicsMutexMustCreate();
+
+    /************************************************************************* Prepare MultiCast *******************************************************************/
+    sFd = socket(AF_INET, SOCK_DGRAM, 0);
+    if(sFd == -1)
+    {
+        errlogPrintf("Failed to create socket for multicast\n");
+	epicsMutexDestroy(mutexLock);
+        return -1;
+    }
+
+    /* no need to enlarge buffer since we have small packet, system default should be big enought */
+
+    memset(&sockaddrSrc, 0, sizeof(struct sockaddr_in));
+    memset(&sockaddrDst, 0, sizeof(struct sockaddr_in));
+
+    sockaddrSrc.sin_family      = AF_INET;
+    sockaddrSrc.sin_addr.s_addr = INADDR_ANY;
+    sockaddrSrc.sin_port        = 0;
+
+    sockaddrDst.sin_family      = AF_INET;
+    sockaddrDst.sin_addr.s_addr = MCAST_DST_IP;
+    sockaddrDst.sin_port        = MCAST_DST_PORT;
+
+    if( bind( sFd, (struct sockaddr *) &sockaddrSrc, sizeof(struct sockaddr_in) ) == -1 )
+    {
+        errlogPrintf("Failed to bind local socket for multicast\n");
+	close(sFd);
+	epicsMutexDestroy(mutexLock);
+        return -1;
+    }
+
+    if(BLD_MCAST_DEBUG >= 2)
+    {
+        struct sockaddr_in sockaddrName;
+#ifdef __linux__
+        unsigned int iLength = sizeof(sockaddrName);
+#elif defined(__rtems__)
+        socklen_t iLength = sizeof(sockaddrName);
+#else
+        int iLength = sizeof(sockaddrName);
+#endif
+        if(getsockname(sFd, (struct sockaddr*)&sockaddrName, &iLength) == 0)
+            printf( "Local addr: %s Port %u\n", inet_ntoa(sockaddrName.sin_addr), ntohs(sockaddrName.sin_port));
+    }
+
+    mcastTTL = MCAST_TTL;
+    if (setsockopt(sFd, IPPROTO_IP, IP_MULTICAST_TTL, (char*)&mcastTTL, sizeof(unsigned char) ) < 0 )
+    {
+        errlogPrintf("Failed to set TTL for multicast\n");
+	close(sFd);
+	epicsMutexDestroy(mutexLock);
+        return -1;
+    }
+
+    if (mcastIntfIp)
+    {
+        struct in_addr address;
+	address.s_addr = mcastIntfIp;
+
+        if(setsockopt(sFd, IPPROTO_IP, IP_MULTICAST_IF, (char*)&address, sizeof(struct in_addr) ) < 0)
+        {
+            errlogPrintf("Failed to set TTL for multicast\n");
+	    close(sFd);
+	    epicsMutexDestroy(mutexLock);
+            return -1;
+        }
+    }
+
 
     /************************************************************************* Prepare CA *************************************************************************/
     SEVCHK(ca_context_create(ca_enable_preemptive_callback),"ca_context_create");
     SEVCHK(ca_add_exception_event(exceptionCallback,NULL), "ca_add_exception_event");
 
+    /* TODO, clean up resource when fail */
     /* Monitor static PVs */
     for(loop=0; loop<N_STATIC_PVS; loop++)
     {
@@ -188,13 +267,6 @@ static int BLDMCastTask(void * parg)
         pulsePVs[loop].pTD = callocMustSucceed(1, dbr_size_n(DBR_TIME_DOUBLE, pulsePVs[loop].nElems), "callocMustSucceed");
         /* We don't subscribe to pulse PVs */
     }
-
-    /************************************************************************* Prepare MultiCast *******************************************************************/
-
-
-
-
-
 
 
     /* All ready to go, create event and register with EVR */
@@ -328,6 +400,10 @@ static int BLDMCastTask(void * parg)
        /* do MultiCast */
        if(BLD_MCAST_ENABLE)
        {
+	   if(-1 == sendto(sFd, (void *)&ebeamInfo, sizeof(struct EBEAMINFO), 0, (const struct sockaddr *)&sockaddrDst, sizeof(struct sockaddr_in)))
+	   {
+                if(BLD_MCAST_DEBUG) perror("Multicast sendto failed\n");
+	   }
        }
 
     }
