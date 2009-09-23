@@ -1,4 +1,10 @@
-#!../../bin/linux-x86/BLD
+## Example RTEMS startup script
+
+IOC=pwd()
+cd("../..")
+
+# Load obj file
+ld("bin/RTEMS-beatnik/BLD.obj")
 
 ## You may have to change BLD to something else
 ## everywhere it appears in this file
@@ -6,18 +12,20 @@
 < envPaths
 # Set IOC Shell Prompt as well:
 epicsEnvSet("IOCSH_PS1","ioc-sys0-bld1>")
+putenv ("EPICS_CA_MAX_ARRAY_BYTES=8000000")
+putenv ("EPICS_CA_SERVER_PORT=5068")
 
 cd ${TOP}
 
 ## Register all support components
-dbLoadDatabase "dbd/BLD.dbd"
-BLD_registerRecordDeviceDriver pdbbase
+dbLoadDatabase("dbd/BLD.dbd")
+BLD_registerRecordDeviceDriver(pdbbase)
 
 ## Load record instances
 #dbLoadRecords("db/BLDMCast.db")
 
 ## Load database for autosave/restore status pv's
-dbLoadRecords("db/save_restoreStatus.db","P=IOC:RPTC:ABCS01:")
+dbLoadRecords("db/save_restoreStatus.db","P=IOC:SYS0:BLD1:")
 
 # ======================================================================
 ## Configure AutoSave and Restore
@@ -38,7 +46,7 @@ set_savefile_path("${TOP}/iocBoot/${IOC}/autosave")
 set_pass1_restoreFile("bldParams.sav")
 
 cd ${TOP}/iocBoot/${IOC}
-iocInit
+iocInit()
 
 ## ===========================================================
 ## Start autosave routines to save our data
@@ -56,3 +64,4 @@ BLDMCastStart(1);
 
 ## Start any sequence programs
 #seq sncxxx,"user=pengsHost"
+
