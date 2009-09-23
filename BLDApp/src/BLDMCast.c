@@ -25,6 +25,9 @@
 #include "cantProceed.h"
 #include "errlog.h"
 
+#include "evrTime.h"
+#include "evrPattern.h"
+
 #include "BLDMCast.h"
 
 int BLD_MCAST_ENABLE = 1;
@@ -271,7 +274,8 @@ static int BLDMCastTask(void * parg)
 
     /* All ready to go, create event and register with EVR */
     EVRFireEvent = epicsEventMustCreate(epicsEventEmpty);
-    /* TODO, register EVRFire */
+    /* Register EVRFire */
+    evrTimeRegister((REGISTRYFUNCTION)EVRFire);
 
     while(1)
     {
