@@ -28,6 +28,8 @@
 #include "evrTime.h"
 #include "evrPattern.h"
 
+#include <bsp/gt_timer.h> /* This is MVME6100/5500 only */
+
 #include "BLDMCast.h"
 
 int BLD_MCAST_ENABLE = 1;
@@ -38,6 +40,8 @@ epicsExportAddress(int, BLD_MCAST_DEBUG);
 
 static epicsEventId EVRFireEvent = NULL;
 static epicsMutexId mutexLock = NULL;	/* Protect staticPVs' values */
+
+static uint64_t delayFromFiducial = 0;
 
 static in_addr_t mcastIntfIp = 0;
 static int BLDMCastTask(void * parg);
@@ -56,10 +60,31 @@ int BLDMCastStart(int enable, const char * NIC)
     return (int)(epicsThreadMustCreate("BLDMCast", TASK_PRIORITY, 20480, (EPICSTHREADFUNC)BLDMCastTask, NULL));
 }
 
-int EVRFire()
+void EVRFire(void)
 {/* This funciton will be registered with EVR callback */
+    epicsUInt32 rate_mask = MOD5_30HZ_MASK;  /* can be 30HZ,10HZ,5HZ,1HZ,HALFHZ */
+
+    /* get the current pattern data - check for good status */
+    evrModifier_ta modifier_a;
+    epicsTimeStamp time_s;
+    unsigned long  patternStatus; /* see evrPattern.h for values */
+    int status = evrTimeGetFromPipeline(&time_s,  evrTimeCurrent, modifier_a, &patternStatus, 0,0,0);
+    if (!status)
+    {/* check for LCLS beam and rate-limiting */
+        if ((modifier_a[4] & MOD5_BEAMFULL_MASK) && (modifier_a[4] & rate_mask))
+	{/* ... do beam-sync rate-limited processing here ... */
+	 /* call 'BSP_timer_start()' to set/arm the hardware */
+	    BSP_timer_start( 0, (uint32_t) (delayFromFiducial / 1000000) );
+	}
+    }
+
+    return;
+}
+
+static void evr_timer_isr(void *arg)
+{/* post event/release sema to wakeup worker task here */
     if(EVRFireEvent) epicsEventSignal(EVRFireEvent);
-    return 0;
+    return;
 }
 
 static void printChIdInfo(chid pvChId, char *message)
@@ -132,6 +157,11 @@ static int BLDMCastTask(void * parg)
     unsigned char mcastTTL;
 
     mutexLock = epicsMutexMustCreate();
+
+    /******************************************************************* Setup high resolution timer ***************************************************************/
+    /* you need to setup the timer only once (to connect ISR) */
+    delayFromFiducial = BSP_timer_clock_get(0) * DELAY_FROM_FIDUCIAL;	/* delay from fiducial in us */
+    BSP_timer_setup( 0 /* use first timer */, evr_timer_isr, 0, 0 /* do not reload timer when it expires */);
 
     /************************************************************************* Prepare MultiCast *******************************************************************/
     sFd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -296,7 +326,7 @@ static int BLDMCastTask(void * parg)
             }
         }
 
-        /* EVR fires ok, get pulse PVs */
+        /* Timer fires ok, let's then get pulse PVs */
         rtncode = ECA_NORMAL;
         for(loop=0; loop<N_PULSE_PVS; loop++)
         {
