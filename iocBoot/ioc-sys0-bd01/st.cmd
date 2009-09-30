@@ -21,18 +21,25 @@ cd ${TOP}
 dbLoadDatabase("dbd/BLD.dbd")
 BLD_registerRecordDeviceDriver(pdbbase)
 
-## Load record instances
-#dbLoadRecords("db/BLDMCast.db")
+# Init PMC EVR
+ErConfigure(0, 0, 0, 0, 1)
+
+###########################
+## Load record instances ##
+###########################
+dbLoadRecords("db/IOC-SYS0-BD01.db")
+
+dbLoadRecords("db/BLDMCast.db")
 
 ## Load database for autosave/restore status pv's
-dbLoadRecords("db/save_restoreStatus.db","P=IOC:SYS0:BLD1:")
+dbLoadRecords("db/save_restoreStatus.db","P=IOC:SYS0:BD01:")
 
 # ======================================================================
 ## Configure AutoSave and Restore
 # ================================================================
 cd ${TOP}/iocBoot
 ## autosave/restore settings
-save_restoreSet_status_prefix( "IOC:SYS0:BLD1:")
+save_restoreSet_status_prefix( "IOC:SYS0:BD01:")
 save_restoreSet_IncompleteSetsOk(1)
 save_restoreSet_DatedBackupFiles(1)
 
@@ -60,7 +67,7 @@ makeAutosaveFiles()
 epicsThreadSleep(1)
 create_monitor_set("bldParams.req",30,"")
 
-BLDMCastStart(1);
+BLDMCastStart(0, "");
 
 ## Start any sequence programs
 #seq sncxxx,"user=pengsHost"
