@@ -404,7 +404,7 @@ static int BLDMCastTask(void * parg)
                 {
                     pulsePVs[loop].dataAvailable = FALSE;
                     if(BLD_MCAST_DEBUG) errlogPrintf("%s has unmatched timestamp [0x%08X,0x%08X]\n",
-                                         pulsePVs[loop].name, pTD->stamp.secPastEpoch, pTD->stamp.nsec);
+                                         pulsePVs[loop].name, pulsePVs[loop].pTD->stamp.secPastEpoch, pulsePVs[loop].pTD->stamp.nsec);
                 }
             }
 
