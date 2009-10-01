@@ -64,6 +64,7 @@ cd("/data/autosave-req")
 epicsThreadSleep(1)
 create_monitor_set("bldParams.req",30,0)
 
+BLD_MCAST_DEBUG=2
 BLDMCastStart(0, 0)
 
 ## Start any sequence programs
