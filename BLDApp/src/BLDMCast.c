@@ -32,20 +32,26 @@
 
 #include "BLDMCast.h"
 
+#define MULTICAST
+
 int BLD_MCAST_ENABLE = 1;
 epicsExportAddress(int, BLD_MCAST_ENABLE);
 
 int BLD_MCAST_DEBUG = 0;
 epicsExportAddress(int, BLD_MCAST_DEBUG);
 
+int DELAY_FROM_FIDUCIAL = 2500;	/* in microseconds */
+epicsExportAddress(int, DELAY_FROM_FIDUCIAL);
+
+int DELAY_FOR_CA = 60;	/* in seconds */
+epicsExportAddress(int, DELAY_FOR_CA);
+
+/*==========================================================*/
 static epicsEventId EVRFireEvent = NULL;
 static epicsMutexId mutexLock = NULL;	/* Protect staticPVs' values */
 
-int DELAY_FROM_FIDUCIAL = 3000;	/* in microseconds */
-
-static uint64_t delayFromFiducial = 0;
-
 static in_addr_t mcastIntfIp = 0;
+
 static int BLDMCastTask(void * parg);
 
 int BLDMCastStart(int enable, const char * NIC)
@@ -71,12 +77,16 @@ void EVRFire(void)
     epicsTimeStamp time_s;
     unsigned long  patternStatus; /* see evrPattern.h for values */
     int status = evrTimeGetFromPipeline(&time_s,  evrTimeCurrent, modifier_a, &patternStatus, 0,0,0);
+    /* This is 120Hz. So printf will screw timing */
     if(BLD_MCAST_DEBUG >= 4) errlogPrintf("EVR fires\n");
     if (!status)
     {/* check for LCLS beam and rate-limiting */
         if ((modifier_a[4] & MOD5_BEAMFULL_MASK) && (modifier_a[4] & rate_mask))
 	{/* ... do beam-sync rate-limited processing here ... */
 	 /* call 'BSP_timer_start()' to set/arm the hardware */
+            uint64_t delayFromFiducial = 0;
+
+            /* This is 30Hz. So printf might screw timing */
             if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Timer Starts\n");
             delayFromFiducial = BSP_timer_clock_get(0) * DELAY_FROM_FIDUCIAL;	/* delay from fiducial in us */
 	    BSP_timer_start( 0, (uint32_t) (delayFromFiducial / 1000000) );
@@ -89,6 +99,7 @@ void EVRFire(void)
 static void evr_timer_isr(void *arg)
 {/* post event/release sema to wakeup worker task here */
     if(EVRFireEvent) epicsEventSignal(EVRFireEvent);
+    /* This is 30Hz. So printk might screw timing */
     if(BLD_MCAST_DEBUG >= 3) printk("Timer fires\n");
     return;
 }
@@ -114,6 +125,7 @@ static void exceptionCallback(struct exception_handler_args args)
     errlogPrintf("exceptionCallback stat %s channel %s\n", ca_message(stat),channel);
 }
 
+#if 0
 static void accessRightsCallback(struct access_rights_handler_args args)
 {
     chid	pvChId = args.chid;
@@ -127,6 +139,7 @@ static void connectionCallback(struct connection_handler_args args)
 
     if(BLD_MCAST_DEBUG >= 2) printChIdInfo(pvChId,"connectionCallback");
 }
+#endif
 
 static void eventCallback(struct event_handler_args args)
 {
@@ -143,7 +156,12 @@ static void eventCallback(struct event_handler_args args)
         else
             pPV->dataAvailable = TRUE;
 
-        if(BLD_MCAST_DEBUG >= 2) errlogPrintf("Event Callback: %s, copy type %ld, elements %ld, severity %d\n", ca_name(args.chid), args.type, args.count, pPV->pTD->severity);
+        if(BLD_MCAST_DEBUG >= 2)
+        {
+            errlogPrintf("Event Callback: %s, copy type %ld, elements %ld, bytes %d, severity %d\n",
+                ca_name(args.chid), args.type, args.count, dbr_size_n(args.type, args.count), pPV->pTD->severity);
+            errlogPrintf("Value is %f\n", pPV->pTD->value);
+        }
     }
     else
     {
@@ -169,6 +187,7 @@ static int BLDMCastTask(void * parg)
     BSP_timer_setup( 0 /* use first timer */, evr_timer_isr, 0, 0 /* do not reload timer when it expires */);
 
     /************************************************************************* Prepare MultiCast *******************************************************************/
+#ifdef MULTICAST
     sFd = socket(AF_INET, SOCK_DGRAM, 0);
     if(sFd == -1)
     {
@@ -215,6 +234,7 @@ static int BLDMCastTask(void * parg)
     mcastTTL = MCAST_TTL;
     if (setsockopt(sFd, IPPROTO_IP, IP_MULTICAST_TTL, (char*)&mcastTTL, sizeof(unsigned char) ) < 0 )
     {
+        perror("Set TTL failed\n");
         errlogPrintf("Failed to set TTL for multicast\n");
 	close(sFd);
 	epicsMutexDestroy(mutexLock);
@@ -234,11 +254,16 @@ static int BLDMCastTask(void * parg)
             return -1;
         }
     }
-
+#endif
 
     /************************************************************************* Prepare CA *************************************************************************/
-    printf("Sleep 20 seconds to make sure IOC finishes all initialization!\n");
-    epicsThreadSleep(20.0);
+    printf("Delay %d seconds to wait CA ready!\n", DELAY_FOR_CA);
+    for(loop=DELAY_FOR_CA;loop>0;loop--)
+    {
+        printf("\r%d seconds left!\r", loop);
+        epicsThreadSleep(1.0);
+    }
+    printf("\n");
 
     SEVCHK(ca_context_create(ca_enable_preemptive_callback),"ca_context_create");
     SEVCHK(ca_add_exception_event(exceptionCallback,NULL), "ca_add_exception_event");
@@ -329,7 +354,7 @@ static int BLDMCastTask(void * parg)
         {
             if(status == epicsEventWaitTimeout)
             {
-                errlogPrintf("Wait EVR timeout, check timing?\n");
+                if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Wait EVR timeout, check timing?\n");
                 continue;
             }
             else
@@ -341,6 +366,7 @@ static int BLDMCastTask(void * parg)
         }
 
         /* Timer fires ok, let's then get pulse PVs */
+        /* This is 30Hz. So printf might screw timing */
         if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Do work!\n");
         rtncode = ECA_NORMAL;
         for(loop=0; loop<N_PULSE_PVS; loop++)
@@ -354,7 +380,7 @@ static int BLDMCastTask(void * parg)
                 rtncode = ca_get(DBR_TIME_DOUBLE, pulsePVs[loop].pvChId, (void *)(pulsePVs[loop].pTD));
             }
         }
-        rtncode = ca_pend_io(0.03);
+        rtncode = ca_pend_io(DEFAULT_CA_TIMEOUT);
         if (rtncode != ECA_NORMAL)
         {
             if(BLD_MCAST_DEBUG) errlogPrintf("Something wrong when fetch pulse-by-pulse PVs.\n");
@@ -377,7 +403,8 @@ static int BLDMCastTask(void * parg)
 		if( 0 != memcmp(&(ebeamInfo.timestamp), &(pulsePVs[loop].pTD->stamp), sizeof(epicsTimeStamp)) )
                 {
                     pulsePVs[loop].dataAvailable = FALSE;
-                    if(BLD_MCAST_DEBUG) errlogPrintf("%s has unmatched timestamp\n", pulsePVs[loop].name);
+                    if(BLD_MCAST_DEBUG) errlogPrintf("%s has unmatched timestamp [0x%08X,0x%08X]\n",
+                                         pulsePVs[loop].name, pTD->stamp.secPastEpoch, pTD->stamp.nsec);
                 }
             }
 
@@ -446,6 +473,7 @@ static int BLDMCastTask(void * parg)
             epicsMutexUnlock(mutexLock);
        }
 
+#ifdef MULTICAST
        /* do MultiCast */
        if(BLD_MCAST_ENABLE)
        {
@@ -454,7 +482,7 @@ static int BLDMCastTask(void * parg)
                 if(BLD_MCAST_DEBUG) perror("Multicast sendto failed\n");
 	   }
        }
-
+#endif
     }
 
     /*Should never return from following call*/

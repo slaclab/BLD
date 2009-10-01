@@ -1,2 +1,4 @@
 variable(BLD_MCAST_DEBUG)
 variable(BLD_MCAST_ENABLE)
+variable(DELAY_FROM_FIDUCIAL)
+variable(DELAY_FOR_CA)
