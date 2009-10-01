@@ -16,8 +16,8 @@
 
 #define TASK_PRIORITY	epicsThreadPriorityMax	/* Highest EPICS thread priority */
 
-#define DEFAULT_CA_TIMEOUT	0.03		/* Default CA timeout, for 30Hz */
-#define DEFAULT_EVR_TIMEOUT	0.03		/* Default EVR event timeout, for 30Hz */
+#define DEFAULT_CA_TIMEOUT	0.04		/* Default CA timeout, for 30Hz */
+#define DEFAULT_EVR_TIMEOUT	0.2		/* Default EVR event timeout, for 30Hz */
 
 #define MAX_PV_NAME_LEN 40
 
