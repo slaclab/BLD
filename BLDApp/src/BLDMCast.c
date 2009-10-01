@@ -41,6 +41,8 @@ epicsExportAddress(int, BLD_MCAST_DEBUG);
 static epicsEventId EVRFireEvent = NULL;
 static epicsMutexId mutexLock = NULL;	/* Protect staticPVs' values */
 
+int DELAY_FROM_FIDUCIAL = 3000;	/* in microseconds */
+
 static uint64_t delayFromFiducial = 0;
 
 static in_addr_t mcastIntfIp = 0;
@@ -76,6 +78,7 @@ void EVRFire(void)
 	{/* ... do beam-sync rate-limited processing here ... */
 	 /* call 'BSP_timer_start()' to set/arm the hardware */
             if(BLD_MCAST_DEBUG >= 2) errlogPrintf("Timer Starts\n");
+            delayFromFiducial = BSP_timer_clock_get(0) * DELAY_FROM_FIDUCIAL;	/* delay from fiducial in us */
 	    BSP_timer_start( 0, (uint32_t) (delayFromFiducial / 1000000) );
 	}
     }
@@ -163,7 +166,6 @@ static int BLDMCastTask(void * parg)
 
     /******************************************************************* Setup high resolution timer ***************************************************************/
     /* you need to setup the timer only once (to connect ISR) */
-    delayFromFiducial = BSP_timer_clock_get(0) * DELAY_FROM_FIDUCIAL;	/* delay from fiducial in us */
     BSP_timer_setup( 0 /* use first timer */, evr_timer_isr, 0, 0 /* do not reload timer when it expires */);
 
     /************************************************************************* Prepare MultiCast *******************************************************************/
@@ -248,7 +250,7 @@ static int BLDMCastTask(void * parg)
 	SEVCHK(ca_replace_access_rights_event(staticPVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event");
 
         /* We could do subscription in connetion callback. But in this case, better to enforce all connection */
-        rtncode = ca_pend_io(2.0);
+        rtncode = ca_pend_io(15.0);
         if (rtncode == ECA_TIMEOUT)
         {
             errlogPrintf("Channel connect timed out: '%s' not found.\n", staticPVs[loop].name);
@@ -283,7 +285,7 @@ static int BLDMCastTask(void * parg)
 	SEVCHK(ca_replace_access_rights_event(pulsePVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event");
 
         /* We could do subscription in connetion callback. But in this case, better to enforce all connection */
-        rtncode = ca_pend_io(2.0);
+        rtncode = ca_pend_io(15.0);
         if (rtncode == ECA_TIMEOUT)
         {
             errlogPrintf("Channel connect timed out: '%s' not found.\n", pulsePVs[loop].name);

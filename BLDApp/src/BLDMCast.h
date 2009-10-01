@@ -12,8 +12,6 @@
 
 #include <epicsTime.h>
 
-#define DELAY_FROM_FIDUCIAL 3000	/* in microseconds */
-
 #define CA_PRIORITY	CA_PRIORITY_MAX		/* Highest CA priority */
 
 #define TASK_PRIORITY	epicsThreadPriorityMax	/* Highest EPICS thread priority */
