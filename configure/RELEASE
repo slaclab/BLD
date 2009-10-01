@@ -33,7 +33,7 @@ EPICS_MODULES=$(EPICS_SITE_TOP)/modules
 # ==============================================================
 # Define the version of EPICS BASE that you will use
 # =============================================================
-BASE_MODULE_VERSION=base-R3-14-8-2-lcls2
+BASE_MODULE_VERSION=base-R3-14-8-2-lcls3
 
 # ===============================================================
 # Define the version of modules needed by
@@ -42,14 +42,23 @@ BASE_MODULE_VERSION=base-R3-14-8-2-lcls2
 # the appropriate version dependencies
 # http://www-group.slac.stanford.edu/cdsoft/epics/swModules3.htm
 # ===============================================================
-SEQ_MODULE_VERSION=seq-R2-0-0
-EVENT_MODULE_VERSION=event-R2-8-2
-GENERALTIME_MODULE_VERSION=generalTime-R1-2-1
-SSUBRECORD_MODULE_VERSION=sSubRecord-R1-0-1
-AUTOSAVE_MODULE_VERSION=autosave-R4-4-lcls1
-#RESTORE_MODULE_VERSION=restore-R1-0-2
-IOCADMIN_MODULE_VERSION=iocAdmin-R1-0-1
-MISCUTILS_MODULE_VERSION=miscUtils-R1-0-1
+SEQ_MODULE_VERSION=seq-R2-0-11-lcls1
+EVENT_MODULE_VERSION=event-R3-0-0
+GENERALTIME_MODULE_VERSION=generalTime-R2-0-0
+SSUBRECORD_MODULE_VERSION=sSubRecord-R2-0-0
+AUTOSAVE_MODULE_VERSION=autosave-R4-4-lcls2
+#RESTORE_MODULE_VERSION=restore-R2-0-0
+IOCADMIN_MODULE_VERSION=iocAdmin-R3-1-1
+MISCUTILS_MODULE_VERSION=miscUtils-R2-0-0
+
+#SEQ_MODULE_VERSION=seq-R2-0-0
+#EVENT_MODULE_VERSION=event-R2-8-2
+#GENERALTIME_MODULE_VERSION=generalTime-R1-2-1
+#SSUBRECORD_MODULE_VERSION=sSubRecord-R1-0-1
+#AUTOSAVE_MODULE_VERSION=autosave-R4-4-lcls1
+##RESTORE_MODULE_VERSION=restore-R1-0-2
+#IOCADMIN_MODULE_VERSION=iocAdmin-R1-0-1
+#MISCUTILS_MODULE_VERSION=miscUtils-R1-0-1
 
 # ============================================================
 # Support module locations

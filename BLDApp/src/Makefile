@@ -31,7 +31,7 @@ BLD_LIBS += devMrfEr
 BLD_LIBS += mrfVme64x
 #BLD_LIBS += restore
 BLD_LIBS += autosave
-BLD_LIBS += iocAdmin
+BLD_LIBS += devIocStats
 
 # BLD_registerRecordDeviceDriver.cpp derives from BLD.dbd
 BLD_SRCS += BLDMCast.c
