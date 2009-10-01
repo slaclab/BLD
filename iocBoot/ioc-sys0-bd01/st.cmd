@@ -1,5 +1,10 @@
 ## Example RTEMS startup script
 
+ld("lanIpBasic.obj")
+lanIpSetup("172.27.255.1","255.255.255.0",0,0)
+lanIpDebug=0
+padProtoDebug=0
+
 cd("../..")
 
 # Load obj file
