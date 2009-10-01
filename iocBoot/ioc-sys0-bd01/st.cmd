@@ -1,7 +1,7 @@
 ## Example RTEMS startup script
 
 ld("lanIpBasic.obj")
-lanIpSetup("172.27.255.1","255.255.255.0",0,0)
+lanIpSetup("172.27.225.21","255.255.255.0",0,0)
 lanIpDebug=0
 padProtoDebug=0
 
@@ -70,8 +70,6 @@ epicsThreadSleep(1)
 create_monitor_set("bldParams.req",30,0)
 
 BLD_MCAST_DEBUG=2
-BLDMCastStart(0, 0)
-
-## Start any sequence programs
-#seq sncxxx,"user=pengsHost"
+BLDMCastStart(0, "172.27.225.21")
+#BLDMCastStart(0, 0)
 
