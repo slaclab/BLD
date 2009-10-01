@@ -162,9 +162,6 @@ static int BLDMCastTask(void * parg)
     struct sockaddr_in sockaddrDst;
     unsigned char mcastTTL;
 
-    printf("Sleep 20 seconds to make sure IOC finishes all initialization!\n");
-    epicsThreadSleep(20.0);
-
     mutexLock = epicsMutexMustCreate();
 
     /******************************************************************* Setup high resolution timer ***************************************************************/
@@ -240,6 +237,9 @@ static int BLDMCastTask(void * parg)
 
 
     /************************************************************************* Prepare CA *************************************************************************/
+    printf("Sleep 20 seconds to make sure IOC finishes all initialization!\n");
+    epicsThreadSleep(20.0);
+
     SEVCHK(ca_context_create(ca_enable_preemptive_callback),"ca_context_create");
     SEVCHK(ca_add_exception_event(exceptionCallback,NULL), "ca_add_exception_event");
 
