@@ -53,3 +53,9 @@ file evrEventAll.db
           { IOC:SYS0:BD01 }
 }
 
+file save_restoreStatus.db
+{
+  pattern { P        }
+          { IOC:SYS0:BD01: }
+}
+
