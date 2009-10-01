@@ -69,11 +69,13 @@ void EVRFire(void)
     epicsTimeStamp time_s;
     unsigned long  patternStatus; /* see evrPattern.h for values */
     int status = evrTimeGetFromPipeline(&time_s,  evrTimeCurrent, modifier_a, &patternStatus, 0,0,0);
+    if(BLD_MCAST_DEBUG >= 2) errlogPrintf("EVR fires\n");
     if (!status)
     {/* check for LCLS beam and rate-limiting */
         if ((modifier_a[4] & MOD5_BEAMFULL_MASK) && (modifier_a[4] & rate_mask))
 	{/* ... do beam-sync rate-limited processing here ... */
 	 /* call 'BSP_timer_start()' to set/arm the hardware */
+            if(BLD_MCAST_DEBUG >= 2) errlogPrintf("Timer Starts\n");
 	    BSP_timer_start( 0, (uint32_t) (delayFromFiducial / 1000000) );
 	}
     }
@@ -84,6 +86,7 @@ void EVRFire(void)
 static void evr_timer_isr(void *arg)
 {/* post event/release sema to wakeup worker task here */
     if(EVRFireEvent) epicsEventSignal(EVRFireEvent);
+    if(BLD_MCAST_DEBUG >= 2) printk("Timer fires\n");
     return;
 }
 
@@ -137,7 +140,7 @@ static void eventCallback(struct event_handler_args args)
         else
             pPV->dataAvailable = TRUE;
 
-        if(BLD_MCAST_DEBUG) errlogPrintf("Event Callback: %s, copy type %ld, elements %ld, severity %d\n", ca_name(args.chid), args.type, args.count, pPV->pTD->severity);
+        if(BLD_MCAST_DEBUG >= 2) errlogPrintf("Event Callback: %s, copy type %ld, elements %ld, severity %d\n", ca_name(args.chid), args.type, args.count, pPV->pTD->severity);
     }
     else
     {
@@ -240,7 +243,8 @@ static int BLDMCastTask(void * parg)
     for(loop=0; loop<N_STATIC_PVS; loop++)
     {
         rtncode = ECA_NORMAL;
-	SEVCHK(ca_create_channel(staticPVs[loop].name, connectionCallback, &(staticPVs[loop]), CA_PRIORITY ,&(staticPVs[loop].pvChId)), "ca_create_channel");
+        /* No need for connectionCallback since we want to wait till connected */
+	SEVCHK(ca_create_channel(staticPVs[loop].name, NULL/*connectionCallback*/, NULL/*&(staticPVs[loop])*/, CA_PRIORITY ,&(staticPVs[loop].pvChId)), "ca_create_channel");
 	SEVCHK(ca_replace_access_rights_event(staticPVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event");
 
         /* We could do subscription in connetion callback. But in this case, better to enforce all connection */
@@ -252,7 +256,7 @@ static int BLDMCastTask(void * parg)
         }
         if(staticPVs[loop].nElems != ca_element_count(staticPVs[loop].pvChId))
         {
-            errlogPrintf("Number of elements of '%s' does not match expectation.\n", staticPVs[loop].name);
+            errlogPrintf("Number of elements [%ld] of '%s' does not match expectation.\n", ca_element_count(staticPVs[loop].pvChId), staticPVs[loop].name);
             return -1;
         }
 
@@ -274,7 +278,8 @@ static int BLDMCastTask(void * parg)
     for(loop=0; loop<N_PULSE_PVS; loop++)
     {
         rtncode = ECA_NORMAL;
-	SEVCHK(ca_create_channel(pulsePVs[loop].name, connectionCallback, &(pulsePVs[loop]), CA_PRIORITY ,&(pulsePVs[loop].pvChId)), "ca_create_channel");
+        /* No need for connectionCallback since we want to wait till connected */
+	SEVCHK(ca_create_channel(pulsePVs[loop].name, NULL/*connectionCallback*/, NULL/*&(pulsePVs[loop])*/, CA_PRIORITY ,&(pulsePVs[loop].pvChId)), "ca_create_channel");
 	SEVCHK(ca_replace_access_rights_event(pulsePVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event");
 
         /* We could do subscription in connetion callback. But in this case, better to enforce all connection */
@@ -307,6 +312,7 @@ static int BLDMCastTask(void * parg)
     /* Register EVRFire */
     evrTimeRegister((REGISTRYFUNCTION)EVRFire);
 
+    if(BLD_MCAST_DEBUG >= 2) errlogPrintf("All PVs are successfully connected!\n");
     while(1)
     {
         int status;
@@ -327,6 +333,7 @@ static int BLDMCastTask(void * parg)
         }
 
         /* Timer fires ok, let's then get pulse PVs */
+        if(BLD_MCAST_DEBUG >= 2) errlogPrintf("Do work!\n");
         rtncode = ECA_NORMAL;
         for(loop=0; loop<N_PULSE_PVS; loop++)
         {
