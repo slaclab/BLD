@@ -247,7 +247,8 @@ static int BLDMCastTask(void * parg)
         rtncode = ECA_NORMAL;
         /* No need for connectionCallback since we want to wait till connected */
 	SEVCHK(ca_create_channel(staticPVs[loop].name, NULL/*connectionCallback*/, NULL/*&(staticPVs[loop])*/, CA_PRIORITY ,&(staticPVs[loop].pvChId)), "ca_create_channel");
-	SEVCHK(ca_replace_access_rights_event(staticPVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event");
+        /* Not very necessary */
+	/* SEVCHK(ca_replace_access_rights_event(staticPVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event"); */
 
         /* We could do subscription in connetion callback. But in this case, better to enforce all connection */
         rtncode = ca_pend_io(15.0);
@@ -282,7 +283,8 @@ static int BLDMCastTask(void * parg)
         rtncode = ECA_NORMAL;
         /* No need for connectionCallback since we want to wait till connected */
 	SEVCHK(ca_create_channel(pulsePVs[loop].name, NULL/*connectionCallback*/, NULL/*&(pulsePVs[loop])*/, CA_PRIORITY ,&(pulsePVs[loop].pvChId)), "ca_create_channel");
-	SEVCHK(ca_replace_access_rights_event(pulsePVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event");
+        /* Not very necessary */
+	/* SEVCHK(ca_replace_access_rights_event(pulsePVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event"); */
 
         /* We could do subscription in connetion callback. But in this case, better to enforce all connection */
         rtncode = ca_pend_io(15.0);
