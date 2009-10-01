@@ -71,13 +71,13 @@ void EVRFire(void)
     epicsTimeStamp time_s;
     unsigned long  patternStatus; /* see evrPattern.h for values */
     int status = evrTimeGetFromPipeline(&time_s,  evrTimeCurrent, modifier_a, &patternStatus, 0,0,0);
-    if(BLD_MCAST_DEBUG >= 2) errlogPrintf("EVR fires\n");
+    if(BLD_MCAST_DEBUG >= 4) errlogPrintf("EVR fires\n");
     if (!status)
     {/* check for LCLS beam and rate-limiting */
         if ((modifier_a[4] & MOD5_BEAMFULL_MASK) && (modifier_a[4] & rate_mask))
 	{/* ... do beam-sync rate-limited processing here ... */
 	 /* call 'BSP_timer_start()' to set/arm the hardware */
-            if(BLD_MCAST_DEBUG >= 2) errlogPrintf("Timer Starts\n");
+            if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Timer Starts\n");
             delayFromFiducial = BSP_timer_clock_get(0) * DELAY_FROM_FIDUCIAL;	/* delay from fiducial in us */
 	    BSP_timer_start( 0, (uint32_t) (delayFromFiducial / 1000000) );
 	}
@@ -89,7 +89,7 @@ void EVRFire(void)
 static void evr_timer_isr(void *arg)
 {/* post event/release sema to wakeup worker task here */
     if(EVRFireEvent) epicsEventSignal(EVRFireEvent);
-    if(BLD_MCAST_DEBUG >= 2) printk("Timer fires\n");
+    if(BLD_MCAST_DEBUG >= 3) printk("Timer fires\n");
     return;
 }
 
@@ -161,6 +161,9 @@ static int BLDMCastTask(void * parg)
     struct sockaddr_in sockaddrSrc;
     struct sockaddr_in sockaddrDst;
     unsigned char mcastTTL;
+
+    printf("Sleep 20 seconds to make sure IOC finishes all initialization!\n");
+    epicsThreadSleep(20.0);
 
     mutexLock = epicsMutexMustCreate();
 
@@ -316,7 +319,8 @@ static int BLDMCastTask(void * parg)
     /* Register EVRFire */
     evrTimeRegister((REGISTRYFUNCTION)EVRFire);
 
-    if(BLD_MCAST_DEBUG >= 2) errlogPrintf("All PVs are successfully connected!\n");
+    printf("All PVs are successfully connected!\n");
+
     while(1)
     {
         int status;
@@ -337,7 +341,7 @@ static int BLDMCastTask(void * parg)
         }
 
         /* Timer fires ok, let's then get pulse PVs */
-        if(BLD_MCAST_DEBUG >= 2) errlogPrintf("Do work!\n");
+        if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Do work!\n");
         rtncode = ECA_NORMAL;
         for(loop=0; loop<N_PULSE_PVS; loop++)
         {
