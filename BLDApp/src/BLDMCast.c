@@ -40,7 +40,7 @@ epicsExportAddress(int, BLD_MCAST_ENABLE);
 int BLD_MCAST_DEBUG = 0;
 epicsExportAddress(int, BLD_MCAST_DEBUG);
 
-int DELAY_FROM_FIDUCIAL = 2500;	/* in microseconds */
+int DELAY_FROM_FIDUCIAL = 3500;	/* in microseconds */
 epicsExportAddress(int, DELAY_FROM_FIDUCIAL);
 
 int DELAY_FOR_CA = 60;	/* in seconds */
