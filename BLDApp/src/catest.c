@@ -18,6 +18,5 @@ int catest(char * name)
     SEVCHK(ca_pend_io(5.0),"ca_pend_io failure");
     printf("%s %f\n",name,data);
     SEVCHK(ca_clear_channel(mychid),"ca_create_channel failure");
-    ca_context_destroy();
     return(0);
 }
