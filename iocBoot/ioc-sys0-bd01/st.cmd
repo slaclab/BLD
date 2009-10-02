@@ -1,9 +1,9 @@
 ## Example RTEMS startup script
 
-ld("lanIpBasic.obj")
-lanIpSetup("172.27.225.21","255.255.255.0",0,0)
-lanIpDebug=0
-padProtoDebug=0
+#ld("lanIpBasic.obj")
+#lanIpSetup("172.27.225.21","255.255.255.192",0,0)
+#lanIpDebug=0
+#padProtoDebug=0
 
 cd("../..")
 
@@ -16,8 +16,10 @@ ld("bin/RTEMS-beatnik/BLD.obj")
 ##< envPaths
 # Set IOC Shell Prompt as well:
 epicsEnvSet("IOCSH_PS1","ioc-sys0-bld1>")
-putenv ("EPICS_CA_MAX_ARRAY_BYTES=8000000")
-putenv ("EPICS_CA_SERVER_PORT=5068")
+setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
+
+#putenv ("EPICS_CA_MAX_ARRAY_BYTES=8000000")
+#putenv ("EPICS_CA_SERVER_PORT=5068")
 
 ## Register all support components
 dbLoadDatabase("dbd/BLD.dbd")
@@ -69,7 +71,8 @@ cd("/data/autosave-req")
 epicsThreadSleep(1)
 create_monitor_set("bldParams.req",30,0)
 
-BLD_MCAST_DEBUG=2
+#BLD_MCAST_DEBUG=2
+#DELAY_FOR_CA=30
 BLDMCastStart(0, "172.27.225.21")
 #BLDMCastStart(0, 0)
 
