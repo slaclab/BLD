@@ -7,3 +7,17 @@ TODO: Add autoSaveRestore.
 R1-0:
 The first release.
 
+R1-1:
+Add PINI YES to local PVs
+Add iocAdmin and EVR db
+Add delay for CA
+Make timer delay longer and changable on console
+Add more debug info and organize level 4 for 120Hz, level 3 for 30Hz
+Remove connection callback and access right callback
+Compile against RTEMS 4.9.1
+
+TODO: Somehow ca_context_destroy causes problem
+      Takes long time to connect to a external PV
+      Local PV callback has wrong number of elements and wrong value
+      Multicast on RTEMS
+
