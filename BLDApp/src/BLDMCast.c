@@ -32,6 +32,7 @@
 
 #include "BLDMCast.h"
 
+#define FETCH_PULSE_PVS
 #define MULTICAST
 
 int BLD_MCAST_ENABLE = 1;
@@ -248,7 +249,7 @@ static int BLDMCastTask(void * parg)
 
         if(setsockopt(sFd, IPPROTO_IP, IP_MULTICAST_IF, (char*)&address, sizeof(struct in_addr) ) < 0)
         {
-            errlogPrintf("Failed to set TTL for multicast\n");
+            errlogPrintf("Failed to set interface for multicast\n");
 	    close(sFd);
 	    epicsMutexDestroy(mutexLock);
             return -1;
@@ -260,7 +261,7 @@ static int BLDMCastTask(void * parg)
     printf("Delay %d seconds to wait CA ready!\n", DELAY_FOR_CA);
     for(loop=DELAY_FOR_CA;loop>0;loop--)
     {
-        printf("\r%d seconds left!\r", loop);
+        printf("\r%d seconds left!\n", loop);
         epicsThreadSleep(1.0);
     }
     printf("\n");
@@ -302,7 +303,7 @@ static int BLDMCastTask(void * parg)
         SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, 0, staticPVs[loop].pvChId, DBE_VALUE|DBE_ALARM, eventCallback, &(staticPVs[loop]), NULL), "ca_create_subscription");
     }
 
-    /* ca_flush_io(); */
+    ca_flush_io();
     /* ca_pend_event(2.0); */
 
     /* We only fetch pulse PVs */
@@ -335,8 +336,14 @@ static int BLDMCastTask(void * parg)
 
         /* Everything should be double, even not, do conversion */
         pulsePVs[loop].pTD = callocMustSucceed(1, dbr_size_n(DBR_TIME_DOUBLE, pulsePVs[loop].nElems), "callocMustSucceed");
+#ifdef FETCH_PULSE_PVS
         /* We don't subscribe to pulse PVs */
     }
+#else
+        SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, 0, pulsePVs[loop].pvChId, DBE_VALUE|DBE_ALARM, eventCallback, &(pulsePVs[loop]), NULL), "ca_create_subscription");
+    }
+    ca_flush_io();
+#endif
 
 
     /* All ready to go, create event and register with EVR */
@@ -365,6 +372,7 @@ static int BLDMCastTask(void * parg)
             }
         }
 
+#ifdef FETCH_PULSE_PVS
         /* Timer fires ok, let's then get pulse PVs */
         /* This is 30Hz. So printf might screw timing */
         if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Do work!\n");
@@ -387,6 +395,7 @@ static int BLDMCastTask(void * parg)
             ebeamInfo.uDamageMask = 0x0; /* no information available */
 	    ebeamInfo.uDamage = ebeamInfo.uDamage2 = EBEAM_INFO_ERROR;
         }
+#endif
 	else
 	{/* Got all PVs, do calculation including checking severity and timestamp */
 	    /* Assume the first timestamp is right */
