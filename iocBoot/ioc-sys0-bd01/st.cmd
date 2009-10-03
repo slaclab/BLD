@@ -1,9 +1,21 @@
-## Example RTEMS startup script
-
+#########################################
+## So far lanIpBasic has no MC support ##
+#########################################
 #ld("lanIpBasic.obj")
 #lanIpSetup("172.27.225.21","255.255.255.192",0,0)
 #lanIpDebug=0
 #padProtoDebug=0
+
+#########################################
+## So we just use second port and BSD  ##
+#########################################
+ld("miscUtils.obj")
+
+## Attach 2nd NIC to BSD stack:
+ifattach( "mve2", rtems_mve_attach, 0 )
+
+## Configure 2nd NIC
+ifconf( "mve2", "172.27.225.21", "255.255.255.192" )
 
 cd("../..")
 
@@ -15,7 +27,7 @@ ld("bin/RTEMS-beatnik/BLD.obj")
 
 ##< envPaths
 # Set IOC Shell Prompt as well:
-epicsEnvSet("IOCSH_PS1","ioc-sys0-bld1>")
+epicsEnvSet("IOCSH_PS1","ioc-sys0-bd01>")
 setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
 
 #putenv ("EPICS_CA_MAX_ARRAY_BYTES=8000000")
@@ -73,6 +85,6 @@ create_monitor_set("bldParams.req",30,0)
 
 #BLD_MCAST_DEBUG=2
 #DELAY_FOR_CA=30
-BLDMCastStart(0, "172.27.225.21")
 #BLDMCastStart(0, 0)
+BLDMCastStart(0, "172.27.225.21")
 
