@@ -65,25 +65,21 @@ int camon(const char * pvname)
 {
     MYNODE	*pmynode;
 
-	pmynode = (MYNODE *)calloc(1,sizeof(MYNODE));
-	strcpy(pmynode->pvname, pvname);
+    pmynode = (MYNODE *)calloc(1,sizeof(MYNODE));
+    strcpy(pmynode->pvname, pvname);
 
     SEVCHK(ca_context_create(ca_enable_preemptive_callback),"ca_context_create");
     SEVCHK(ca_add_exception_event(exceptionCallback,NULL), "ca_add_exception_event");
 
-	SEVCHK(ca_create_channel(pmynode->pvname,NULL,
-		NULL,20,&(pmynode->mychid)),
-		"ca_create_channel");
+    SEVCHK(ca_create_channel(pmynode->pvname,NULL, NULL,20,&(pmynode->mychid)), "ca_create_channel");
     SEVCHK(ca_pend_io(10.0),"ca_pend_event");
 #if 0
-	SEVCHK(ca_add_event(DBR_TIME_DOUBLE,pmynode->mychid,eventCallback,
-		pmynode,&(pmynode->myevid)), 
-		"ca_add_event");
+    SEVCHK(ca_add_event(DBR_TIME_DOUBLE,pmynode->mychid,eventCallback, pmynode,&(pmynode->myevid)), "ca_add_event");
 #else
-        SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, 0, pmynode->mychid, DBE_VALUE|DBE_ALARM, eventCallback, pmynode, &(pmynode->myevid)), "ca_create_subscription");
+    SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, 0, pmynode->mychid, DBE_VALUE|DBE_ALARM, eventCallback, pmynode, &(pmynode->myevid)), "ca_create_subscription");
 #endif
-    /*Should never return from following call*/
-    /* SEVCHK(ca_pend_event(10.0),"ca_pend_event"); */
+    ca_flush_io();
+
     while('q' != getchar()){};
     ca_clear_subscription(pmynode->myevid);
     ca_clear_channel(pmynode->mychid);
