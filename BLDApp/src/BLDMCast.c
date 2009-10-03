@@ -171,6 +171,21 @@ static void eventCallback(struct event_handler_args args)
     epicsMutexUnlock(mutexLock);
 }
 
+#ifndef vxWorks
+static void binvert(char * pBuf, int nBytes)
+{
+        int loop;
+        char temp;
+        for(loop=0;loop<nBytes/2;loop++)
+        {
+                temp = pBuf[loop];
+                pBuf[loop] = pBuf[nBytes-1-loop];
+                pBuf[nBytes-1-loop] = temp;
+        }
+        return;
+}
+#endif
+
 static int BLDMCastTask(void * parg)
 {
     int		loop;
@@ -486,6 +501,11 @@ static int BLDMCastTask(void * parg)
        /* do MultiCast */
        if(BLD_MCAST_ENABLE)
        {
+           int ipos;
+           for(ipos=0;ipos<16;ipos++)
+               binvert( ((char *)&ebeamInfo)+ipos*4, 4);
+           for(ipos=8;ipos<14;ipos++)
+               binvert( ((char *)&ebeamInfo)+ipos*8, 8);
 	   if(-1 == sendto(sFd, (void *)&ebeamInfo, sizeof(struct EBEAMINFO), 0, (const struct sockaddr *)&sockaddrDst, sizeof(struct sockaddr_in)))
 	   {
                 if(BLD_MCAST_DEBUG) perror("Multicast sendto failed\n");
