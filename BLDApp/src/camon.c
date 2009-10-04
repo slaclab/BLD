@@ -73,7 +73,7 @@ int camon(const char * pvname)
 
     SEVCHK(ca_create_channel(pmynode->pvname,NULL, NULL,20,&(pmynode->mychid)), "ca_create_channel");
     SEVCHK(ca_pend_io(10.0),"ca_pend_event");
-#if 0
+#if 1
     SEVCHK(ca_add_event(DBR_TIME_DOUBLE,pmynode->mychid,eventCallback, pmynode,&(pmynode->myevid)), "ca_add_event");
 #else
     SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, 0, pmynode->mychid, DBE_VALUE|DBE_ALARM, eventCallback, pmynode, &(pmynode->myevid)), "ca_create_subscription");
@@ -81,7 +81,11 @@ int camon(const char * pvname)
     ca_flush_io();
 
     while('q' != getchar()){};
+#if 1
+    ca_clear_event(pmynode->myevid);
+#else
     ca_clear_subscription(pmynode->myevid);
+#endif
     ca_clear_channel(pmynode->mychid);
     return(0);
 }

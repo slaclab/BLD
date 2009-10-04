@@ -33,6 +33,7 @@
 #include "BLDMCast.h"
 
 #define FETCH_PULSE_PVS
+#define USE_CA_ADD_EVENT
 #define MULTICAST
 
 int BLD_MCAST_ENABLE = 1;
@@ -315,7 +316,11 @@ static int BLDMCastTask(void * parg)
 
         /* Everything should be double, even not, do conversion */
         staticPVs[loop].pTD = callocMustSucceed(1, dbr_size_n(DBR_TIME_DOUBLE, staticPVs[loop].nElems), "callocMustSucceed");
+#ifdef USE_CA_ADD_EVENT
+        SEVCHK(ca_add_event(DBR_TIME_DOUBLE, staticPVs[loop].pvChId, eventCallback, &(staticPVs[loop]), NULL), "ca_add_event");
+#else
         SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, 0, staticPVs[loop].pvChId, DBE_VALUE|DBE_ALARM, eventCallback, &(staticPVs[loop]), NULL), "ca_create_subscription");
+#endif
     }
 
     ca_flush_io();
@@ -355,7 +360,11 @@ static int BLDMCastTask(void * parg)
         /* We don't subscribe to pulse PVs */
     }
 #else
+#ifdef USE_CA_ADD_EVENT
+        SEVCHK(ca_add_event(DBR_TIME_DOUBLE, pulsePVs[loop].pvChId, eventCallback, &(pulsePVs[loop]), NULL), "ca_add_event");
+#else
         SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, 0, pulsePVs[loop].pvChId, DBE_VALUE|DBE_ALARM, eventCallback, &(pulsePVs[loop]), NULL), "ca_create_subscription");
+#endif
     }
     ca_flush_io();
 #endif
