@@ -61,7 +61,7 @@ static void eventCallback(struct event_handler_args eha)
     }
 }
 
-int camon(const char * pvname)
+int camon(const char * pvname, unsigned long count)
 {
     MYNODE	*pmynode;
 
@@ -74,7 +74,14 @@ int camon(const char * pvname)
     SEVCHK(ca_create_channel(pmynode->pvname,NULL, NULL,20,&(pmynode->mychid)), "ca_create_channel");
     SEVCHK(ca_pend_io(10.0),"ca_pend_event");
 #if 1
-    SEVCHK(ca_add_event(DBR_TIME_DOUBLE,pmynode->mychid,eventCallback, pmynode,&(pmynode->myevid)), "ca_add_event");
+    if(count>1)
+    {
+        SEVCHK(ca_add_array_event(DBR_TIME_DOUBLE, count, pmynode->mychid,eventCallback, pmynode,0.0, 0.0, 0.0,&(pmynode->myevid)), "ca_add_array_event");
+    }
+    else
+    {
+        SEVCHK(ca_add_event(DBR_TIME_DOUBLE,pmynode->mychid,eventCallback, pmynode,&(pmynode->myevid)), "ca_add_event");
+    }
 #else
     SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, 0, pmynode->mychid, DBE_VALUE|DBE_ALARM, eventCallback, pmynode, &(pmynode->myevid)), "ca_create_subscription");
 #endif

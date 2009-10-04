@@ -317,9 +317,16 @@ static int BLDMCastTask(void * parg)
         /* Everything should be double, even not, do conversion */
         staticPVs[loop].pTD = callocMustSucceed(1, dbr_size_n(DBR_TIME_DOUBLE, staticPVs[loop].nElems), "callocMustSucceed");
 #ifdef USE_CA_ADD_EVENT
-        SEVCHK(ca_add_event(DBR_TIME_DOUBLE, staticPVs[loop].pvChId, eventCallback, &(staticPVs[loop]), NULL), "ca_add_event");
+        if(staticPVs[loop].nElems > 1)
+        {
+            SEVCHK(ca_add_array_event(DBR_TIME_DOUBLE, staticPVs[loop].nElems, staticPVs[loop].pvChId, eventCallback, &(staticPVs[loop]), 0.0, 0.0, 0.0, NULL), "ca_add_array_event");
+        }
+        else
+        {
+            SEVCHK(ca_add_event(DBR_TIME_DOUBLE, staticPVs[loop].pvChId, eventCallback, &(staticPVs[loop]), NULL), "ca_add_event");
+        }
 #else
-        SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, 0, staticPVs[loop].pvChId, DBE_VALUE|DBE_ALARM, eventCallback, &(staticPVs[loop]), NULL), "ca_create_subscription");
+        SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, staticPVs[loop].nElems, staticPVs[loop].pvChId, DBE_VALUE|DBE_ALARM, eventCallback, &(staticPVs[loop]), NULL), "ca_create_subscription");
 #endif
     }
 
@@ -361,9 +368,16 @@ static int BLDMCastTask(void * parg)
     }
 #else
 #ifdef USE_CA_ADD_EVENT
-        SEVCHK(ca_add_event(DBR_TIME_DOUBLE, pulsePVs[loop].pvChId, eventCallback, &(pulsePVs[loop]), NULL), "ca_add_event");
+        if(pulsePVs[loop].nElems > 1)
+        {
+            SEVCHK(ca_add_array_event(DBR_TIME_DOUBLE, pulsePVs[loop].nElems, pulsePVs[loop].pvChId, eventCallback, &(pulsePVs[loop]), 0.0, 0.0, 0.0, NULL), "ca_add_array_event");
+        }
+        else
+        {
+            SEVCHK(ca_add_event(DBR_TIME_DOUBLE, pulsePVs[loop].pvChId, eventCallback, &(pulsePVs[loop]), NULL), "ca_add_event");
+        }
 #else
-        SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, 0, pulsePVs[loop].pvChId, DBE_VALUE|DBE_ALARM, eventCallback, &(pulsePVs[loop]), NULL), "ca_create_subscription");
+        SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, pulsePVs[loop].nElems, pulsePVs[loop].pvChId, DBE_VALUE|DBE_ALARM, eventCallback, &(pulsePVs[loop]), NULL), "ca_create_subscription");
 #endif
     }
     ca_flush_io();
