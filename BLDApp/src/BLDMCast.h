@@ -86,7 +86,7 @@ static BLDPV pulsePVs[]=
 #if 0
     Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
 #endif
-    {"BPMS:IN20:221:TMITBR", 1, FALSE, NULL, NULL},	/* Charge in Nel, 1.602e-10 nC per Nel*/
+    {"BPMS:IN20:221:TMIT", 1, FALSE, NULL, NULL},	/* Charge in Nel, 1.602e-10 nC per Nel*/
 
 #if 0
     Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
@@ -95,8 +95,8 @@ static BLDPV pulsePVs[]=
     BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
     BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
 #endif
-    {"BPMS:LTU1:250:XBR", 1, FALSE, NULL, NULL},	/* Energy in MeV */
-    {"BPMS:LTU1:450:XBR", 1, FALSE, NULL, NULL},	/* Energy in MeV */
+    {"BPMS:LTU1:250:X", 1, FALSE, NULL, NULL},	/* Energy in MeV */
+    {"BPMS:LTU1:450:X", 1, FALSE, NULL, NULL},	/* Energy in MeV */
 
 #if 0
     Position X, Y, Angle X, Y at LTU:
@@ -124,14 +124,14 @@ static BLDPV pulsePVs[]=
          R31 R32 R33 R34]     //rmat elements for bpm4y
 #endif
 
-    {"BPMS:LTU1:720:XBR", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
-    {"BPMS:LTU1:730:XBR", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
-    {"BPMS:LTU1:740:XBR", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
-    {"BPMS:LTU1:750:XBR", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
-    {"BPMS:LTU1:720:YBR", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
-    {"BPMS:LTU1:730:YBR", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
-    {"BPMS:LTU1:740:YBR", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
-    {"BPMS:LTU1:750:YBR", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+    {"BPMS:LTU1:720:X", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+    {"BPMS:LTU1:730:X", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+    {"BPMS:LTU1:740:X", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+    {"BPMS:LTU1:750:X", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+    {"BPMS:LTU1:720:Y", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+    {"BPMS:LTU1:730:Y", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+    {"BPMS:LTU1:740:Y", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+    {"BPMS:LTU1:750:Y", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
 };
 #define N_PULSE_PVS (sizeof(pulsePVs)/sizeof(struct BLDPV))
 
