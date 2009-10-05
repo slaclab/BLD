@@ -21,3 +21,11 @@ TODO: Somehow ca_context_destroy causes problem
       Local PV callback has wrong number of elements and wrong value
       Multicast on RTEMS
 
+R1-2:
+Enable the second Ethernet port with BSD stack
+Clean up camon.c
+Fix typo of error message. Add ca_flush_io just in case. Add option for monitoring pulsePVs
+Add byte-order swap
+Add option to use ca_add_event
+Use original PVs rather than BSA PVs
+
