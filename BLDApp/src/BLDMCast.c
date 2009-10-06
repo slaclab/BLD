@@ -24,6 +24,8 @@
 #include "alarm.h"
 #include "cantProceed.h"
 #include "errlog.h"
+#include "epicsExit.h"
+#include "epicsThread.h"
 
 #include "evrTime.h"
 #include "evrPattern.h"
@@ -32,9 +34,9 @@
 
 #include "BLDMCast.h"
 
-#define FETCH_PULSE_PVS
-#define USE_CA_ADD_EVENT
-#define MULTICAST
+#define FETCH_PULSE_PVS	/* Otherwise we monitor pulse PVs */
+#define USE_CA_ADD_EVENT	/* ca_create_subscription seems buggy */
+#define MULTICAST	/* Use multicast interface */
 
 int BLD_MCAST_ENABLE = 1;
 epicsExportAddress(int, BLD_MCAST_ENABLE);
@@ -42,11 +44,15 @@ epicsExportAddress(int, BLD_MCAST_ENABLE);
 int BLD_MCAST_DEBUG = 0;
 epicsExportAddress(int, BLD_MCAST_DEBUG);
 
-int DELAY_FROM_FIDUCIAL = 3500;	/* in microseconds */
+int DELAY_FROM_FIDUCIAL = 5000;	/* in microseconds */
 epicsExportAddress(int, DELAY_FROM_FIDUCIAL);
 
 int DELAY_FOR_CA = 60;	/* in seconds */
 epicsExportAddress(int, DELAY_FOR_CA);
+
+int bldAllPVsConnected = FALSE;
+int bldInvalidAlarmCount = 0;
+int bldUnmatchedTSCount = 0;
 
 /*==========================================================*/
 static epicsEventId EVRFireEvent = NULL;
@@ -55,6 +61,8 @@ static epicsMutexId mutexLock = NULL;	/* Protect staticPVs' values */
 static in_addr_t mcastIntfIp = 0;
 
 static int BLDMCastTask(void * parg);
+static void BLDMCastTaskEnd(void * parg);
+static void evr_timer_isr(void *arg);
 
 int BLDMCastStart(int enable, const char * NIC)
 {/* This funciton will be called in st.cmd after iocInit() */
@@ -67,6 +75,15 @@ int BLDMCastStart(int enable, const char * NIC)
 	errlogPrintf("Illegal MultiCast NIC IP\n");
 	return -1;
     }
+
+    mutexLock = epicsMutexMustCreate();
+
+    /******************************************************************* Setup high resolution timer ***************************************************************/
+    /* you need to setup the timer only once (to connect ISR) */
+    BSP_timer_setup( 0 /* use first timer */, evr_timer_isr, 0, 0 /* do not reload timer when it expires */);
+
+    epicsAtExit(BLDMCastTaskEnd, NULL);
+
     return (int)(epicsThreadMustCreate("BLDMCast", TASK_PRIORITY, 20480, (EPICSTHREADFUNC)BLDMCastTask, NULL));
 }
 
@@ -187,6 +204,47 @@ static void binvert(char * pBuf, int nBytes)
 }
 #endif
 
+static void BLDMCastTaskEnd(void * parg)
+{
+    int loop;
+
+    bldAllPVsConnected = FALSE;
+    epicsThreadSleep(2.0);
+
+    epicsMutexLock(mutexLock);
+    for(loop=0; loop<N_STATIC_PVS; loop++)
+    {
+        if(staticPVs[loop].pvChId)
+        {
+            ca_clear_channel(staticPVs[loop].pvChId);
+            staticPVs[loop].pvChId = NULL;
+        }
+        if(staticPVs[loop].pTD)
+        {
+            free(staticPVs[loop].pTD);
+            staticPVs[loop].pTD = NULL;
+        }
+    }
+
+    for(loop=0; loop<N_PULSE_PVS; loop++)
+    {
+        if(pulsePVs[loop].pvChId)
+        {
+            ca_clear_channel(pulsePVs[loop].pvChId);
+            pulsePVs[loop].pvChId = NULL;
+        }
+        if(pulsePVs[loop].pTD)
+        {
+            free(pulsePVs[loop].pTD);
+            pulsePVs[loop].pTD = NULL;
+        }
+    }
+    epicsMutexUnlock(mutexLock);
+    printf("BLDMCastTaskEnd\n");
+
+    return;
+}
+
 static int BLDMCastTask(void * parg)
 {
     int		loop;
@@ -196,12 +254,6 @@ static int BLDMCastTask(void * parg)
     struct sockaddr_in sockaddrSrc;
     struct sockaddr_in sockaddrDst;
     unsigned char mcastTTL;
-
-    mutexLock = epicsMutexMustCreate();
-
-    /******************************************************************* Setup high resolution timer ***************************************************************/
-    /* you need to setup the timer only once (to connect ISR) */
-    BSP_timer_setup( 0 /* use first timer */, evr_timer_isr, 0, 0 /* do not reload timer when it expires */);
 
     /************************************************************************* Prepare MultiCast *******************************************************************/
 #ifdef MULTICAST
@@ -389,9 +441,10 @@ static int BLDMCastTask(void * parg)
     /* Register EVRFire */
     evrTimeRegister((REGISTRYFUNCTION)EVRFire);
 
+    bldAllPVsConnected = TRUE;
     printf("All PVs are successfully connected!\n");
 
-    while(1)
+    while(bldAllPVsConnected)
     {
         int status;
         status = epicsEventWaitWithTimeout(EVRFireEvent, DEFAULT_EVR_TIMEOUT);
@@ -430,7 +483,7 @@ static int BLDMCastTask(void * parg)
         if (rtncode != ECA_NORMAL)
         {
             if(BLD_MCAST_DEBUG) errlogPrintf("Something wrong when fetch pulse-by-pulse PVs.\n");
-            ebeamInfo.uDamageMask = 0x0; /* no information available */
+            ebeamInfo.uDamageMask = 0xffffffff; /* no information available */
 	    ebeamInfo.uDamage = ebeamInfo.uDamage2 = EBEAM_INFO_ERROR;
         }
 #endif
@@ -442,16 +495,19 @@ static int BLDMCastTask(void * parg)
 
             for(loop=0; loop<N_PULSE_PVS; loop++)
             {
+                pulsePVs[loop].dataAvailable = TRUE;
                 if(pulsePVs[loop].pTD->severity >= INVALID_ALARM )
                 {
                     pulsePVs[loop].dataAvailable = FALSE;
+                    bldInvalidAlarmCount++;
                     if(BLD_MCAST_DEBUG) errlogPrintf("%s has severity %d\n", pulsePVs[loop].name, pulsePVs[loop].pTD->severity);
                 }
 		if( 0 != memcmp(&(ebeamInfo.timestamp), &(pulsePVs[loop].pTD->stamp), sizeof(epicsTimeStamp)) )
                 {
                     pulsePVs[loop].dataAvailable = FALSE;
-                    if(BLD_MCAST_DEBUG) errlogPrintf("%s has unmatched timestamp [0x%08X,0x%08X]\n",
-                                         pulsePVs[loop].name, pulsePVs[loop].pTD->stamp.secPastEpoch, pulsePVs[loop].pTD->stamp.nsec);
+                    bldUnmatchedTSCount++;
+                    if(BLD_MCAST_DEBUG) errlogPrintf("%s has unmatched timestamp.nsec [0x%08X,0x%08X]\n",
+                                         pulsePVs[loop].name, ebeamInfo.timestamp.nsec, pulsePVs[loop].pTD->stamp.nsec);
                 }
             }
 
