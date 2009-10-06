@@ -16,11 +16,6 @@ Add more debug info and organize level 4 for 120Hz, level 3 for 30Hz
 Remove connection callback and access right callback
 Compile against RTEMS 4.9.1
 
-TODO: Somehow ca_context_destroy causes problem
-      Takes long time to connect to a external PV
-      Local PV callback has wrong number of elements and wrong value
-      Multicast on RTEMS
-
 R1-2:
 Enable the second Ethernet port with BSD stack
 Clean up camon.c
@@ -28,4 +23,15 @@ Fix typo of error message. Add ca_flush_io just in case. Add option for monitori
 Add byte-order swap
 Add option to use ca_add_event
 Use original PVs rather than BSA PVs
+
+R1-3:
+Clean up, print full array with printf in camon.c
+Add more comments, add diagnostics info, add ca_clear_channel for epicsExit and fix bug by init dataAvailable = TRUE
+The first version in production.
+
+TODO: Somehow ca_context_destroy causes problem
+      Takes long time to connect to a external PV
+      Local PV callback has wrong number of elements and wrong value
+      Some CA env does not work
+      Multicast on RTEMS
 
