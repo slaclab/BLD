@@ -28,7 +28,13 @@ ld("bin/RTEMS-beatnik/BLD.obj")
 ##< envPaths
 # Set IOC Shell Prompt as well:
 epicsEnvSet("IOCSH_PS1","ioc-sys0-bd01>")
+
 setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
+setenv("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
+setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
+
+#setenv("EPICS_CA_AUTO_ADDR_LIST","NO")
+#setenv("EPICS_CA_ADDR_LIST","172.27.11.54 172.27.9.76 172.27.9.77 172.27.9.78")
 
 #putenv ("EPICS_CA_MAX_ARRAY_BYTES=8000000")
 #putenv ("EPICS_CA_SERVER_PORT=5068")
