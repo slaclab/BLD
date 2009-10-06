@@ -50,13 +50,20 @@ static void eventCallback(struct event_handler_args eha)
 {
     chid	chid = eha.chid;
 
-    if(eha.status!=ECA_NORMAL) {
-	printChidInfo(chid,"eventCallback");
-    } else {
+    if(eha.status!=ECA_NORMAL)
+    {
+        printChidInfo(chid,"eventCallback");
+    }
+    else
+    {
+        int i;
+        double *pval;
 	struct dbr_time_double	*pdata = (struct dbr_time_double *)eha.dbr;
-        errlogPrintf("Event Callback: %s, copy type %ld, elements %ld, bytes %d, severity %d\n",
-                ca_name(eha.chid), eha.type, eha.count, dbr_size_n(eha.type, eha.count), pdata->severity);
-            errlogPrintf("Value is %f\n", pdata->value);
+        printf("Event Callback: %s, copy type %ld, elements %ld, bytes %d, severity %d\n",
+            ca_name(eha.chid), eha.type, eha.count, dbr_size_n(eha.type, eha.count), pdata->severity);
+        pval = &(pdata->value);
+        for(i=0; i < eha.count; i++)
+            printf("Value is %f\n", pval[i]);
 
     }
 }
