@@ -73,6 +73,9 @@ set_savefile_path("/data/autosave")
 ## =============================================
 set_pass1_restoreFile("bldParams.sav")
 
+#BLD_MCAST_DEBUG=2
+#DELAY_FOR_CA=30
+
 iocInit()
 
 ## ===========================================================
@@ -89,8 +92,6 @@ cd("/data/autosave-req")
 epicsThreadSleep(1)
 create_monitor_set("bldParams.req",30,0)
 
-#BLD_MCAST_DEBUG=2
-#DELAY_FOR_CA=30
 #BLDMCastStart(0, 0)
-BLDMCastStart(1, "172.27.225.21")
+#BLDMCastStart(1, "172.27.225.21")
 
