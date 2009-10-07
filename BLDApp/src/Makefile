@@ -35,6 +35,7 @@ BLD_LIBS += devIocStats
 
 # BLD_registerRecordDeviceDriver.cpp derives from BLD.dbd
 BLD_SRCS += BLDMCast.c
+BLD_SRCS += devBLDMCastStatus.c
 BLD_SRCS += catest.c
 BLD_SRCS += camon.c
 BLD_SRCS += BLD_registerRecordDeviceDriver.cpp

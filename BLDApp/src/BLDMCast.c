@@ -20,6 +20,7 @@
 #include "epicsMutex.h"
 #include "cadef.h"
 #include "dbDefs.h"
+#include "dbScan.h"
 #include "db_access.h"
 #include "alarm.h"
 #include "cantProceed.h"
@@ -50,19 +51,27 @@ epicsExportAddress(int, DELAY_FROM_FIDUCIAL);
 int DELAY_FOR_CA = 60;	/* in seconds */
 epicsExportAddress(int, DELAY_FOR_CA);
 
+/* Share with device support */
+EBEAMINFO ebeamInfo;
 int bldAllPVsConnected = FALSE;
 int bldInvalidAlarmCount = 0;
 int bldUnmatchedTSCount = 0;
+IOSCANPVT  ioscan;         /* Trigger EPICS record */
+epicsMutexId mutexLock = NULL;	/* Protect staticPVs' values */
+/* Share with device support */
+
 
 /*==========================================================*/
-static epicsEventId EVRFireEvent = NULL;
-static epicsMutexId mutexLock = NULL;	/* Protect staticPVs' values */
-
 static in_addr_t mcastIntfIp = 0;
 
+
+static void evr_timer_isr(void *arg);
 static int BLDMCastTask(void * parg);
 static void BLDMCastTaskEnd(void * parg);
-static void evr_timer_isr(void *arg);
+
+static epicsEventId EVRFireEvent = NULL;
+
+static EBEAMINFO ebeamInfoToSend;	/* With little endian for receiver */
 
 int BLDMCastStart(int enable, const char * NIC)
 {/* This funciton will be called in st.cmd after iocInit() */
@@ -75,6 +84,8 @@ int BLDMCastStart(int enable, const char * NIC)
 	errlogPrintf("Illegal MultiCast NIC IP\n");
 	return -1;
     }
+
+    scanIoInit(&ioscan);
 
     mutexLock = epicsMutexMustCreate();
 
@@ -190,7 +201,7 @@ static void eventCallback(struct event_handler_args args)
 }
 
 #ifndef vxWorks
-static void binvert(char * pBuf, int nBytes)
+void binvert(char * pBuf, int nBytes)
 {
         int loop;
         char temp;
@@ -576,7 +587,11 @@ static int BLDMCastTask(void * parg)
 	        ebeamInfo.uDamageMask |= 0x3C;
 	    }
 
+            memcpy((void *)&ebeamInfoToSend, (void *)&ebeamInfo, sizeof(EBEAMINFO));
+
             epicsMutexUnlock(mutexLock);
+
+            scanIoRequest(ioscan);
        }
 
 #ifdef MULTICAST
@@ -585,9 +600,10 @@ static int BLDMCastTask(void * parg)
        {
            int ipos;
            for(ipos=0;ipos<16;ipos++)
-               binvert( ((char *)&ebeamInfo)+ipos*4, 4);
+               binvert( ((char *)&ebeamInfoToSend)+ipos*4, 4);
            for(ipos=8;ipos<14;ipos++)
-               binvert( ((char *)&ebeamInfo)+ipos*8, 8);
+               binvert( ((char *)&ebeamInfoToSend)+ipos*8, 8);
+
 	   if(-1 == sendto(sFd, (void *)&ebeamInfo, sizeof(struct EBEAMINFO), 0, (const struct sockaddr *)&sockaddrDst, sizeof(struct sockaddr_in)))
 	   {
                 if(BLD_MCAST_DEBUG) perror("Multicast sendto failed\n");

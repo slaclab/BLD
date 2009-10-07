@@ -168,7 +168,6 @@ typedef struct EBEAMINFO
 
 #define EBEAM_INFO_ERROR 0x4000
 
-static EBEAMINFO ebeamInfo;
 static EBEAMINFO ebeamInfoPreFill =
 {
     {0,0},/* to be changed pulse by pulse */
@@ -197,6 +196,10 @@ static EBEAMINFO ebeamInfoPreFill =
     0.0,
     0.0
 };
+
+#ifndef vxWorks
+void binvert(char * pBuf, int nBytes);
+#endif
 
 #define MCAST_DST_IP	(inet_addr("239.255.24.0"))
 #define MCAST_DST_PORT	(htons(10148))
