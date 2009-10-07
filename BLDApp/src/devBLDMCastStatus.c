@@ -37,8 +37,6 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver V1.0"
-
 /* Share with device support */
 extern EBEAMINFO ebeamInfo;
 extern int bldAllPVsConnected;

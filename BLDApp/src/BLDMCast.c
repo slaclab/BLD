@@ -22,6 +22,7 @@
 #include "dbDefs.h"
 #include "dbScan.h"
 #include "db_access.h"
+#include "drvSup.h"
 #include "alarm.h"
 #include "cantProceed.h"
 #include "errlog.h"
@@ -616,4 +617,31 @@ static int BLDMCastTask(void * parg)
     /*SEVCHK(ca_pend_event(0.0),"ca_pend_event");*/
     return(0);
 }
+
+/**************************************************************************************************/
+/* Here we supply the driver report function for epics                                            */
+/**************************************************************************************************/
+static long     BLD_EPICS_Init();
+static  long    BLD_EPICS_Report(int level);
+
+const struct drvet drvBLD = {2,                              /*2 Table Entries */
+                              (DRVSUPFUN) BLD_EPICS_Report,  /* Driver Report Routine */
+                              (DRVSUPFUN) BLD_EPICS_Init}; /* Driver Initialization Routine */
+
+epicsExportAddress(drvet,drvBLD);
+
+/* implementation */
+static long BLD_EPICS_Init()
+{
+    BLDMCastStart(1, MCAST_LOCAL_IP);
+    return 0;
+}
+
+static long BLD_EPICS_Report(int level)
+{
+    printf("\n"BLD_DRV_VERSION"\n\n");
+
+    return 0;
+}
+
 

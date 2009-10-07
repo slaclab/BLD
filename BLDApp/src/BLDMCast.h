@@ -12,6 +12,8 @@
 
 #include <epicsTime.h>
 
+#define BLD_DRV_VERSION "BLD driver V1.0"
+
 #define CA_PRIORITY	CA_PRIORITY_MAX		/* Highest CA priority */
 
 #define TASK_PRIORITY	epicsThreadPriorityMax	/* Highest EPICS thread priority */
@@ -201,6 +203,7 @@ static EBEAMINFO ebeamInfoPreFill =
 void binvert(char * pBuf, int nBytes);
 #endif
 
+#define MCAST_LOCAL_IP	"172.27.225.21"
 #define MCAST_DST_IP	(inet_addr("239.255.24.0"))
 #define MCAST_DST_PORT	(htons(10148))
 #define MCAST_TTL	8
