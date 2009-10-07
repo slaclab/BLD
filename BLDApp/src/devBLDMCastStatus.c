@@ -37,7 +37,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_MCAST_DRV_VERSION "BLD_MCAST driver V1.0"
+#define BLD_DRV_VERSION "BLD driver V1.0"
 
 /* Share with device support */
 extern EBEAMINFO ebeamInfo;
@@ -52,16 +52,16 @@ extern IOSCANPVT  ioscan;         /* Trigger EPICS record */
 
 /* define function flags */
 typedef enum {
-        BLD_MCAST_AI_CHARGE,
-        BLD_MCAST_AI_ENERGY,
-        BLD_MCAST_AI_POS_X,
-        BLD_MCAST_AI_POS_Y,
-        BLD_MCAST_AI_ANG_X,
-        BLD_MCAST_AI_ANG_Y,
-        BLD_MCAST_BI_PV_CON,
-        BLD_MCAST_LI_INV_CNT,
-        BLD_MCAST_LI_TS_CNT
-} BLD_MCASTFUNC;
+        BLD_AI_CHARGE,
+        BLD_AI_ENERGY,
+        BLD_AI_POS_X,
+        BLD_AI_POS_Y,
+        BLD_AI_ANG_X,
+        BLD_AI_ANG_Y,
+        BLD_BI_PV_CON,
+        BLD_LI_INV_CNT,
+        BLD_LI_TS_CNT
+} BLDFUNC;
 
 /*      define parameter check for convinence */
 #define CHECK_AIPARM(PARM,VAL)\
@@ -86,19 +86,19 @@ static long init_ai( struct aiRecord * pai)
 
     if (pai->inp.type!=INST_IO)
     {
-        recGblRecordError(S_db_badField, (void *)pai, "devAiBLD_MCAST Init_record, Illegal INP");
+        recGblRecordError(S_db_badField, (void *)pai, "devAiBLD Init_record, Illegal INP");
         pai->pact=TRUE;
         return (S_db_badField);
     }
 
-    CHECK_AIPARM("CHARGE",      BLD_MCAST_AI_CHARGE)
-    CHECK_AIPARM("ENERGY",      BLD_MCAST_AI_ENERGY)
-    CHECK_AIPARM("POS_X",      BLD_MCAST_AI_POS_X)
-    CHECK_AIPARM("POS_Y",      BLD_MCAST_AI_POS_Y)
-    CHECK_AIPARM("ANG_X",      BLD_MCAST_AI_ANG_X)
-    CHECK_AIPARM("ANG_Y",      BLD_MCAST_AI_ANG_Y)
+    CHECK_AIPARM("CHARGE",      BLD_AI_CHARGE)
+    CHECK_AIPARM("ENERGY",      BLD_AI_ENERGY)
+    CHECK_AIPARM("POS_X",      BLD_AI_POS_X)
+    CHECK_AIPARM("POS_Y",      BLD_AI_POS_Y)
+    CHECK_AIPARM("ANG_X",      BLD_AI_ANG_X)
+    CHECK_AIPARM("ANG_Y",      BLD_AI_ANG_Y)
 
-    recGblRecordError(S_db_badField, (void *) pai, "devAiBLD_MCAST Init_record, bad parm");
+    recGblRecordError(S_db_badField, (void *) pai, "devAiBLD Init_record, bad parm");
     pai->pact = TRUE;
 
     return (S_db_badField);
@@ -117,32 +117,32 @@ static long read_ai(struct aiRecord *pai)
     if(mutexLock) epicsMutexLock(mutexLock);
     switch ((int)pai->dpvt)
     {
-    case BLD_MCAST_AI_CHARGE:
+    case BLD_AI_CHARGE:
         pai->val = ebeamInfo.ebeamCharge;
         if(ebeamInfo.uDamageMask & 0x1)
             recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
         break;
-    case BLD_MCAST_AI_ENERGY:
+    case BLD_AI_ENERGY:
         pai->val = ebeamInfo.ebeamL3Energy;
         if(ebeamInfo.uDamageMask & 0x2)
             recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
         break;
-    case BLD_MCAST_AI_POS_X:
+    case BLD_AI_POS_X:
         pai->val = ebeamInfo.ebeamLTUPosX;
         if(ebeamInfo.uDamageMask & 0x4)
             recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
         break;
-    case BLD_MCAST_AI_POS_Y:
+    case BLD_AI_POS_Y:
         pai->val = ebeamInfo.ebeamLTUPosY;
         if(ebeamInfo.uDamageMask & 0x8)
             recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
         break;
-    case BLD_MCAST_AI_ANG_X:
+    case BLD_AI_ANG_X:
         pai->val = ebeamInfo.ebeamLTUAngX;
         if(ebeamInfo.uDamageMask & 0x10)
             recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
         break;
-    case BLD_MCAST_AI_ANG_Y:
+    case BLD_AI_ANG_Y:
         pai->val = ebeamInfo.ebeamLTUAngY;
         if(ebeamInfo.uDamageMask & 0x20)
             recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
@@ -158,7 +158,7 @@ static long read_ai(struct aiRecord *pai)
     return 2;
 }
 
-struct BLD_MCAST_DEV_SUP_SET
+struct BLD_DEV_SUP_SET
 {
     long            number;
     DEVSUPFUN       report;
@@ -169,13 +169,13 @@ struct BLD_MCAST_DEV_SUP_SET
     DEVSUPFUN       special_linconv;
 };
 
-struct BLD_MCAST_DEV_SUP_SET devAiBLD_MCAST = {6, NULL, NULL, init_ai, ai_ioint_info, read_ai, NULL};
-/*struct BLD_MCAST_DEV_SUP_SET devBiBLD_MCAST = {6, NULL, NULL, init_bi, NULL, read_bi, NULL};
-struct BLD_MCAST_DEV_SUP_SET devLiBLD_MCAST = {6, NULL, NULL, init_li, NULL, read_li, NULL};*/
+struct BLD_DEV_SUP_SET devAiBLD = {6, NULL, NULL, init_ai, ai_ioint_info, read_ai, NULL};
+/*struct BLD_DEV_SUP_SET devBiBLD = {6, NULL, NULL, init_bi, NULL, read_bi, NULL};
+struct BLD_DEV_SUP_SET devLiBLD = {6, NULL, NULL, init_li, NULL, read_li, NULL};*/
 
 #if EPICS_VERSION>=3 && EPICS_REVISION>=14
-epicsExportAddress(dset, devAiBLD_MCAST);
-/*epicsExportAddress(dset, devBiBLD_MCAST);
-epicsExportAddress(dset, devLiBLD_MCAST);*/
+epicsExportAddress(dset, devAiBLD);
+/*epicsExportAddress(dset, devBiBLD);
+epicsExportAddress(dset, devLiBLD);*/
 #endif
 
