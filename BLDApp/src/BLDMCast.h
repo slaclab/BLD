@@ -168,7 +168,8 @@ typedef struct EBEAMINFO
 
 #define EBEAM_INFO_ERROR 0x4000
 
-static EBEAMINFO ebeamInfo =
+static EBEAMINFO ebeamInfo;
+static EBEAMINFO ebeamInfoPreFill =
 {
     {0,0},/* to be changed pulse by pulse */
     0,

@@ -27,6 +27,7 @@ Use original PVs rather than BSA PVs
 R1-3:
 Clean up, print full array with printf in camon.c
 Add more comments, add diagnostics info, add ca_clear_channel for epicsExit and fix bug by init dataAvailable = TRUE
+Copy ebeamInfoPreFill into ebeamInfo everytime to correct binvert behaviour
 The first version in production.
 
 TODO: Somehow ca_context_destroy causes problem

@@ -489,6 +489,9 @@ static int BLDMCastTask(void * parg)
 #endif
 	else
 	{/* Got all PVs, do calculation including checking severity and timestamp */
+
+            memcpy((void *)&ebeamInfo, (void *)&ebeamInfoPreFill, sizeof(EBEAMINFO));
+
 	    /* Assume the first timestamp is right */
             ebeamInfo.timestamp = pulsePVs[BMCHARGE].pTD->stamp;
 	    ebeamInfo.uFiducialId = (ebeamInfo.timestamp.nsec & 0x1FFFF);
