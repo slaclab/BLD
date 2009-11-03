@@ -199,10 +199,6 @@ static EBEAMINFO ebeamInfoPreFill =
     0.0
 };
 
-#ifndef vxWorks
-void binvert(char * pBuf, int nBytes);
-#endif
-
 #define MCAST_LOCAL_IP	"172.27.225.21"
 #define MCAST_DST_IP	(inet_addr("239.255.24.0"))
 #define MCAST_DST_PORT	(htons(10148))
