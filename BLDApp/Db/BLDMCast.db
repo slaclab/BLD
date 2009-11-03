@@ -38,10 +38,10 @@ record(ai, "BLD:SYS0:500:CHARGE") {
 #  field(LOW,  "$(LOW)")
 #  field(LOLO, "$(LOLO)")
   field(EGU,  "nC")
-  field(HHSV, "MAJOR")
-  field(HSV,  "MINOR")
-  field(LSV,  "MINOR")
-  field(LLSV, "MAJOR")
+#  field(HHSV, "MAJOR")
+#  field(HSV,  "MINOR")
+#  field(LSV,  "MINOR")
+#  field(LLSV, "MAJOR")
 #  field(FLNK, "$(FLNK)")
 }
 
@@ -62,10 +62,10 @@ record(ai, "BLD:SYS0:500:ENERGY") {
 #  field(LOW,  "$(LOW)")
 #  field(LOLO, "$(LOLO)")
   field(EGU,  "MeV")
-  field(HHSV, "MAJOR")
-  field(HSV,  "MINOR")
-  field(LSV,  "MINOR")
-  field(LLSV, "MAJOR")
+#  field(HHSV, "MAJOR")
+#  field(HSV,  "MINOR")
+#  field(LSV,  "MINOR")
+#  field(LLSV, "MAJOR")
 #  field(FLNK, "$(FLNK)")
 }
 
@@ -86,14 +86,14 @@ record(ai, "BLD:SYS0:500:POS_X") {
 #  field(LOW,  "$(LOW)")
 #  field(LOLO, "$(LOLO)")
   field(EGU,  "mm")
-  field(HHSV, "MAJOR")
-  field(HSV,  "MINOR")
-  field(LSV,  "MINOR")
-  field(LLSV, "MAJOR")
+#  field(HHSV, "MAJOR")
+#  field(HSV,  "MINOR")
+#  field(LSV,  "MINOR")
+#  field(LLSV, "MAJOR")
 #  field(FLNK, "$(FLNK)")
 }
 
-record(ai, "BLD:SYS0:500:POX_Y") {
+record(ai, "BLD:SYS0:500:POS_Y") {
   field(DESC, "Beam Position Y")
   field(SCAN, "I/O Intr")
   field(DTYP, "BLD")
@@ -110,10 +110,10 @@ record(ai, "BLD:SYS0:500:POX_Y") {
 #  field(LOW,  "$(LOW)")
 #  field(LOLO, "$(LOLO)")
   field(EGU,  "mm")
-  field(HHSV, "MAJOR")
-  field(HSV,  "MINOR")
-  field(LSV,  "MINOR")
-  field(LLSV, "MAJOR")
+#  field(HHSV, "MAJOR")
+#  field(HSV,  "MINOR")
+#  field(LSV,  "MINOR")
+#  field(LLSV, "MAJOR")
 #  field(FLNK, "$(FLNK)")
 }
 
@@ -134,10 +134,10 @@ record(ai, "BLD:SYS0:500:ANG_X") {
 #  field(LOW,  "$(LOW)")
 #  field(LOLO, "$(LOLO)")
   field(EGU,  "mrad")
-  field(HHSV, "MAJOR")
-  field(HSV,  "MINOR")
-  field(LSV,  "MINOR")
-  field(LLSV, "MAJOR")
+#  field(HHSV, "MAJOR")
+#  field(HSV,  "MINOR")
+#  field(LSV,  "MINOR")
+#  field(LLSV, "MAJOR")
 #  field(FLNK, "$(FLNK)")
 }
 
@@ -158,10 +158,10 @@ record(ai, "BLD:SYS0:500:ANG_Y") {
 #  field(LOW,  "$(LOW)")
 #  field(LOLO, "$(LOLO)")
   field(EGU,  "mrad")
-  field(HHSV, "MAJOR")
-  field(HSV,  "MINOR")
-  field(LSV,  "MINOR")
-  field(LLSV, "MAJOR")
+#  field(HHSV, "MAJOR")
+#  field(HSV,  "MINOR")
+#  field(LSV,  "MINOR")
+#  field(LLSV, "MAJOR")
 #  field(FLNK, "$(FLNK)")
 }
 
