@@ -101,7 +101,7 @@ int BLDMCastStart(int enable, const char * NIC)
 
 void EVRFire(void)
 {/* This funciton will be registered with EVR callback */
-    epicsUInt32 rate_mask = MOD5_30HZ_MASK;  /* can be 30HZ,10HZ,5HZ,1HZ,HALFHZ */
+    epicsUInt32 rate_mask = MOD5_30HZ_MASK|MOD5_10HZ_MASK|MOD5_5HZ_MASK|MOD5_1HZ_MASK|MOD5_HALFHZ_MASK;  /* can be 30HZ,10HZ,5HZ,1HZ,HALFHZ */
 
     /* get the current pattern data - check for good status */
     evrModifier_ta modifier_a;
@@ -202,7 +202,7 @@ static void eventCallback(struct event_handler_args args)
 }
 
 #ifndef vxWorks
-void binvert(char * pBuf, int nBytes)
+static void binvert(char * pBuf, int nBytes)
 {
         int loop;
         char temp;
