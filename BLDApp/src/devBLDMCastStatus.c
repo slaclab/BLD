@@ -152,7 +152,7 @@ static long read_ai(struct aiRecord *pai)
 
     if(mutexLock) epicsMutexUnlock(mutexLock);
 
-    pai->udf=TRUE;
+    pai->udf=FALSE;
     return 2;
 }
 
