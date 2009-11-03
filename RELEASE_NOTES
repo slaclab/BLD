@@ -30,6 +30,12 @@ Add more comments, add diagnostics info, add ca_clear_channel for epicsExit and 
 Copy ebeamInfoPreFill into ebeamInfo everytime to correct binvert behaviour
 The first version in production.
 
+BLD-R1-4:
+Add drive device support
+Add records to read calc result
+Move start into drvSup
+More beam code for rate less than 30Hz
+
 TODO: Somehow ca_context_destroy causes problem
       Takes long time to connect to a external PV
       Local PV callback has wrong number of elements and wrong value
