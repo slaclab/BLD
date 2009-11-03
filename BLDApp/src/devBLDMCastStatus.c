@@ -63,17 +63,17 @@ typedef enum {
 
 /*      define parameter check for convinence */
 #define CHECK_AIPARM(PARM,VAL)\
-        if (!strncmp(pai->inp.value.vmeio.parm,(PARM),strlen((PARM)))) {\
+        if (!strncmp(pai->inp.value.instio.string,(PARM),strlen((PARM)))) {\
                 pai->dpvt=(void *)VAL;\
                 return (0);\
         }
 #define CHECK_BIPARM(PARM,VAL)\
-        if (!strncmp(pbi->inp.value.vmeio.parm,(PARM),strlen((PARM)))) {\
+        if (!strncmp(pbi->inp.value.instio.string,(PARM),strlen((PARM)))) {\
                 pbi->dpvt=(void *)VAL;\
                 return (0);\
         }
 #define CHECK_LIPARM(PARM,VAL)\
-        if (!strncmp(pli->inp.value.vmeio.parm,(PARM),strlen((PARM)))) {\
+        if (!strncmp(pli->inp.value.instio.string,(PARM),strlen((PARM)))) {\
                 pli->dpvt=(void *)VAL;\
                 return (0);\
         }
