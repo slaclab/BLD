@@ -605,7 +605,7 @@ static int BLDMCastTask(void * parg)
            for(ipos=8;ipos<14;ipos++)
                binvert( ((char *)&ebeamInfoToSend)+ipos*8, 8);
 
-	   if(-1 == sendto(sFd, (void *)&ebeamInfo, sizeof(struct EBEAMINFO), 0, (const struct sockaddr *)&sockaddrDst, sizeof(struct sockaddr_in)))
+	   if(-1 == sendto(sFd, (void *)&ebeamInfoToSend, sizeof(struct EBEAMINFO), 0, (const struct sockaddr *)&sockaddrDst, sizeof(struct sockaddr_in)))
 	   {
                 if(BLD_MCAST_DEBUG) perror("Multicast sendto failed\n");
 	   }
