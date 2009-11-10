@@ -56,6 +56,7 @@ typedef enum {
         BLD_AI_POS_Y,
         BLD_AI_ANG_X,
         BLD_AI_ANG_Y,
+        BLD_AI_BLEN,
         BLD_BI_PV_CON,
         BLD_LI_INV_CNT,
         BLD_LI_TS_CNT
@@ -95,6 +96,7 @@ static long init_ai( struct aiRecord * pai)
     CHECK_AIPARM("POS_Y",      BLD_AI_POS_Y)
     CHECK_AIPARM("ANG_X",      BLD_AI_ANG_X)
     CHECK_AIPARM("ANG_Y",      BLD_AI_ANG_Y)
+    CHECK_AIPARM("BLEN",      BLD_AI_BLEN)
 
     recGblRecordError(S_db_badField, (void *) pai, "devAiBLD Init_record, bad parm");
     pai->pact = TRUE;
@@ -143,6 +145,11 @@ static long read_ai(struct aiRecord *pai)
     case BLD_AI_ANG_Y:
         pai->val = ebeamInfo.ebeamLTUAngY;
         if(ebeamInfo.uDamageMask & 0x20)
+            recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
+        break;
+    case BLD_AI_BLEN:
+        pai->val = ebeamInfo.ebeamBunchLen;
+        if(ebeamInfo.uDamageMask & 0x40)
             recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
         break;
     }

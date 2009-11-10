@@ -588,6 +588,17 @@ static int BLDMCastTask(void * parg)
 	        ebeamInfo.uDamageMask |= 0x3C;
 	    }
 
+	    /* Copy bunch length */
+	    if(pulsePVs[BMBUNCHLEN].dataAvailable)
+	    {
+                ebeamInfo.ebeamBunchLen = pulsePVs[BMBUNCHLEN].pTD->value;
+	    }
+	    else
+	    {
+	        ebeamInfo.uDamage = ebeamInfo.uDamage2 = EBEAM_INFO_ERROR;
+	        ebeamInfo.uDamageMask |= 0x40;
+	    }
+
             memcpy((void *)&ebeamInfoToSend, (void *)&ebeamInfo, sizeof(EBEAMINFO));
 
             epicsMutexUnlock(mutexLock);
@@ -602,7 +613,7 @@ static int BLDMCastTask(void * parg)
            int ipos;
            for(ipos=0;ipos<16;ipos++)
                binvert( ((char *)&ebeamInfoToSend)+ipos*4, 4);
-           for(ipos=8;ipos<14;ipos++)
+           for(ipos=8;ipos<15;ipos++)
                binvert( ((char *)&ebeamInfoToSend)+ipos*8, 8);
 
 	   if(-1 == sendto(sFd, (void *)&ebeamInfoToSend, sizeof(struct EBEAMINFO), 0, (const struct sockaddr *)&sockaddrDst, sizeof(struct sockaddr_in)))

@@ -165,3 +165,27 @@ record(ai, "BLD:SYS0:500:ANG_Y") {
 #  field(FLNK, "$(FLNK)")
 }
 
+record(ai, "BLD:SYS0:500:BLEN") {
+  field(DESC, "Beam Bunch Length")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "BLD")
+  field(INP,  "@BLEN")
+  field(PREC, "5")
+  field(TSE,  "-2")
+#  field(PRIO, "HIGH")
+#  field(HOPR, "$(EGUF)")
+#  field(LOPR, "$(EGUL)")
+#  field(ADEL, "$(ADEL)")
+#  field(MDEL, "$(MDEL)")
+#  field(HIHI, "$(HIHI)")
+#  field(HIGH, "$(HIGH)")
+#  field(LOW,  "$(LOW)")
+#  field(LOLO, "$(LOLO)")
+  field(EGU,  "Amps")
+#  field(HHSV, "MAJOR")
+#  field(HSV,  "MINOR")
+#  field(LSV,  "MINOR")
+#  field(LLSV, "MAJOR")
+#  field(FLNK, "$(FLNK)")
+}
+

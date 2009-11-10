@@ -80,7 +80,8 @@ enum PULSEPVSINDEX
     BMPOSITION1Y,
     BMPOSITION2Y,
     BMPOSITION3Y,
-    BMPOSITION4Y
+    BMPOSITION4Y,
+    BMBUNCHLEN
 };/* the definition here must match the PV definition below, the order is critival as well */
 
 static BLDPV pulsePVs[]=
@@ -134,6 +135,8 @@ static BLDPV pulsePVs[]=
     {"BPMS:LTU1:730:Y", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
     {"BPMS:LTU1:740:Y", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
     {"BPMS:LTU1:750:Y", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+
+    {"BLEN:LI24:886:BIMAX", 1, FALSE, NULL, NULL},	/* Bunch Length in Amps */
 };
 #define N_PULSE_PVS (sizeof(pulsePVs)/sizeof(struct BLDPV))
 
@@ -166,6 +169,8 @@ typedef struct EBEAMINFO
     double	ebeamLTUPosY;	/* in mm */
     double	ebeamLTUAngX;	/* in mrad */
     double	ebeamLTUAngY;	/* in mrad */
+
+    double	ebeamBunchLen;	/* in Amps */
 } EBEAMINFO;
 
 #define EBEAM_INFO_ERROR 0x4000
@@ -180,13 +185,13 @@ static EBEAMINFO ebeamInfoPreFill =
     0, /* to be changed, if error, 0x4000 */
     0x06000000,
     0,
-    15,
+    0x1000f,
     72,
 
     0, /* to be changed, if error, 0x4000 */
     0x06000000,
     0,
-    15,
+    0x1000f,
     72,
 
     0, /* to be changed, mask */
@@ -196,6 +201,8 @@ static EBEAMINFO ebeamInfoPreFill =
     0.0,
     0.0,
     0.0,
+    0.0,
+
     0.0
 };
 

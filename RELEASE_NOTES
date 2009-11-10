@@ -36,6 +36,9 @@ Add records to read calc result
 Move start into drvSup
 More beam code for rate less than 30Hz
 
+BLD-R1-5:
+Add bunch length
+
 TODO: Somehow ca_context_destroy causes problem
       Takes long time to connect to a external PV
       Local PV callback has wrong number of elements and wrong value
