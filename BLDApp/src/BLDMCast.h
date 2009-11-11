@@ -186,13 +186,13 @@ static EBEAMINFO ebeamInfoPreFill =
     0x06000000,
     0,
     0x1000f,
-    72,
+    80,
 
     0, /* to be changed, if error, 0x4000 */
     0x06000000,
     0,
     0x1000f,
-    72,
+    80,
 
     0, /* to be changed, mask */
 
