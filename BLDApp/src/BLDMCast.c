@@ -1,4 +1,4 @@
-/* BLDMCast.c */
+/* $Id$ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -25,7 +25,6 @@
 #include "cantProceed.h"
 #include "errlog.h"
 #include "epicsExit.h"
-#warning "epicsExit stuff probably broken"
 
 #include "evrTime.h"
 #include "evrPattern.h"
@@ -34,7 +33,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.26 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.27 $/$Name:  $"
 
 #define CA_PRIORITY	CA_PRIORITY_MAX		/* Highest CA priority */
 
@@ -111,7 +110,7 @@ static BLDPV pulsePVs[]=
 #if 0
     Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
 #endif
-    {"BPMS:IN20:221:TMIT", 1, FALSE, NULL, NULL},	/* Charge in Nel, 1.602e-10 nC per Nel*/
+    [BMCHARGE] = {"BPMS:IN20:221:TMIT", 1, FALSE, NULL, NULL},	/* Charge in Nel, 1.602e-10 nC per Nel*/
 
 #if 0
     Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
@@ -120,8 +119,8 @@ static BLDPV pulsePVs[]=
     BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
     BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
 #endif
-    {"BPMS:LTU1:250:X", 1, FALSE, NULL, NULL},	/* Energy in MeV */
-    {"BPMS:LTU1:450:X", 1, FALSE, NULL, NULL},	/* Energy in MeV */
+    [BMENERGY1X] = {"BPMS:LTU1:250:X", 1, FALSE, NULL, NULL},	/* Energy in MeV */
+    [BMENERGY2X] = {"BPMS:LTU1:450:X", 1, FALSE, NULL, NULL},	/* Energy in MeV */
 
 #if 0
     Position X, Y, Angle X, Y at LTU:
@@ -149,16 +148,16 @@ static BLDPV pulsePVs[]=
          R31 R32 R33 R34]     //rmat elements for bpm4y
 #endif
 
-    {"BPMS:LTU1:720:X", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
-    {"BPMS:LTU1:730:X", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
-    {"BPMS:LTU1:740:X", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
-    {"BPMS:LTU1:750:X", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
-    {"BPMS:LTU1:720:Y", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
-    {"BPMS:LTU1:730:Y", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
-    {"BPMS:LTU1:740:Y", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
-    {"BPMS:LTU1:750:Y", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+    [BMPOSITION1X] = {"BPMS:LTU1:720:X", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+    [BMPOSITION2X] = {"BPMS:LTU1:730:X", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+    [BMPOSITION3X] = {"BPMS:LTU1:740:X", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+    [BMPOSITION4X] = {"BPMS:LTU1:750:X", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+    [BMPOSITION1Y] = {"BPMS:LTU1:720:Y", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+    [BMPOSITION2Y] = {"BPMS:LTU1:730:Y", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+    [BMPOSITION3Y] = {"BPMS:LTU1:740:Y", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
+    [BMPOSITION4Y] = {"BPMS:LTU1:750:Y", 1, FALSE, NULL, NULL},	/* Position in mm/mrad */
 
-    {"BLEN:LI24:886:BIMAX", 1, FALSE, NULL, NULL},	/* Bunch Length in Amps */
+    [BMBUNCHLEN]   = {"BLEN:LI24:886:BIMAX", 1, FALSE, NULL, NULL},	/* Bunch Length in Amps */
 };
 #define N_PULSE_PVS (sizeof(pulsePVs)/sizeof(struct BLDPV))
 
