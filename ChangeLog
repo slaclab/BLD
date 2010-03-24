@@ -1,1 +1,14 @@
+	20100323 (Till Straumann):
+
+	* BLDApp/src/BLDMCast.c, BLDApp/src/BLDMCast.h:
+	Moved non-public declarations and in particular, definition of 'static' variables
+	from BLDMCast.h -> BLDMCast.c.
+	Silenced 'multiple definition of cpp symbols' warning by removing unnecessary
+	inclusion of 'cadef.h' vs. 'dbAccess.h'
+
+	20100323 (Till Straumann):
+
+	* BLDApp/src/devBLDMCastStatus.c: removed unnecessary inclusion
+	of headers.
+
 	20100323 (Till Straumann): Added 'ChangeLog' file.
