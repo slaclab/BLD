@@ -1,35 +1,20 @@
-#include <stdio.h>
-#include <stdlib.h>
+/* $Id$ */
+
 #include <string.h>
-#include <ctype.h>
+#include <stdlib.h>
 
 #include <epicsVersion.h>
+
 #if EPICS_VERSION>=3 && EPICS_REVISION>=14
 
 #include <epicsMutex.h>
-#include <epicsThread.h>
-#include <epicsString.h>
-#include <epicsInterrupt.h>
-#include <cantProceed.h>
 #include <epicsExport.h>
-#include <devLib.h>
 #include <dbScan.h>
 #include <dbAccess.h>
-#include <callback.h>
-#include <cvtTable.h>
-#include <link.h>
-#include <recSup.h>
 #include <recGbl.h>
 #include <devSup.h>
-#include <drvSup.h>
-#include <dbCommon.h>
 #include <alarm.h>
-#include <cantProceed.h>
-#include <cadef.h>
-
 #include <aiRecord.h>
-#include <biRecord.h>
-#include <longinRecord.h>
 
 #else
 #error "You need EPICS 3.14 or above because we need OSI support!"
@@ -66,16 +51,6 @@ typedef enum {
 #define CHECK_AIPARM(PARM,VAL)\
         if (!strncmp(pai->inp.value.instio.string,(PARM),strlen((PARM)))) {\
                 pai->dpvt=(void *)VAL;\
-                return (0);\
-        }
-#define CHECK_BIPARM(PARM,VAL)\
-        if (!strncmp(pbi->inp.value.instio.string,(PARM),strlen((PARM)))) {\
-                pbi->dpvt=(void *)VAL;\
-                return (0);\
-        }
-#define CHECK_LIPARM(PARM,VAL)\
-        if (!strncmp(pli->inp.value.instio.string,(PARM),strlen((PARM)))) {\
-                pli->dpvt=(void *)VAL;\
                 return (0);\
         }
 
@@ -175,12 +150,8 @@ struct BLD_DEV_SUP_SET
 };
 
 struct BLD_DEV_SUP_SET devAiBLD = {6, NULL, NULL, init_ai, ai_ioint_info, read_ai, NULL};
-/*struct BLD_DEV_SUP_SET devBiBLD = {6, NULL, NULL, init_bi, NULL, read_bi, NULL};
-struct BLD_DEV_SUP_SET devLiBLD = {6, NULL, NULL, init_li, NULL, read_li, NULL};*/
 
 #if EPICS_VERSION>=3 && EPICS_REVISION>=14
 epicsExportAddress(dset, devAiBLD);
-/*epicsExportAddress(dset, devBiBLD);
-epicsExportAddress(dset, devLiBLD);*/
 #endif
 
