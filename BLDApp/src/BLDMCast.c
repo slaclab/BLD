@@ -14,20 +14,18 @@
 #include <sys/uio.h>
 #include <net/if.h>
 
-#include "epicsVersion.h"
 #include "epicsExport.h"
 #include "epicsEvent.h"
 #include "epicsMutex.h"
+#include "epicsThread.h"
 #include "cadef.h"
-#include "dbDefs.h"
 #include "dbScan.h"
-#include "db_access.h"
 #include "drvSup.h"
 #include "alarm.h"
 #include "cantProceed.h"
 #include "errlog.h"
 #include "epicsExit.h"
-#include "epicsThread.h"
+#warning "epicsExit stuff probably broken"
 
 #include "evrTime.h"
 #include "evrPattern.h"
@@ -36,7 +34,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision:$/$Name:$"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.26 $/$Name:  $"
 
 #define CA_PRIORITY	CA_PRIORITY_MAX		/* Highest CA priority */
 
