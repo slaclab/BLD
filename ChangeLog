@@ -1,3 +1,25 @@
+	20100325 (Till Straumann):
+
+	* BLDApp/src/BLDMCast.c: Removed 'ca_add_event' -- 'ca_add_array_event'
+	works for a single element, too (and ca_add_event is just a macro mapping
+	to the ca_add_array_event).
+
+	Replaced per-PV 'dataAvailable' flag by a global bitset which can be
+	tested more efficiently.
+
+	Restructured some #ifdefs so that {} are always balanced (helps
+	the editor).
+
+	Replaced explicit pulse ID calculation by 'official' PULSEID() macro
+	from event module.
+
+	* BLDApp/src/BLDMCast.h: Replaced 'unsigned int' and 'double' by
+	more portable epicsUInt32 / epicsFloat64.
+
+	* BLDApp/src/devBLDMcastStatus.c: Removed pre-3.14 #ifdefed stuff.
+	moved 'recGblSetSevr()' out of critical section. It may be cheap
+	but that's not necessarily obvious to the reader.
+
 	20100324 (Till Straumann):
 
 	* BLDApp/src/BLDMCast.c: use c99 designated initializers to ensure

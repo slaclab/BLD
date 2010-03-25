@@ -1,11 +1,7 @@
-/* $Id$ */
+/* $Id: devBLDMCastStatus.c,v 1.7 2010/03/24 00:28:38 strauman Exp $ */
 
 #include <string.h>
 #include <stdlib.h>
-
-#include <epicsVersion.h>
-
-#if EPICS_VERSION>=3 && EPICS_REVISION>=14
 
 #include <epicsMutex.h>
 #include <epicsExport.h>
@@ -16,22 +12,7 @@
 #include <alarm.h>
 #include <aiRecord.h>
 
-#else
-#error "You need EPICS 3.14 or above because we need OSI support!"
-#endif
-
 #include "BLDMCast.h"
-
-/* Share with device support */
-extern EBEAMINFO ebeamInfo;
-extern int bldAllPVsConnected;
-extern int bldInvalidAlarmCount;
-extern int bldUnmatchedTSCount;
-extern epicsMutexId mutexLock;
-extern IOSCANPVT  ioscan;         /* Trigger EPICS record */
-/* Share with device support */
-
-#define MAX_CA_STRING_SIZE (40)
 
 /* define function flags */
 typedef enum {
@@ -65,13 +46,13 @@ static long init_ai( struct aiRecord * pai)
         return (S_db_badField);
     }
 
-    CHECK_AIPARM("CHARGE",      BLD_AI_CHARGE)
-    CHECK_AIPARM("ENERGY",      BLD_AI_ENERGY)
+    CHECK_AIPARM("CHARGE",     BLD_AI_CHARGE)
+    CHECK_AIPARM("ENERGY",     BLD_AI_ENERGY)
     CHECK_AIPARM("POS_X",      BLD_AI_POS_X)
     CHECK_AIPARM("POS_Y",      BLD_AI_POS_Y)
     CHECK_AIPARM("ANG_X",      BLD_AI_ANG_X)
     CHECK_AIPARM("ANG_Y",      BLD_AI_ANG_Y)
-    CHECK_AIPARM("BLEN",      BLD_AI_BLEN)
+    CHECK_AIPARM("BLEN",       BLD_AI_BLEN)
 
     recGblRecordError(S_db_badField, (void *) pai, "devAiBLD Init_record, bad parm");
     pai->pact = TRUE;
@@ -89,43 +70,46 @@ static long ai_ioint_info(int cmd,aiRecord *pai,IOSCANPVT *iopvt)
 
 static long read_ai(struct aiRecord *pai)
 {
+int damage = 0;
+
     if(mutexLock) epicsMutexLock(mutexLock);
+
     switch ((int)pai->dpvt)
     {
     case BLD_AI_CHARGE:
         pai->val = ebeamInfo.ebeamCharge;
         if(ebeamInfo.uDamageMask & 0x1)
-            recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
+			damage = 1;
         break;
     case BLD_AI_ENERGY:
         pai->val = ebeamInfo.ebeamL3Energy;
         if(ebeamInfo.uDamageMask & 0x2)
-            recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
+			damage = 1;
         break;
     case BLD_AI_POS_X:
         pai->val = ebeamInfo.ebeamLTUPosX;
         if(ebeamInfo.uDamageMask & 0x4)
-            recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
+			damage = 1;
         break;
     case BLD_AI_POS_Y:
         pai->val = ebeamInfo.ebeamLTUPosY;
         if(ebeamInfo.uDamageMask & 0x8)
-            recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
+			damage = 1;
         break;
     case BLD_AI_ANG_X:
         pai->val = ebeamInfo.ebeamLTUAngX;
         if(ebeamInfo.uDamageMask & 0x10)
-            recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
+			damage = 1;
         break;
     case BLD_AI_ANG_Y:
         pai->val = ebeamInfo.ebeamLTUAngY;
         if(ebeamInfo.uDamageMask & 0x20)
-            recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
+			damage = 1;
         break;
     case BLD_AI_BLEN:
         pai->val = ebeamInfo.ebeamBunchLen;
         if(ebeamInfo.uDamageMask & 0x40)
-            recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
+			damage = 1;
         break;
     }
 
@@ -134,7 +118,11 @@ static long read_ai(struct aiRecord *pai)
 
     if(mutexLock) epicsMutexUnlock(mutexLock);
 
+    if ( damage )
+        recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
+
     pai->udf=FALSE;
+
     return 2;
 }
 
@@ -151,7 +139,4 @@ struct BLD_DEV_SUP_SET
 
 struct BLD_DEV_SUP_SET devAiBLD = {6, NULL, NULL, init_ai, ai_ioint_info, read_ai, NULL};
 
-#if EPICS_VERSION>=3 && EPICS_REVISION>=14
 epicsExportAddress(dset, devAiBLD);
-#endif
-
