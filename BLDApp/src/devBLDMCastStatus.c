@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastStatus.c,v 1.7 2010/03/24 00:28:38 strauman Exp $ */
+/* $Id: devBLDMCastStatus.c,v 1.8 2010/03/25 15:17:21 strauman Exp $ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -77,44 +77,47 @@ int damage = 0;
     switch ((int)pai->dpvt)
     {
     case BLD_AI_CHARGE:
-        pai->val = ebeamInfo.ebeamCharge;
-        if(ebeamInfo.uDamageMask & 0x1)
+        pai->val = __ld_le64(&ebeamInfo.ebeamCharge);
+        if(ebeamInfo.uDamageMask & __le32(0x1))
 			damage = 1;
         break;
     case BLD_AI_ENERGY:
-        pai->val = ebeamInfo.ebeamL3Energy;
-        if(ebeamInfo.uDamageMask & 0x2)
+        pai->val = __ld_le64(&ebeamInfo.ebeamL3Energy);
+        if(ebeamInfo.uDamageMask & __le32(0x2))
 			damage = 1;
         break;
     case BLD_AI_POS_X:
-        pai->val = ebeamInfo.ebeamLTUPosX;
-        if(ebeamInfo.uDamageMask & 0x4)
+        pai->val = __ld_le64(&ebeamInfo.ebeamLTUPosX);
+        if(ebeamInfo.uDamageMask & __le32(0x4))
 			damage = 1;
         break;
     case BLD_AI_POS_Y:
-        pai->val = ebeamInfo.ebeamLTUPosY;
-        if(ebeamInfo.uDamageMask & 0x8)
+        pai->val = __ld_le64(&ebeamInfo.ebeamLTUPosY);
+        if(ebeamInfo.uDamageMask & __le32(0x8))
 			damage = 1;
         break;
     case BLD_AI_ANG_X:
-        pai->val = ebeamInfo.ebeamLTUAngX;
-        if(ebeamInfo.uDamageMask & 0x10)
+        pai->val = __ld_le64(&ebeamInfo.ebeamLTUAngX);
+        if(ebeamInfo.uDamageMask & __le32(0x10))
 			damage = 1;
         break;
     case BLD_AI_ANG_Y:
-        pai->val = ebeamInfo.ebeamLTUAngY;
-        if(ebeamInfo.uDamageMask & 0x20)
+        pai->val = __ld_le64(&ebeamInfo.ebeamLTUAngY);
+        if(ebeamInfo.uDamageMask & __le32(0x20))
 			damage = 1;
         break;
     case BLD_AI_BLEN:
-        pai->val = ebeamInfo.ebeamBunchLen;
-        if(ebeamInfo.uDamageMask & 0x40)
+        pai->val = __ld_le64(&ebeamInfo.ebeamBunchLen);
+        if(ebeamInfo.uDamageMask & __le32(0x40))
 			damage = 1;
         break;
     }
 
-    if(pai->tse == epicsTimeEventDeviceTime)/* do timestamp by device support */
-        pai->time = ebeamInfo.timestamp;
+    if(pai->tse == epicsTimeEventDeviceTime) {
+		/* do timestamp by device support */
+        pai->time.secPastEpoch = __ld_le32(&ebeamInfo.ts_sec);
+        pai->time.nsec         = __ld_le32(&ebeamInfo.ts_nsec);
+	}
 
     if(mutexLock) epicsMutexUnlock(mutexLock);
 

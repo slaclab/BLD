@@ -1,3 +1,15 @@
+	20100326 (Till Straumann):
+
+	* BLDApp/src/BLDMCast.c, BLDApp/src/BLDMCast.h,
+	BLDApp/src/devBLDMcastStatus.c: Removed little-endian copy of
+	ebeamInfo as well as memcpy that initialized it.
+	ebeamInfo is now maintained in LE format directly and we use
+	(hopefully) more efficient ways to byteswap.
+
+	* BLDApp/src/BLDMCast.c, BLDApp/src/Makefile: replaced hardcoded
+	IP address of MC interface by 'getenv("IPADDR1")'. IPADDR1 can be set
+	via fcomUtil so we added fcomUtil to the included dbds and libs.
+
 	20100325 (Till Straumann):
 
 	* BLDApp/src/BLDMCast.c: Removed 'ca_add_event' -- 'ca_add_array_event'
