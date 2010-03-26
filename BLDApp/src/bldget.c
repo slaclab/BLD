@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: bldget.c,v 1.1 2010/03/26 22:08:35 strauman Exp $ */
 
 /* Test Program for dumping the contents of the BLD packet */
 #include <stdio.h>
@@ -98,7 +98,7 @@ struct sockaddr_in sin;
 		pulseid        = PULSEID(t);
 		t.nsec        &= ~mask;
 
-		epicsTimeToStrftime(buf, sizeof(buf), "%F %T%06f",&t);
+		epicsTimeToStrftime(buf, sizeof(buf), "%F %T.%06f",&t);
 		printf("  Timestamp: %s\n",buf);
 		printf("  Pulse ID:  %u",  pulseid);
 		if ( pulseid > PULSEID_MAX )
