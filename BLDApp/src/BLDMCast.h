@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.17 2010/03/25 15:16:36 strauman Exp $ */
+/* $Id: BLDMCast.h,v 1.18 2010/03/26 18:20:53 strauman Exp $ */
 #ifndef _BLD_MCAST_H_
 #define _BLD_MCAST_H_
 
@@ -34,10 +34,10 @@ Endianness   endian = {test:1};
 static __inline__ __u32_a
 __ld_le32(__u32_a *p)
 {
-Endianness   endian = {test:1};
 __u32_a      v;
-
 #ifdef __PPC__
+Endianness   endian = {test:1};
+
 	if ( endian.is.big ) {
 		__asm__ __volatile__("lwbrx %0,%y1":"=r"(v):"Z"(*p));
 	} else
@@ -50,8 +50,8 @@ __u32_a      v;
 static __inline__ void
 __st_le32(__u32_a *p, __u32_a v)
 {
-Endianness endian = {test:1};
 #ifdef __PPC__
+Endianness endian = {test:1};
 	if ( endian.is.big ) {
 		__asm__ __volatile__("stwbrx %1,%y0":"=Z"(*p):"r"(v));
 	} else
