@@ -1,5 +1,10 @@
 	20100326 (Till Straumann):
 
+	* BLDApp/src/bldget.c, BLDApp/src/Makefile: Added test program
+	to receive and dump BLD packet.
+
+	20100326 (Till Straumann):
+
 	* BLDApp/src/BLDMCast.c, BLDApp/src/BLDMCast.h,
 	BLDApp/src/devBLDMcastStatus.c: Removed little-endian copy of
 	ebeamInfo as well as memcpy that initialized it.
