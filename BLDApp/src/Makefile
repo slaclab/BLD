@@ -9,6 +9,7 @@ include $(TOP)/configure/CONFIG
 # Build the IOC application
 
 PROD_IOC_RTEMS = BLD
+PROD_IOC       = bldget
 # BLD.dbd will be created and installed
 DBD += BLD.dbd
 
@@ -22,6 +23,7 @@ BLD_DBD += evrSupport.dbd
 BLD_DBD += devMrfEr.dbd
 #BLD_DBD += dbRestore.dbd
 BLD_DBD += iocAdmin.dbd
+BLD_DBD += fcomUtil.dbd
 
 # Add all the support libraries needed by this IOC
 BLD_LIBS += evrSupport
@@ -32,6 +34,7 @@ BLD_LIBS += mrfVme64x
 #BLD_LIBS += restore
 BLD_LIBS += autosave
 BLD_LIBS += devIocStats
+BLD_LIBS += fcomUtil
 
 # BLD_registerRecordDeviceDriver.cpp derives from BLD.dbd
 BLD_SRCS += BLDMCast.c
@@ -49,6 +52,9 @@ BLD_SRCS_vxWorks += -nil-
 
 # Finally link to the EPICS Base libraries
 BLD_LIBS += $(EPICS_BASE_IOC_LIBS)
+
+bldget_SRCS = bldget.c
+bldget_LIBS = udpCommBSD Com
 
 #===========================
 
