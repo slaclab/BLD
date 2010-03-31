@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.29 2010/03/25 15:16:54 strauman Exp $ */
+/* $Id: BLDMCast.c,v 1.30 2010/03/26 18:20:53 strauman Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -29,13 +29,14 @@
 #include "evrTime.h"
 #include "evrPattern.h"
 
-#include <ppu_intrinsics.h>
+#include "fcom_api.h"
+#include "fcomUtil.h"
 
 #include <bsp/gt_timer.h> /* This is MVME6100/5500 only */
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.29 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.30 $/$Name:  $"
 
 #define CA_PRIORITY	CA_PRIORITY_MAX		/* Highest CA priority */
 
@@ -63,11 +64,12 @@ enum PULSEPVSINDEX
     BMPOSITION2X,
     BMPOSITION3X,
     BMPOSITION4X,
+    BMBUNCHLEN,
+	/* Define Y after everything else so that fcom array doesn't have to use them */
     BMPOSITION1Y,
     BMPOSITION2Y,
     BMPOSITION3Y,
-    BMPOSITION4Y,
-    BMBUNCHLEN
+    BMPOSITION4Y
 };/* the definition here must match the PV definition below, the order is critical as well */
 
 enum PVAVAILMASK
@@ -112,6 +114,12 @@ typedef struct BLDPV
 \* No need to hold type, always double */
 } BLDPV;
 
+typedef struct BLDBLOB {
+	const char *            name;
+	FcomID                  fcid;
+	FcomBlobRef             blob;
+} BLDBLOB;
+
 
 static BLDPV staticPVs[]=
 {
@@ -120,7 +128,7 @@ static BLDPV staticPVs[]=
     [E0BDES] = {"BEND:LTU0:125:BDES",  1, AVAIL_E0BDES, NULL, NULL},	/* Energy in MeV */
     [FMTRX]  = {"BLD:SYS0:500:FMTRX", 32, AVAIL_FMTRX,  NULL, NULL}	/* For Position */
 };
-#define N_STATIC_PVS (sizeof(staticPVs)/sizeof(struct BLDPV))
+#define N_STATIC_PVS (sizeof(staticPVs)/sizeof(staticPVs[0]))
 
 static BLDPV pulsePVs[]=
 {
@@ -169,14 +177,66 @@ static BLDPV pulsePVs[]=
     [BMPOSITION2X] = {"BPMS:LTU1:730:X", 1, AVAIL_BMPOSITION2X, NULL, NULL},	/* Position in mm/mrad */
     [BMPOSITION3X] = {"BPMS:LTU1:740:X", 1, AVAIL_BMPOSITION3X, NULL, NULL},	/* Position in mm/mrad */
     [BMPOSITION4X] = {"BPMS:LTU1:750:X", 1, AVAIL_BMPOSITION4X, NULL, NULL},	/* Position in mm/mrad */
+    [BMBUNCHLEN]   = {"BLEN:LI24:886:BIMAX", 1, AVAIL_BMBUNCHLEN, NULL, NULL},	/* Bunch Length in Amps */
     [BMPOSITION1Y] = {"BPMS:LTU1:720:Y", 1, AVAIL_BMPOSITION1Y, NULL, NULL},	/* Position in mm/mrad */
     [BMPOSITION2Y] = {"BPMS:LTU1:730:Y", 1, AVAIL_BMPOSITION2Y, NULL, NULL},	/* Position in mm/mrad */
     [BMPOSITION3Y] = {"BPMS:LTU1:740:Y", 1, AVAIL_BMPOSITION3Y, NULL, NULL},	/* Position in mm/mrad */
     [BMPOSITION4Y] = {"BPMS:LTU1:750:Y", 1, AVAIL_BMPOSITION4Y, NULL, NULL},	/* Position in mm/mrad */
 
-    [BMBUNCHLEN]   = {"BLEN:LI24:886:BIMAX", 1, AVAIL_BMBUNCHLEN, NULL, NULL},	/* Bunch Length in Amps */
 };
-#define N_PULSE_PVS (sizeof(pulsePVs)/sizeof(struct BLDPV))
+#define N_PULSE_PVS (sizeof(pulsePVs)/sizeof(pulsePVs[0]))
+
+BLDBLOB pulseBlobs[] =
+{
+#if 0
+    Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
+#endif
+    [BMCHARGE] = { name: "BPMS:IN20:221:TMIT", fcid: FCOM_ID_NONE, blob: 0},	/* Charge in Nel, 1.602e-10 nC per Nel*/
+
+#if 0
+    Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
+    where E0 is the final desired energy at the LTU (the magnet setting BEND:LTU0:125:BDES*1000)
+    dspr1,2  = Dx for the chosen dispersion BPMs (from design model database twiss parameters) (we can store these in BLD IOC PVs)
+    BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
+    BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
+#endif
+    [BMENERGY1X] = { name: "BPMS:LTU1:250:X", fcid: FCOM_ID_NONE, blob: 0},	/* Energy in MeV */
+    [BMENERGY2X] = { name: "BPMS:LTU1:450:X", fcid: FCOM_ID_NONE, blob: 0},	/* Energy in MeV */
+
+#if 0
+    Position X, Y, Angle X, Y at LTU:
+    Using the LTU Feedback BPMs: BPMS:LTU1:720,730,740,750
+    The best estimate calculation is a matrix multiply for the result vector p:
+
+        [xpos(mm)             [bpm1x         //= BPMS:LTU1:720:X (mm)
+    p=   ypos(mm)      = [F]*  bpm2x         //= BPMS:LTU1:730:X
+         xang(mrad)            bpm3x         //= BPMS:LTU1:740:X
+         yang(mrad)]           bpm4x         //= BPMS:LTU1:750:X
+                               bpm1y         //= BPMS:LTU1:720:Y
+                               bpm2y         //= BPMS:LTU1:730:Y
+                               bpm3y         //= BPMS:LTU1:740:Y
+                               bpm4y]        //= BPMS:LTU1:750:Y
+
+    Where F is the 4x8 precalculated fit matrix.  F is approx. pinv(A), for Least Squares fit p = pinv(A)*x
+
+    A = [R11 R12 R13 R14;     //rmat elements for bpm1x
+         R11 R12 R13 R14;     //rmat elements for bpm2x
+         R11 R12 R13 R14;     //rmat elements for bpm3x
+         R11 R12 R13 R14;     //rmat elements for bpm4x
+         R31 R32 R33 R34;     //rmat elements for bpm1y
+         R31 R32 R33 R34;     //rmat elements for bpm2y
+         R31 R32 R33 R34;     //rmat elements for bpm3y
+         R31 R32 R33 R34]     //rmat elements for bpm4y
+#endif
+
+    [BMPOSITION1X] = { name: "BPMS:LTU1:720:X", fcid: FCOM_ID_NONE, blob: 0},	/* Position in mm/mrad */
+    [BMPOSITION2X] = { name: "BPMS:LTU1:730:X", fcid: FCOM_ID_NONE, blob: 0},	/* Position in mm/mrad */
+    [BMPOSITION3X] = { name: "BPMS:LTU1:740:X", fcid: FCOM_ID_NONE, blob: 0},	/* Position in mm/mrad */
+    [BMPOSITION4X] = { name: "BPMS:LTU1:750:X", fcid: FCOM_ID_NONE, blob: 0},	/* Position in mm/mrad */
+    [BMBUNCHLEN]   = { name: "BLEN:LI24:886:BIMAX", fcid: FCOM_ID_NONE, blob: 0},	/* Bunch Length in Amps */
+};
+
+#define N_PULSE_BLOBS (sizeof(pulseBlobs)/sizeof(pulseBlobs[0]))
 
 enum PVAVAILMASK dataAvailable = 0;
 
@@ -286,15 +346,16 @@ int BLDMCastStart(int enable, const char * NIC)
     return (int)(epicsThreadMustCreate("BLDMCast", TASK_PRIORITY, 20480, (EPICSTHREADFUNC)BLDMCastTask, NULL));
 }
 
+epicsTimeStamp fiducialTime;
+
 void EVRFire(void *unused)
 {/* This funciton will be registered with EVR callback */
     epicsUInt32 rate_mask = MOD5_30HZ_MASK|MOD5_10HZ_MASK|MOD5_5HZ_MASK|MOD5_1HZ_MASK|MOD5_HALFHZ_MASK;  /* can be 30HZ,10HZ,5HZ,1HZ,HALFHZ */
 
     /* get the current pattern data - check for good status */
     evrModifier_ta modifier_a;
-    epicsTimeStamp time_s;
     unsigned long  patternStatus; /* see evrPattern.h for values */
-    int status = evrTimeGetFromPipeline(&time_s,  evrTimeCurrent, modifier_a, &patternStatus, 0,0,0);
+    int status = evrTimeGetFromPipeline(&fiducialTime,  evrTimeCurrent, modifier_a, &patternStatus, 0,0,0);
     /* This is 120Hz. So printf will screw timing */
     if(BLD_MCAST_DEBUG >= 4) errlogPrintf("EVR fires\n");
     if (!status)
@@ -671,7 +732,7 @@ static int BLDMCastTask(void * parg)
 			epicsTimeStamp *p_refTime;
 
             /* Assume the first timestamp is right */
-			p_refTime = &pulsePVs[BMCHARGE].pTD->stamp;
+			p_refTime = &fiducialTime /* pulsePVs[BMCHARGE].pTD->stamp */;
 
             epicsMutexLock(mutexLock);
 
