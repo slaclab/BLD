@@ -1,5 +1,12 @@
 	20100326 (Till Straumann):
 
+	* BLDApp/src/BLDMCast.c: Use timestamp returned by evrTimeGetFromPipeline()
+	as a reference that must be matched by all PVs.
+	Rather than memcmp()ing timestamps: check their pulse ID and verify
+	that the timestamps match within a few minutes.
+
+	20100326 (Till Straumann):
+
 	* BLDApp/src/bldget.c, BLDApp/src/Makefile: Added test program
 	to receive and dump BLD packet.
 

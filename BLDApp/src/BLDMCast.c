@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.30 2010/03/26 18:20:53 strauman Exp $ */
+/* $Id: BLDMCast.c,v 1.31 2010/03/31 21:30:06 strauman Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -36,7 +36,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.30 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.31 $/$Name:  $"
 
 #define CA_PRIORITY	CA_PRIORITY_MAX		/* Highest CA priority */
 
@@ -348,6 +348,24 @@ int BLDMCastStart(int enable, const char * NIC)
 
 epicsTimeStamp fiducialTime;
 
+static int
+pvTimePulseIdMatches(epicsTimeStamp *p_ref, epicsTimeStamp *p_cmp)
+{
+epicsUInt32 idref, idcmp, diff;
+
+	idref = PULSEID((*p_ref));
+	idcmp = PULSEID((*p_cmp));
+
+	if ( idref == idcmp && idref != PULSEID_INVALID ) {
+		/* Verify that seconds match to less that a few minutes */
+		diff = abs(p_ref->secPastEpoch - p_cmp->secPastEpoch);
+		if ( diff < 4*60 )
+			return 0;
+	}
+
+	return -1;
+}
+
 void EVRFire(void *unused)
 {/* This funciton will be registered with EVR callback */
     epicsUInt32 rate_mask = MOD5_30HZ_MASK|MOD5_10HZ_MASK|MOD5_5HZ_MASK|MOD5_1HZ_MASK|MOD5_HALFHZ_MASK;  /* can be 30HZ,10HZ,5HZ,1HZ,HALFHZ */
@@ -370,7 +388,9 @@ void EVRFire(void *unused)
             delayFromFiducial = BSP_timer_clock_get(0) * DELAY_FROM_FIDUCIAL;	/* delay from fiducial in us */
 	    BSP_timer_start( 0, (uint32_t) (delayFromFiducial / 1000000) );
 	}
-    }
+    } else {
+		fiducialTime.nsec = PULSEID_INVALID;
+	}
 
     return;
 }
@@ -752,7 +772,7 @@ static int BLDMCastTask(void * parg)
                     if(BLD_MCAST_DEBUG) errlogPrintf("%s has severity %d\n", pulsePVs[loop].name, pulsePVs[loop].pTD->severity);
                 }
 
-                if( 0 != memcmp(p_refTime, &(pulsePVs[loop].pTD->stamp), sizeof(epicsTimeStamp)) )
+                if( 0 != pvTimePulseIdMatches(p_refTime, &(pulsePVs[loop].pTD->stamp)) )
                 {
                     dataAvailable &= ~ pulsePVs[loop].availMask;
                     bldUnmatchedTSCount++;
