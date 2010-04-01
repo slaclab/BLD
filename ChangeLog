@@ -1,5 +1,15 @@
 	20100401 (Till Straumann):
 
+	* BLDApp/src/BLDMCast.c: FIXED arithmetics when setting HW timer
+	(used 32-bit operations, storing result only into 64-bit which let
+	the result be truncated and way too small).
+
+	Added per-PV unmatched timestamp counters.
+
+	Added some more debugging code (to be removed eventually).
+
+	20100401 (Till Straumann):
+
 	* BLDApp/src/BLDMCast.c: Read fast data from FCOM (1st shot at things).
 
 	20100326 (Till Straumann):

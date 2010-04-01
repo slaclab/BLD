@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.32 2010/03/31 21:51:56 strauman Exp $ */
+/* $Id: BLDMCast.c,v 1.33 2010/04/01 19:47:23 strauman Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -39,7 +39,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.32 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.33 $/$Name:  $"
 
 #define CA_PRIORITY	CA_PRIORITY_MAX		/* Highest CA priority */
 
@@ -309,7 +309,11 @@ epicsExportAddress(int, DELAY_FOR_CA);
 EBEAMINFO ebeamInfo;
 volatile int bldAllPVsConnected = FALSE;
 int bldInvalidAlarmCount = 0;
-int bldUnmatchedTSCount = 0;
+#ifdef USE_PULSE_CA
+unsigned bldUnmatchedTSCount = 0;
+#else
+unsigned bldUnmatchedTSCount[N_PULSE_BLOBS] = {0};
+#endif
 IOSCANPVT  ioscan;         /* Trigger EPICS record */
 epicsMutexId mutexLock = NULL;	/* Protect staticPVs' values */
 unsigned bldFcomGetErrs = 0;
@@ -353,6 +357,9 @@ int BLDMCastStart(int enable, const char * NIC)
 
 epicsTimeStamp fiducialTime;
 
+int      tsCatch = -1;
+uint32_t tsMismatch[4];
+
 static int
 pvTimePulseIdMatches(
 	epicsTimeStamp *p_ref,
@@ -388,6 +395,22 @@ epicsUInt32 idref, idcmp, diff;
 	return -1;
 }
 
+int      modi=6*3;
+uint32_t mod2[6*3];
+uint32_t mod5[6*3];
+
+uint32_t mint=-1;
+
+void
+moddmp(void)
+{
+int i;
+    printf("    MOD2   --     MOD5\n");
+	for ( i=0; i<sizeof(mod2)/sizeof(mod2[0]); i++ ) {
+		printf("0x%08"PRIx32" -- 0x%08"PRIx32"\n", mod2[i], mod5[i]);
+	}
+}
+
 void EVRFire(void *unused)
 {/* This funciton will be registered with EVR callback */
     epicsUInt32 rate_mask = MOD5_30HZ_MASK|MOD5_10HZ_MASK|MOD5_5HZ_MASK|MOD5_1HZ_MASK|MOD5_HALFHZ_MASK;  /* can be 30HZ,10HZ,5HZ,1HZ,HALFHZ */
@@ -409,9 +432,20 @@ void EVRFire(void *unused)
 			fiducialTime = time_s;
             /* This is 30Hz. So printf might screw timing */
             if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Timer Starts\n");
-            delayFromFiducial = BSP_timer_clock_get(0) * DELAY_FROM_FIDUCIAL;	/* delay from fiducial in us */
-	    BSP_timer_start( 0, (uint32_t) (delayFromFiducial / 1000000) );
+            delayFromFiducial = (uint64_t)BSP_timer_clock_get(0) * (uint64_t)DELAY_FROM_FIDUCIAL;	/* delay from fiducial in us */
+	    BSP_timer_start( 0, (uint32_t) (delayFromFiducial / 1000000ULL) );
+{
+	uint32_t tt = BSP_timer_read(0);
+	if (tt<mint)
+		mint = tt;
+}
+
 	}
+if ( modi < sizeof(mod2)/sizeof(mod2[0]) ) {
+	mod2[modi] = modifier_a[1];
+	mod5[modi] = modifier_a[4];
+	modi++;
+}
     } else {
 		fiducialTime.nsec = PULSEID_INVALID;
 	}
@@ -947,7 +981,14 @@ passed:
 
 				/* verify timestamp */
 				if ( 0 != pvTimePulseIdMatches( p_refTime, b1 ) ) {
-					bldUnmatchedTSCount++;
+if ( loop == tsCatch ) {
+	tsMismatch[0]=p_refTime->secPastEpoch;
+	tsMismatch[1]=p_refTime->nsec;
+	tsMismatch[2]=b1->fc_tsHi;
+	tsMismatch[3]=b1->fc_tsLo;
+	tsCatch = -1;
+}
+					bldUnmatchedTSCount[loop]++;
 					dataAvailable &= ~pulseBlobs[loop].aMsk;
 				}
 			}
@@ -1072,6 +1113,32 @@ passed:
     /*SEVCHK(ca_pend_event(0.0),"ca_pend_event");*/
     return(0);
 }
+
+#ifndef USE_PULSE_CA
+void
+dumpTsMismatchStats(FILE *f, int reset)
+{
+int      i;
+unsigned cnt[N_PULSE_BLOBS];
+
+	if ( mutexLock ) epicsMutexLock( mutexLock );
+		memcpy(cnt, bldUnmatchedTSCount, sizeof(cnt));
+	if ( mutexLock ) epicsMutexUnlock( mutexLock );
+	if ( !f )
+		f = stdout;
+	fprintf(f,"FCOM Data arriving late:\n");
+	for ( i=0; i<N_PULSE_BLOBS; i++ ) {
+		fprintf(f,"  %40s: %9u times\n", pulseBlobs[i].name, bldUnmatchedTSCount[i]);
+	}
+	if ( reset ) {
+		if ( mutexLock ) epicsMutexLock( mutexLock );
+			for ( i=0; i<N_PULSE_BLOBS; i++ ) {
+				bldUnmatchedTSCount[i] = 0;
+			}
+		if ( mutexLock ) epicsMutexUnlock( mutexLock );
+	}
+}
+#endif
 
 /**************************************************************************************************/
 /* Here we supply the driver report function for epics                                            */
