@@ -1,5 +1,10 @@
 	20100401 (Till Straumann):
 
+	* BLDApp/src/BLDMCast.c: Added code to send using udpComm rather
+	than straight BSD sockets.
+
+	20100401 (Till Straumann):
+
 	* BLDApp/src/BLDMCast.c: FIXED arithmetics when setting HW timer
 	(used 32-bit operations, storing result only into 64-bit which let
 	the result be truncated and way too small).
