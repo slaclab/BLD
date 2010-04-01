@@ -1,5 +1,11 @@
 	20100401 (Till Straumann):
 
+	* BLDApp/src/BLDMCast.c: Cannot use a UdpComm packet buffer to store
+	ebeam data because the device support stuff accesses the same buffer.
+	Hence it has to be copied anyways :-(. Therefore we use udpCommSend()...
+
+	20100401 (Till Straumann):
+
 	* BLDApp/src/BLDMCast.c: Added code to send using udpComm rather
 	than straight BSD sockets.
 

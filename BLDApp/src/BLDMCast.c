@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.34 2010/04/01 22:29:56 strauman Exp $ */
+/* $Id: BLDMCast.c,v 1.35 2010/04/01 23:15:30 strauman Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -40,7 +40,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.34 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.35 $/$Name:  $"
 
 #define CA_PRIORITY	CA_PRIORITY_MAX		/* Highest CA priority */
 
@@ -315,6 +315,7 @@ unsigned bldUnmatchedTSCount = 0;
 #else
 unsigned bldUnmatchedTSCount[N_PULSE_BLOBS] = {0};
 #endif
+EBEAMINFO  ebeamInfo;
 IOSCANPVT  ioscan;         /* Trigger EPICS record */
 epicsMutexId mutexLock = NULL;	/* Protect staticPVs' values */
 unsigned bldFcomGetErrs = 0;
@@ -569,52 +570,18 @@ static void BLDMCastTaskEnd(void * parg)
     return;
 }
 
-static EBEAMINFO *
-infoAlloc(UdpCommPkt *p_pkt)
-{
-EBEAMINFO *pinfo;
-
-	if ( ! (*p_pkt = udpCommAllocPacket()) ) {
-		errlogPrintf("UdpComm: Fatal Error -- unable to allocate packet buffer\n");
-		errlogFlush();
-		abort();
-	}
-	pinfo = udpCommBufPtr( *p_pkt );
-
-	/* Prefill EBEAMINFO with constant values */
-	pinfo->uMBZ1       = __le32(0);
-	pinfo->uMBZ2       = __le32(0);
-
-	pinfo->uLogicalId  = __le32(0x06000000);
-	pinfo->uPhysicalId = __le32(0);
-	pinfo->uDataType   = __le32(0x1000f);
-	pinfo->uExtentSize = __le32(80);
-
-	pinfo->uLogicalId2 = __le32(0x06000000);
-	pinfo->uPhysicalId2= __le32(0);
-	pinfo->uDataType2  = __le32(0x1000f);
-	pinfo->uExtentSize2= __le32(80);
-
-	return pinfo;
-}
-
 static int BLDMCastTask(void * parg)
 {
     int		loop;
     int		rtncode;
 
     int		sFd;
-#ifdef MULTICAST_UDPCOMM
-	uint32_t           dst_ip   =      MCAST_DST_IP;
-	int                dst_port = (int)MCAST_DST_PORT ;
-#else
+#ifndef MULTICAST_UDPCOMM
     struct sockaddr_in sockaddrSrc;
     struct sockaddr_in sockaddrDst;
     unsigned char mcastTTL;
 #endif
     epicsTimeStamp *p_refTime;
-	EBEAMINFO      *pinfo;
-	UdpCommPkt      pktbuf;
 
     /************************************************************************* Prepare MultiCast *******************************************************************/
 #ifdef MULTICAST
@@ -624,6 +591,14 @@ static int BLDMCastTask(void * parg)
 		errlogPrintf("Failed to create socket for multicast: %s\n", strerror(-sFd));
 		epicsMutexDestroy(mutexLock);
 		mutexLock = 0;
+		return -1;
+	}
+
+	if ( (rtncode = udpCommConnect( sFd, MCAST_DST_IP, MCAST_DST_PORT )) ) {
+		errlogPrintf("Failed to 'connect' to peer: %s\n", strerror(-rtncode));
+		epicsMutexDestroy( mutexLock );
+		mutexLock = 0;
+		udpCommClose( sFd );
 		return -1;
 	}
 
@@ -826,7 +801,18 @@ static int BLDMCastTask(void * parg)
     printf("All PVs are successfully connected!\n");
 
 	/* Prefill EBEAMINFO with constant values */
-	pinfo = infoAlloc( &pktbuf );
+	ebeamInfo.uMBZ1       = __le32(0);
+	ebeamInfo.uMBZ2       = __le32(0);
+
+	ebeamInfo.uLogicalId  = __le32(0x06000000);
+	ebeamInfo.uPhysicalId = __le32(0);
+	ebeamInfo.uDataType   = __le32(0x1000f);
+	ebeamInfo.uExtentSize = __le32(80);
+
+	ebeamInfo.uLogicalId2 = __le32(0x06000000);
+	ebeamInfo.uPhysicalId2= __le32(0);
+	ebeamInfo.uDataType2  = __le32(0x1000f);
+	ebeamInfo.uExtentSize2= __le32(80);
 
     while(bldAllPVsConnected)
     {
@@ -863,8 +849,8 @@ static int BLDMCastTask(void * parg)
         {
             if(BLD_MCAST_DEBUG) errlogPrintf("Something wrong when fetch pulse-by-pulse PVs.\n");
 			epicsMutexLock(mutexLock);
-            pinfo->uDamageMask = __le32(0xffffffff); /* no information available */
-            pinfo->uDamage = pinfo->uDamage2 = __le32(EBEAM_INFO_ERROR);
+            ebeamInfo.uDamageMask = __le32(0xffffffff); /* no information available */
+            ebeamInfo.uDamage = ebeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
 			epicsMutexUnlock(mutexLock);
         }
         else
@@ -876,9 +862,9 @@ static int BLDMCastTask(void * parg)
 
             epicsMutexLock(mutexLock);
 
-			__st_le32(&pinfo->ts_sec,      p_refTime->secPastEpoch);
-			__st_le32(&pinfo->ts_nsec,     p_refTime->nsec);
-            __st_le32(&pinfo->uFiducialId, PULSEID((*p_refTime)));
+			__st_le32(&ebeamInfo.ts_sec,      p_refTime->secPastEpoch);
+			__st_le32(&ebeamInfo.ts_nsec,     p_refTime->nsec);
+            __st_le32(&ebeamInfo.uFiducialId, PULSEID((*p_refTime)));
 
 
             for(loop=0; loop<N_PULSE_PVS; loop++)
@@ -901,18 +887,18 @@ static int BLDMCastTask(void * parg)
                 }
             }
 
-            pinfo->uDamage = pinfo->uDamage2 = __le32(0);
-            pinfo->uDamageMask = __le32(0);
+            ebeamInfo.uDamage = ebeamInfo.uDamage2 = __le32(0);
+            ebeamInfo.uDamageMask = __le32(0);
 
             /* Calculate beam charge */
             if( (dataAvailable & AVAIL_BMCHARGE) )
             {
-                __st_le64(&pinfo->ebeamCharge, pulsePVs[BMCHARGE].pTD->value * 1.602e-10);
+                __st_le64(&ebeamInfo.ebeamCharge, pulsePVs[BMCHARGE].pTD->value * 1.602e-10);
             }
             else
             {
-                pinfo->uDamage = pinfo->uDamage2 = __le32(EBEAM_INFO_ERROR);
-                pinfo->uDamageMask |= __le32(0x1);
+                ebeamInfo.uDamage = ebeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+                ebeamInfo.uDamageMask |= __le32(0x1);
             }
 
 #define AVAIL_L3ENERGY (AVAIL_BMENERGY1X | AVAIL_BMENERGY2X | AVAIL_DSPR1 | AVAIL_DSPR2 | AVAIL_E0BDES)
@@ -925,12 +911,12 @@ static int BLDMCastTask(void * parg)
                 tempD += pulsePVs[BMENERGY2X].pTD->value/(1000.0 * staticPVs[DSPR2].pTD->value);
                 tempD = tempD/2.0 + 1.0;
                 tempD *= staticPVs[E0BDES].pTD->value * 1000.0;
-                __st_le64(&pinfo->ebeamL3Energy, tempD);
+                __st_le64(&ebeamInfo.ebeamL3Energy, tempD);
             }
             else
             {
-                pinfo->uDamage = pinfo->uDamage2 = __le32(EBEAM_INFO_ERROR);
-                pinfo->uDamageMask |= __le32(0x2);
+                ebeamInfo.uDamage = ebeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+                ebeamInfo.uDamageMask |= __le32(0x2);
             }
 
 #define AVAIL_LTUPOS ( AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y | \
@@ -953,26 +939,26 @@ static int BLDMCastTask(void * parg)
                     for(j=0;j<8;j++)
                         tempDA[i] += pMatrixValue[i*8+j] * pulsePVs[BMPOSITION1X+j].pTD->value;
                 }
-                __st_le64(&pinfo->ebeamLTUPosX, tempDA[0]);
-                __st_le64(&pinfo->ebeamLTUPosY, tempDA[1]);
-                __st_le64(&pinfo->ebeamLTUAngX, tempDA[2]);
-                __st_le64(&pinfo->ebeamLTUAngY, tempDA[3]);
+                __st_le64(&ebeamInfo.ebeamLTUPosX, tempDA[0]);
+                __st_le64(&ebeamInfo.ebeamLTUPosY, tempDA[1]);
+                __st_le64(&ebeamInfo.ebeamLTUAngX, tempDA[2]);
+                __st_le64(&ebeamInfo.ebeamLTUAngY, tempDA[3]);
             }
             else
             {
-                pinfo->uDamage = pinfo->uDamage2 = __le32(EBEAM_INFO_ERROR);
-                pinfo->uDamageMask |= __le32(0x3C);
+                ebeamInfo.uDamage = ebeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+                ebeamInfo.uDamageMask |= __le32(0x3C);
             }
 
             /* Copy bunch length */
             if( (AVAIL_BMBUNCHLEN & dataAvailable) )
             {
-                __st_le64(&pinfo->ebeamBunchLen, pulsePVs[BMBUNCHLEN].pTD->value);
+                __st_le64(&ebeamInfo.ebeamBunchLen, pulsePVs[BMBUNCHLEN].pTD->value);
             }
             else
             {
-                pinfo->uDamage = pinfo->uDamage2 = __le32(EBEAM_INFO_ERROR);
-                pinfo->uDamageMask |= __le32(0x40);
+                ebeamInfo.uDamage = ebeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+                ebeamInfo.uDamageMask |= __le32(0x40);
             }
 
             epicsMutexUnlock(mutexLock);
@@ -986,7 +972,7 @@ static int BLDMCastTask(void * parg)
 
 			epicsMutexLock(mutexLock);
 
-			pinfo->uDamageMask = __le32(0);
+			ebeamInfo.uDamageMask = __le32(0);
 
 			for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
 
@@ -1037,15 +1023,15 @@ if ( loop == tsCatch ) {
 				}
 			}
 
-			__st_le32(&pinfo->ts_sec,      p_refTime->secPastEpoch);
-			__st_le32(&pinfo->ts_nsec,     p_refTime->nsec);
-			__st_le32(&pinfo->uFiducialId, PULSEID((*p_refTime)));
+			__st_le32(&ebeamInfo.ts_sec,      p_refTime->secPastEpoch);
+			__st_le32(&ebeamInfo.ts_nsec,     p_refTime->nsec);
+			__st_le32(&ebeamInfo.uFiducialId, PULSEID((*p_refTime)));
 
 			/* Calculate beam charge */
 			if( (dataAvailable & AVAIL_BMCHARGE) ) {
-				__st_le64(&pinfo->ebeamCharge, (double)pulseBlobs[BMCHARGE].blob->fcbl_bpm_T * 1.602e-10);
+				__st_le64(&ebeamInfo.ebeamCharge, (double)pulseBlobs[BMCHARGE].blob->fcbl_bpm_T * 1.602e-10);
 			} else {
-				pinfo->uDamageMask |= __le32(0x1);
+				ebeamInfo.uDamageMask |= __le32(0x1);
 			}
 
 #define AVAIL_L3ENERGY (AVAIL_BMENERGY1X | AVAIL_BMENERGY2X | AVAIL_DSPR1 | AVAIL_DSPR2 | AVAIL_E0BDES)
@@ -1057,9 +1043,9 @@ if ( loop == tsCatch ) {
 				tempD += pulseBlobs[BMENERGY2X].blob->fcbl_bpm_X/(1000.0 * staticPVs[DSPR2].pTD->value);
 				tempD = tempD/2.0 + 1.0;
 				tempD *= staticPVs[E0BDES].pTD->value * 1000.0;
-				__st_le64(&pinfo->ebeamL3Energy, tempD);
+				__st_le64(&ebeamInfo.ebeamL3Energy, tempD);
 			} else {
-				pinfo->uDamageMask |= __le32(0x2);
+				ebeamInfo.uDamageMask |= __le32(0x2);
 			}
 
 #define AVAIL_LTUPOS ( AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y | \
@@ -1095,26 +1081,26 @@ if ( loop == tsCatch ) {
 					tempDA[i] = acc;	
 #endif
 				}
-				__st_le64(&pinfo->ebeamLTUPosX, tempDA[0]);
-				__st_le64(&pinfo->ebeamLTUPosY, tempDA[1]);
-				__st_le64(&pinfo->ebeamLTUAngX, tempDA[2]);
-				__st_le64(&pinfo->ebeamLTUAngY, tempDA[3]);
+				__st_le64(&ebeamInfo.ebeamLTUPosX, tempDA[0]);
+				__st_le64(&ebeamInfo.ebeamLTUPosY, tempDA[1]);
+				__st_le64(&ebeamInfo.ebeamLTUAngX, tempDA[2]);
+				__st_le64(&ebeamInfo.ebeamLTUAngY, tempDA[3]);
 			} else {
-				pinfo->uDamageMask |= __le32(0x3C);
+				ebeamInfo.uDamageMask |= __le32(0x3C);
 			}
 
 			/* Copy bunch length */
 			if( (AVAIL_BMBUNCHLEN & dataAvailable) ) {
-				__st_le64(&pinfo->ebeamBunchLen, (double)pulseBlobs[BMBUNCHLEN].blob->fcbl_blen_bimax);
+				__st_le64(&ebeamInfo.ebeamBunchLen, (double)pulseBlobs[BMBUNCHLEN].blob->fcbl_blen_bimax);
 			} else {
-				pinfo->uDamage = pinfo->uDamage2 = __le32(EBEAM_INFO_ERROR);
-				pinfo->uDamageMask |= __le32(0x40);
+				ebeamInfo.uDamage = ebeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+				ebeamInfo.uDamageMask |= __le32(0x40);
 			}
 
-			if ( __ld_le32( &pinfo->uDamageMask ) ) {
-				pinfo->uDamage = pinfo->uDamage2 = __le32(EBEAM_INFO_ERROR);
+			if ( __ld_le32( &ebeamInfo.uDamageMask ) ) {
+				ebeamInfo.uDamage = ebeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
 			} else {
-				pinfo->uDamage = pinfo->uDamage2 = __le32(0);
+				ebeamInfo.uDamage = ebeamInfo.uDamage2 = __le32(0);
 			}
 			epicsMutexUnlock(mutexLock);
 		}
@@ -1127,14 +1113,13 @@ if ( loop == tsCatch ) {
        if(BLD_MCAST_ENABLE)
        {
 #ifdef MULTICAST_UDPCOMM
-			rtncode = udpCommSendPktTo( sFd, pktbuf, sizeof(*pinfo), dst_ip, dst_port );
+			rtncode = udpCommSend( sFd, &ebeamInfo, sizeof(ebeamInfo) );
 			if ( rtncode < 0 ) {
 				if ( BLD_MCAST_DEBUG )
 					errlogPrintf("Sending multicast packet failed: %s\n", strerror(-rtncode));
 			}
-			pinfo = infoAlloc( &pktbuf );
 #else
-	   if(-1 == sendto(sFd, (void *)pinfo, sizeof(struct EBEAMINFO), 0, (const struct sockaddr *)&sockaddrDst, sizeof(struct sockaddr_in)))
+	   if(-1 == sendto(sFd, (void *)&ebeamInfo, sizeof(struct EBEAMINFO), 0, (const struct sockaddr *)&sockaddrDst, sizeof(struct sockaddr_in)))
 	   {
                 if(BLD_MCAST_DEBUG) perror("Multicast sendto failed\n");
 	   }
@@ -1155,8 +1140,6 @@ if ( loop == tsCatch ) {
 		}
 #endif
     }
-
-	udpCommFreePacket( pktbuf );
 
 #ifdef MULTICAST
 #ifdef MULTICAST_UDPCOMM
