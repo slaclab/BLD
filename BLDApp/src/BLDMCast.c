@@ -1,8 +1,9 @@
-/* $Id: BLDMCast.c,v 1.31 2010/03/31 21:30:06 strauman Exp $ */
+/* $Id: BLDMCast.c,v 1.32 2010/03/31 21:51:56 strauman Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -31,12 +32,14 @@
 
 #include "fcom_api.h"
 #include "fcomUtil.h"
+#include "fcomLclsBpm.h"
+#include "fcomLclsBlen.h"
 
 #include <bsp/gt_timer.h> /* This is MVME6100/5500 only */
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.31 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.32 $/$Name:  $"
 
 #define CA_PRIORITY	CA_PRIORITY_MAX		/* Highest CA priority */
 
@@ -118,6 +121,7 @@ typedef struct BLDBLOB {
 	const char *            name;
 	FcomID                  fcid;
 	FcomBlobRef             blob;
+	enum PVAVAILMASK        aMsk;
 } BLDBLOB;
 
 
@@ -191,7 +195,7 @@ BLDBLOB pulseBlobs[] =
 #if 0
     Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
 #endif
-    [BMCHARGE] = { name: "BPMS:IN20:221:TMIT", fcid: FCOM_ID_NONE, blob: 0},	/* Charge in Nel, 1.602e-10 nC per Nel*/
+    [BMCHARGE] = { name: "BPMS:IN20:221:TMIT", fcid: FCOM_ID_NONE, blob: 0, aMsk: AVAIL_BMCHARGE},	/* Charge in Nel, 1.602e-10 nC per Nel*/
 
 #if 0
     Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
@@ -200,8 +204,8 @@ BLDBLOB pulseBlobs[] =
     BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
     BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
 #endif
-    [BMENERGY1X] = { name: "BPMS:LTU1:250:X", fcid: FCOM_ID_NONE, blob: 0},	/* Energy in MeV */
-    [BMENERGY2X] = { name: "BPMS:LTU1:450:X", fcid: FCOM_ID_NONE, blob: 0},	/* Energy in MeV */
+    [BMENERGY1X] = { name: "BPMS:LTU1:250:X", fcid: FCOM_ID_NONE, blob: 0, aMsk: AVAIL_BMENERGY1X},	/* Energy in MeV */
+    [BMENERGY2X] = { name: "BPMS:LTU1:450:X", fcid: FCOM_ID_NONE, blob: 0, aMsk: AVAIL_BMENERGY2X},	/* Energy in MeV */
 
 #if 0
     Position X, Y, Angle X, Y at LTU:
@@ -229,11 +233,11 @@ BLDBLOB pulseBlobs[] =
          R31 R32 R33 R34]     //rmat elements for bpm4y
 #endif
 
-    [BMPOSITION1X] = { name: "BPMS:LTU1:720:X", fcid: FCOM_ID_NONE, blob: 0},	/* Position in mm/mrad */
-    [BMPOSITION2X] = { name: "BPMS:LTU1:730:X", fcid: FCOM_ID_NONE, blob: 0},	/* Position in mm/mrad */
-    [BMPOSITION3X] = { name: "BPMS:LTU1:740:X", fcid: FCOM_ID_NONE, blob: 0},	/* Position in mm/mrad */
-    [BMPOSITION4X] = { name: "BPMS:LTU1:750:X", fcid: FCOM_ID_NONE, blob: 0},	/* Position in mm/mrad */
-    [BMBUNCHLEN]   = { name: "BLEN:LI24:886:BIMAX", fcid: FCOM_ID_NONE, blob: 0},	/* Bunch Length in Amps */
+    [BMPOSITION1X] = { name: "BPMS:LTU1:720:X", fcid: FCOM_ID_NONE, blob: 0, aMsk: AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y },	/* Position in mm/mrad */
+    [BMPOSITION2X] = { name: "BPMS:LTU1:730:X", fcid: FCOM_ID_NONE, blob: 0, aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
+    [BMPOSITION3X] = { name: "BPMS:LTU1:740:X", fcid: FCOM_ID_NONE, blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
+    [BMPOSITION4X] = { name: "BPMS:LTU1:750:X", fcid: FCOM_ID_NONE, blob: 0, aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
+    [BMBUNCHLEN]   = { name: "BLEN:LI24:886:BIMAX", fcid: FCOM_ID_NONE, blob: 0, aMsk: AVAIL_BMBUNCHLEN },	/* Bunch Length in Amps */
 };
 
 #define N_PULSE_BLOBS (sizeof(pulseBlobs)/sizeof(pulseBlobs[0]))
@@ -308,6 +312,7 @@ int bldInvalidAlarmCount = 0;
 int bldUnmatchedTSCount = 0;
 IOSCANPVT  ioscan;         /* Trigger EPICS record */
 epicsMutexId mutexLock = NULL;	/* Protect staticPVs' values */
+unsigned bldFcomGetErrs = 0;
 /* Share with device support */
 
 
@@ -349,16 +354,33 @@ int BLDMCastStart(int enable, const char * NIC)
 epicsTimeStamp fiducialTime;
 
 static int
-pvTimePulseIdMatches(epicsTimeStamp *p_ref, epicsTimeStamp *p_cmp)
+pvTimePulseIdMatches(
+	epicsTimeStamp *p_ref,
+#ifdef USE_PULSE_CA
+epicsTimeStamp *p_cmp
+#else
+	FcomBlobRef p_cmp
+#endif
+)
 {
 epicsUInt32 idref, idcmp, diff;
 
 	idref = PULSEID((*p_ref));
+#ifdef USE_PULSE_CA
 	idcmp = PULSEID((*p_cmp));
+#else
+	idcmp = p_cmp->fc_tsLo & LOWER_17_BIT_MASK;
+#endif
 
 	if ( idref == idcmp && idref != PULSEID_INVALID ) {
 		/* Verify that seconds match to less that a few minutes */
-		diff = abs(p_ref->secPastEpoch - p_cmp->secPastEpoch);
+		diff = abs(p_ref->secPastEpoch -
+#ifdef USE_PULSE_CA
+		           p_cmp->secPastEpoch
+#else
+		           p_cmp->fc_tsHi
+#endif
+		       );
 		if ( diff < 4*60 )
 			return 0;
 	}
@@ -369,11 +391,12 @@ epicsUInt32 idref, idcmp, diff;
 void EVRFire(void *unused)
 {/* This funciton will be registered with EVR callback */
     epicsUInt32 rate_mask = MOD5_30HZ_MASK|MOD5_10HZ_MASK|MOD5_5HZ_MASK|MOD5_1HZ_MASK|MOD5_HALFHZ_MASK;  /* can be 30HZ,10HZ,5HZ,1HZ,HALFHZ */
+	epicsTimeStamp time_s;
 
     /* get the current pattern data - check for good status */
     evrModifier_ta modifier_a;
     unsigned long  patternStatus; /* see evrPattern.h for values */
-    int status = evrTimeGetFromPipeline(&fiducialTime,  evrTimeCurrent, modifier_a, &patternStatus, 0,0,0);
+    int status = evrTimeGetFromPipeline(&time_s,  evrTimeCurrent, modifier_a, &patternStatus, 0,0,0);
     /* This is 120Hz. So printf will screw timing */
     if(BLD_MCAST_DEBUG >= 4) errlogPrintf("EVR fires\n");
     if (!status)
@@ -383,6 +406,7 @@ void EVRFire(void *unused)
 	 /* call 'BSP_timer_start()' to set/arm the hardware */
             uint64_t delayFromFiducial = 0;
 
+			fiducialTime = time_s;
             /* This is 30Hz. So printf might screw timing */
             if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Timer Starts\n");
             delayFromFiducial = BSP_timer_clock_get(0) * DELAY_FROM_FIDUCIAL;	/* delay from fiducial in us */
@@ -519,6 +543,7 @@ static int BLDMCastTask(void * parg)
     struct sockaddr_in sockaddrSrc;
     struct sockaddr_in sockaddrDst;
     unsigned char mcastTTL;
+    epicsTimeStamp *p_refTime;
 
     /************************************************************************* Prepare MultiCast *******************************************************************/
 #ifdef MULTICAST
@@ -643,6 +668,7 @@ static int BLDMCastTask(void * parg)
     ca_flush_io();
     /* ca_pend_event(2.0); */
 
+#ifdef USE_PULSE_CA
     /* We only fetch pulse PVs */
     for(loop=0; loop<N_PULSE_PVS; loop++)
     {
@@ -684,6 +710,22 @@ static int BLDMCastTask(void * parg)
 #endif
     }
     ca_flush_io();
+#else
+	for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
+		if ( FCOM_ID_NONE == (pulseBlobs[loop].fcid = fcomLCLSPV2FcomID(pulseBlobs[loop].name)) ) {
+			errlogPrintf("FATAL ERROR: Unable to determine FCOM ID for PV %s\n", pulseBlobs[loop].name);
+			return -1;
+		}
+		rtncode = fcomSubscribe( pulseBlobs[loop].fcid, FCOM_ASYNC_GET );
+		if ( 0 != rtncode ) {
+			errlogPrintf("FATAL ERROR: Unable to subscribe %s (0x%08"PRIx32") to FCOM: %s\n",
+			             pulseBlobs[loop].name,
+			             pulseBlobs[loop].fcid,
+			             fcomStrerror(rtncode));
+			return -1;
+		}
+	}
+#endif
 
 
     /* All ready to go, create event and register with EVR */
@@ -728,10 +770,11 @@ static int BLDMCastTask(void * parg)
             continue;
         }
 
-#ifdef FETCH_PULSE_PVS
-        /* Timer fires ok, let's then get pulse PVs */
         /* This is 30Hz. So printf might screw timing */
         if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Do work!\n");
+#ifdef USE_PULSE_CA
+#ifdef FETCH_PULSE_PVS
+        /* Timer fires ok, let's then get pulse PVs */
         rtncode = ECA_NORMAL;
         for(loop=0; loop<N_PULSE_PVS; loop++)
         {
@@ -749,10 +792,9 @@ static int BLDMCastTask(void * parg)
         else
 #endif
         {/* Got all PVs, do calculation including checking severity and timestamp */
-			epicsTimeStamp *p_refTime;
 
             /* Assume the first timestamp is right */
-			p_refTime = &fiducialTime /* pulsePVs[BMCHARGE].pTD->stamp */;
+			p_refTime = & pulsePVs[BMCHARGE].pTD->stamp;
 
             epicsMutexLock(mutexLock);
 
@@ -858,6 +900,140 @@ static int BLDMCastTask(void * parg)
             epicsMutexUnlock(mutexLock);
 
        }
+#else
+		{
+		FcomBlobRef b1;
+
+			p_refTime = &fiducialTime;
+
+			epicsMutexLock(mutexLock);
+
+			ebeamInfo.uDamageMask = __le32(0);
+
+			for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
+
+				dataAvailable |= pulseBlobs[loop].aMsk;
+
+				rtncode = fcomGetBlob( pulseBlobs[loop].fcid, &pulseBlobs[loop].blob, 0 );
+				if ( rtncode ) {
+					bldFcomGetErrs++;
+					dataAvailable        &= ~pulseBlobs[loop].aMsk;
+					pulseBlobs[loop].blob = 0;
+					continue;
+				}
+				b1 = pulseBlobs[loop].blob;
+
+				if ( b1->fc_stat ) {
+					/* If status is not 0 then handle a few special, permissible cases */
+					switch ( loop ) {
+						case BMCHARGE:
+							if ( FC_STAT_BPM_REFLO == b1->fc_stat )
+								goto passed;
+							break;
+
+						case BMBUNCHLEN:
+							if ( ! (FC_STAT_BLEN_INVAL_BIMAX_MASK & b1->fc_stat) )
+								goto passed;
+							break;
+
+						default:
+							break;
+					}
+
+					bldInvalidAlarmCount++;
+					dataAvailable &= ~pulseBlobs[loop].aMsk;
+				}
+passed:
+
+				/* verify timestamp */
+				if ( 0 != pvTimePulseIdMatches( p_refTime, b1 ) ) {
+					bldUnmatchedTSCount++;
+					dataAvailable &= ~pulseBlobs[loop].aMsk;
+				}
+			}
+
+			__st_le32(&ebeamInfo.ts_sec,      p_refTime->secPastEpoch);
+			__st_le32(&ebeamInfo.ts_nsec,     p_refTime->nsec);
+			__st_le32(&ebeamInfo.uFiducialId, PULSEID((*p_refTime)));
+
+			/* Calculate beam charge */
+			if( (dataAvailable & AVAIL_BMCHARGE) ) {
+				__st_le64(&ebeamInfo.ebeamCharge, (double)pulseBlobs[BMCHARGE].blob->fcbl_bpm_T * 1.602e-10);
+			} else {
+				ebeamInfo.uDamageMask |= __le32(0x1);
+			}
+
+#define AVAIL_L3ENERGY (AVAIL_BMENERGY1X | AVAIL_BMENERGY2X | AVAIL_DSPR1 | AVAIL_DSPR2 | AVAIL_E0BDES)
+
+			/* Calculate beam energy */
+			if( AVAIL_L3ENERGY == (AVAIL_L3ENERGY & dataAvailable ) ) {
+				double tempD;
+				tempD = pulseBlobs[BMENERGY1X].blob->fcbl_bpm_X/(1000.0 * staticPVs[DSPR1].pTD->value);
+				tempD += pulseBlobs[BMENERGY2X].blob->fcbl_bpm_X/(1000.0 * staticPVs[DSPR2].pTD->value);
+				tempD = tempD/2.0 + 1.0;
+				tempD *= staticPVs[E0BDES].pTD->value * 1000.0;
+				__st_le64(&ebeamInfo.ebeamL3Energy, tempD);
+			} else {
+				ebeamInfo.uDamageMask |= __le32(0x2);
+			}
+
+#define AVAIL_LTUPOS ( AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y | \
+		AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y | \
+		AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y | \
+		AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y | \
+		AVAIL_FMTRX )
+
+			/* Calculate beam position */
+			if( AVAIL_LTUPOS == (AVAIL_LTUPOS & dataAvailable) ) {
+				dbr_double_t *pMatrixValue;
+				double tempDA[4];
+				int i;
+
+				pMatrixValue = &(staticPVs[FMTRX].pTD->value);
+				for ( i=0; i<4; i++, pMatrixValue+=8 ) {
+					double acc = 0.0;
+#if 0
+					for(j=0;j<4;j++) {
+						tempDA[i] += pMatrixValue[i*8+2*j] * pulseBlobs[BMPOSITION1X+j].blob->fcbl_bpm_X;
+						tempDA[i] += pMatrixValue[i*8+2*j+1] * pulseBlobs[BMPOSITION1X+j].blob->fcbl_bpm_Y;
+					}
+#else
+					acc += pMatrixValue[0] * pulseBlobs[BMPOSITION1X].blob->fcbl_bpm_X;
+					acc += pMatrixValue[1] * pulseBlobs[BMPOSITION1X].blob->fcbl_bpm_Y;
+					acc += pMatrixValue[2] * pulseBlobs[BMPOSITION2X].blob->fcbl_bpm_X;
+					acc += pMatrixValue[3] * pulseBlobs[BMPOSITION2X].blob->fcbl_bpm_Y;
+					acc += pMatrixValue[4] * pulseBlobs[BMPOSITION3X].blob->fcbl_bpm_X;
+					acc += pMatrixValue[5] * pulseBlobs[BMPOSITION3X].blob->fcbl_bpm_Y;
+					acc += pMatrixValue[6] * pulseBlobs[BMPOSITION4X].blob->fcbl_bpm_X;
+					acc += pMatrixValue[7] * pulseBlobs[BMPOSITION4X].blob->fcbl_bpm_Y;
+
+					tempDA[i] = acc;	
+#endif
+				}
+				__st_le64(&ebeamInfo.ebeamLTUPosX, tempDA[0]);
+				__st_le64(&ebeamInfo.ebeamLTUPosY, tempDA[1]);
+				__st_le64(&ebeamInfo.ebeamLTUAngX, tempDA[2]);
+				__st_le64(&ebeamInfo.ebeamLTUAngY, tempDA[3]);
+			} else {
+				ebeamInfo.uDamageMask |= __le32(0x3C);
+			}
+
+			/* Copy bunch length */
+			if( (AVAIL_BMBUNCHLEN & dataAvailable) ) {
+				__st_le64(&ebeamInfo.ebeamBunchLen, (double)pulseBlobs[BMBUNCHLEN].blob->fcbl_blen_bimax);
+			} else {
+				ebeamInfo.uDamage = ebeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+				ebeamInfo.uDamageMask |= __le32(0x40);
+			}
+
+			if ( __ld_le32( &ebeamInfo.uDamageMask ) ) {
+				ebeamInfo.uDamage = ebeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+			} else {
+				ebeamInfo.uDamage = ebeamInfo.uDamage2 = __le32(0);
+			}
+			epicsMutexUnlock(mutexLock);
+		}
+#endif
 
        scanIoRequest(ioscan);
 
@@ -871,7 +1047,26 @@ static int BLDMCastTask(void * parg)
 	   }
        }
 #endif
+#ifndef USE_PULSE_CA
+		for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
+			if ( pulseBlobs[loop].blob ) {
+				rtncode = fcomReleaseBlob( & pulseBlobs[loop].blob );
+				if ( rtncode ) {
+					errlogPrintf("Fatal Error: Unable to release blob (for %s): %s\n",
+					             pulseBlobs[loop].name,
+					             fcomStrerror(rtncode));
+					return -1;
+				}
+			}
+		}
+#endif
     }
+
+#ifndef USE_PULSE_CA
+	for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
+		fcomUnsubscribe( pulseBlobs[loop].fcid );
+	}
+#endif
 
     /*Should never return from following call*/
     /*SEVCHK(ca_pend_event(0.0),"ca_pend_event");*/
