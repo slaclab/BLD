@@ -1,3 +1,12 @@
+	20100408 (Till Straumann):
+	* BLDApp/src/BLDMCast.c, BLDApp/src/BLDMCast.h,
+	BLDApp/src/devBLDMcastStatus.c: Use 'bld' prefix for all global
+	variables.
+
+	Added C++ 'extern "C"' in header.
+
+	Some beautification and elimination of dead code.
+
 	20100401 (Till Straumann):
 
 	* BLDApp/src/BLDMCast.c: Cannot use a UdpComm packet buffer to store

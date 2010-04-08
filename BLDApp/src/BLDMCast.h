@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.18 2010/03/26 18:20:53 strauman Exp $ */
+/* $Id: BLDMCast.h,v 1.19 2010/03/26 22:11:49 strauman Exp $ */
 #ifndef _BLD_MCAST_H_
 #define _BLD_MCAST_H_
 
@@ -6,6 +6,10 @@
 #include <epicsTypes.h>
 #include <epicsMutex.h>
 #include <dbScan.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef union Endianness {
 	epicsUInt16 test;
@@ -140,8 +144,12 @@ typedef struct EBEAMINFO
 
 #define EBEAM_INFO_ERROR 0x4000
 
-extern EBEAMINFO    ebeamInfo;
-extern epicsMutexId mutexLock;
-extern IOSCANPVT    ioscan;         /* Trigger EPICS record */
+extern EBEAMINFO    bldEbeamInfo;
+extern epicsMutexId bldMutex;
+extern IOSCANPVT    bldIoscan;         /* Trigger EPICS record */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

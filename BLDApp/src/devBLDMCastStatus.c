@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastStatus.c,v 1.8 2010/03/25 15:17:21 strauman Exp $ */
+/* $Id: devBLDMCastStatus.c,v 1.9 2010/03/26 18:20:53 strauman Exp $ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -64,7 +64,7 @@ static long init_ai( struct aiRecord * pai)
 /** for sync scan records  **/
 static long ai_ioint_info(int cmd,aiRecord *pai,IOSCANPVT *iopvt)
 {
-    *iopvt = ioscan;
+    *iopvt = bldIoscan;
     return 0;
 }
 
@@ -72,54 +72,54 @@ static long read_ai(struct aiRecord *pai)
 {
 int damage = 0;
 
-    if(mutexLock) epicsMutexLock(mutexLock);
+    if(bldMutex) epicsMutexLock(bldMutex);
 
     switch ((int)pai->dpvt)
     {
     case BLD_AI_CHARGE:
-        pai->val = __ld_le64(&ebeamInfo.ebeamCharge);
-        if(ebeamInfo.uDamageMask & __le32(0x1))
+        pai->val = __ld_le64(&bldEbeamInfo.ebeamCharge);
+        if(bldEbeamInfo.uDamageMask & __le32(0x1))
 			damage = 1;
         break;
     case BLD_AI_ENERGY:
-        pai->val = __ld_le64(&ebeamInfo.ebeamL3Energy);
-        if(ebeamInfo.uDamageMask & __le32(0x2))
+        pai->val = __ld_le64(&bldEbeamInfo.ebeamL3Energy);
+        if(bldEbeamInfo.uDamageMask & __le32(0x2))
 			damage = 1;
         break;
     case BLD_AI_POS_X:
-        pai->val = __ld_le64(&ebeamInfo.ebeamLTUPosX);
-        if(ebeamInfo.uDamageMask & __le32(0x4))
+        pai->val = __ld_le64(&bldEbeamInfo.ebeamLTUPosX);
+        if(bldEbeamInfo.uDamageMask & __le32(0x4))
 			damage = 1;
         break;
     case BLD_AI_POS_Y:
-        pai->val = __ld_le64(&ebeamInfo.ebeamLTUPosY);
-        if(ebeamInfo.uDamageMask & __le32(0x8))
+        pai->val = __ld_le64(&bldEbeamInfo.ebeamLTUPosY);
+        if(bldEbeamInfo.uDamageMask & __le32(0x8))
 			damage = 1;
         break;
     case BLD_AI_ANG_X:
-        pai->val = __ld_le64(&ebeamInfo.ebeamLTUAngX);
-        if(ebeamInfo.uDamageMask & __le32(0x10))
+        pai->val = __ld_le64(&bldEbeamInfo.ebeamLTUAngX);
+        if(bldEbeamInfo.uDamageMask & __le32(0x10))
 			damage = 1;
         break;
     case BLD_AI_ANG_Y:
-        pai->val = __ld_le64(&ebeamInfo.ebeamLTUAngY);
-        if(ebeamInfo.uDamageMask & __le32(0x20))
+        pai->val = __ld_le64(&bldEbeamInfo.ebeamLTUAngY);
+        if(bldEbeamInfo.uDamageMask & __le32(0x20))
 			damage = 1;
         break;
     case BLD_AI_BLEN:
-        pai->val = __ld_le64(&ebeamInfo.ebeamBunchLen);
-        if(ebeamInfo.uDamageMask & __le32(0x40))
+        pai->val = __ld_le64(&bldEbeamInfo.ebeamBunchLen);
+        if(bldEbeamInfo.uDamageMask & __le32(0x40))
 			damage = 1;
         break;
     }
 
     if(pai->tse == epicsTimeEventDeviceTime) {
 		/* do timestamp by device support */
-        pai->time.secPastEpoch = __ld_le32(&ebeamInfo.ts_sec);
-        pai->time.nsec         = __ld_le32(&ebeamInfo.ts_nsec);
+        pai->time.secPastEpoch = __ld_le32(&bldEbeamInfo.ts_sec);
+        pai->time.nsec         = __ld_le32(&bldEbeamInfo.ts_nsec);
 	}
 
-    if(mutexLock) epicsMutexUnlock(mutexLock);
+    if(bldMutex) epicsMutexUnlock(bldMutex);
 
     if ( damage )
         recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
