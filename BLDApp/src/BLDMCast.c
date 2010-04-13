@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.36 2010/04/01 23:34:03 strauman Exp $ */
+/* $Id: BLDMCast.c,v 1.37 2010/04/08 22:00:16 strauman Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -36,11 +36,13 @@
 #include "fcomLclsBpm.h"
 #include "fcomLclsBlen.h"
 
+#include <devBusMapped.h>
+
 #include <bsp/gt_timer.h> /* This is MVME6100/5500 only */
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.36 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.37 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -246,8 +248,7 @@ BLDBLOB bldPulseBlobs[] =
 static enum PVAVAILMASK dataAvailable = 0;
 
 #define MCAST_LOCAL_IP	"172.27.225.21"
-#define MCAST_DST_IP	(inet_addr("239.255.24.0"))
-#define MCAST_DST_PORT	(htons(10148))
+
 #define MCAST_TTL	8
 
 #undef  FETCH_PULSE_PVS     /* Otherwise we monitor pulse PVs */
@@ -261,41 +262,45 @@ static enum PVAVAILMASK dataAvailable = 0;
 #define MULTICAST           /* Use multicast interface */
 #define MULTICAST_UDPCOMM	/* Use UDPCOMM for data output; BSD sockets otherwise */
 
+#define BSPTIMER    0       /* Timer instance -- use first timer */
+
 int BLD_MCAST_ENABLE = 1;
 epicsExportAddress(int, BLD_MCAST_ENABLE);
 
 int BLD_MCAST_DEBUG = 0;
 epicsExportAddress(int, BLD_MCAST_DEBUG);
 
-int DELAY_FROM_FIDUCIAL = 5000;	/* in microseconds */
-epicsExportAddress(int, DELAY_FROM_FIDUCIAL);
+static uint32_t timer_delay_clicks = 10 /* just some value; true thing is written by EPICS record */;
 
 int DELAY_FOR_CA = 60;	/* in seconds */
 epicsExportAddress(int, DELAY_FOR_CA);
 
 /* Share with device support */
 volatile int bldAllPVsConnected   = FALSE;
-int          bldInvalidAlarmCount = 0;
-#ifdef USE_PULSE_CA
-unsigned     bldUnmatchedTSCount  = 0;
-#else
-unsigned     bldUnmatchedTSCount[N_PULSE_BLOBS] = {0};
-#endif
+epicsUInt32  bldInvalidAlarmCount[N_PULSE_BLOBS] = {0};
+epicsUInt32  bldUnmatchedTSCount[N_PULSE_BLOBS]  = {0};
 EBEAMINFO    bldEbeamInfo;
 IOSCANPVT    bldIoscan;         /* Trigger EPICS record */
 epicsMutexId bldMutex = NULL;	/* Protect bldStaticPVs' values */
-unsigned     bldFcomGetErrs = 0;
+epicsUInt32  bldFcomGetErrs[N_PULSE_BLOBS]       = {0};
+epicsUInt32  bldMcastMsgSent                     =  0;
 /* Share with device support */
 
 /*==========================================================*/
 static in_addr_t mcastIntfIp = 0;
 
+static epicsEventId EVRFireEvent = NULL;
+
+epicsTimeStamp bldFiducialTime;
+
+int      tsCatch = -1;
+uint32_t tsMismatch[4];
+
+
 
 static void evr_timer_isr(void *arg);
 static int BLDMCastTask(void * parg);
 static void BLDMCastTaskEnd(void * parg);
-
-static epicsEventId EVRFireEvent = NULL;
 
 int BLDMCastStart(int enable, const char * NIC)
 {/* This function will be called in st.cmd after iocInit() */
@@ -315,17 +320,12 @@ int BLDMCastStart(int enable, const char * NIC)
 
     /******************************************************************* Setup high resolution timer ***************************************************************/
     /* you need to setup the timer only once (to connect ISR) */
-    BSP_timer_setup( 0 /* use first timer */, evr_timer_isr, 0, 0 /* do not reload timer when it expires */);
+    BSP_timer_setup( BSPTIMER, evr_timer_isr, 0, 0 /* do not reload timer when it expires */);
 
     epicsAtExit(BLDMCastTaskEnd, NULL);
 
     return (int)(epicsThreadMustCreate("BLDMCast", TASK_PRIORITY, 20480, (EPICSTHREADFUNC)BLDMCastTask, NULL));
 }
-
-epicsTimeStamp bldFiducialTime;
-
-int      tsCatch = -1;
-uint32_t tsMismatch[4];
 
 static int
 pvTimePulseIdMatches(
@@ -380,44 +380,42 @@ int i;
 
 void EVRFire(void *unused)
 {/* This function will be registered with EVR callback */
-    epicsUInt32 rate_mask = MOD5_30HZ_MASK|MOD5_10HZ_MASK|MOD5_5HZ_MASK|MOD5_1HZ_MASK|MOD5_HALFHZ_MASK;  /* can be 30HZ,10HZ,5HZ,1HZ,HALFHZ */
+	epicsUInt32 rate_mask = MOD5_30HZ_MASK|MOD5_10HZ_MASK|MOD5_5HZ_MASK|MOD5_1HZ_MASK|MOD5_HALFHZ_MASK;  /* can be 30HZ,10HZ,5HZ,1HZ,HALFHZ */
 	epicsTimeStamp time_s;
 
-    /* get the current pattern data - check for good status */
-    evrModifier_ta modifier_a;
-    unsigned long  patternStatus; /* see evrPattern.h for values */
-    int status = evrTimeGetFromPipeline(&time_s,  evrTimeCurrent, modifier_a, &patternStatus, 0,0,0);
-    /* This is 120Hz. So printf will screw timing */
-    if(BLD_MCAST_DEBUG >= 4) errlogPrintf("EVR fires\n");
-    if (!status)
-    {/* check for LCLS beam and rate-limiting */
-        if ((modifier_a[4] & MOD5_BEAMFULL_MASK) && (modifier_a[4] & rate_mask))
-	{/* ... do beam-sync rate-limited processing here ... */
-	 /* call 'BSP_timer_start()' to set/arm the hardware */
-            uint64_t delayFromFiducial = 0;
+	/* get the current pattern data - check for good status */
+	evrModifier_ta modifier_a;
+	unsigned long  patternStatus; /* see evrPattern.h for values */
+	int status = evrTimeGetFromPipeline(&time_s,  evrTimeCurrent, modifier_a, &patternStatus, 0,0,0);
+	/* This is 120Hz. So printf will screw timing */
+	if(BLD_MCAST_DEBUG >= 4) errlogPrintf("EVR fires\n");
+	if (!status)
+	{/* check for LCLS beam and rate-limiting */
+		if ((modifier_a[4] & MOD5_BEAMFULL_MASK) && (modifier_a[4] & rate_mask))
+		{/* ... do beam-sync rate-limited processing here ... */
+			/* call 'BSP_timer_start()' to set/arm the hardware */
 
 			bldFiducialTime = time_s;
-            /* This is 30Hz. So printf might screw timing */
-            if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Timer Starts\n");
-            delayFromFiducial = (uint64_t)BSP_timer_clock_get(0) * (uint64_t)DELAY_FROM_FIDUCIAL;	/* delay from fiducial in us */
-	    BSP_timer_start( 0, (uint32_t) (delayFromFiducial / 1000000ULL) );
-{
-	uint32_t tt = BSP_timer_read(0);
-	if (tt<mint)
-		mint = tt;
-}
+			/* This is 30Hz. So printf might screw timing */
+			if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Timer Starts\n");
+			BSP_timer_start( BSPTIMER, timer_delay_clicks );
+			{
+				uint32_t tt = BSP_timer_read(BSPTIMER);
+				if (tt<mint)
+					mint = tt;
+			}
 
-	}
-if ( modi < sizeof(mod2)/sizeof(mod2[0]) ) {
-	mod2[modi] = modifier_a[1];
-	mod5[modi] = modifier_a[4];
-	modi++;
-}
-    } else {
+		}
+		if ( modi < sizeof(mod2)/sizeof(mod2[0]) ) {
+			mod2[modi] = modifier_a[1];
+			mod5[modi] = modifier_a[4];
+			modi++;
+		}
+	} else {
 		bldFiducialTime.nsec = PULSEID_INVALID;
 	}
 
-    return;
+	return;
 }
 
 static void evr_timer_isr(void *arg)
@@ -559,7 +557,7 @@ epicsTimeStamp *p_refTime;
 		return -1;
 	}
 
-	if ( (rtncode = udpCommConnect( sFd, MCAST_DST_IP, MCAST_DST_PORT )) ) {
+	if ( (rtncode = udpCommConnect( sFd, inet_addr(BLDMCAST_DST_IP), BLDMCAST_DST_PORT )) ) {
 		errlogPrintf("Failed to 'connect' to peer: %s\n", strerror(-rtncode));
 		epicsMutexDestroy( bldMutex );
 		bldMutex = 0;
@@ -595,8 +593,8 @@ epicsTimeStamp *p_refTime;
 	sockaddrSrc.sin_port        = 0;
 
 	sockaddrDst.sin_family      = AF_INET;
-	sockaddrDst.sin_addr.s_addr = MCAST_DST_IP;
-	sockaddrDst.sin_port        = MCAST_DST_PORT;
+	sockaddrDst.sin_addr.s_addr = inet_addr(BLDMCAST_DST_IP);
+	sockaddrDst.sin_port        = htons(BLDMCAST_DST_PORT);
 
 	if( bind( sFd, (struct sockaddr *) &sockaddrSrc, sizeof(struct sockaddr_in) ) == -1 )
 	{
@@ -841,14 +839,14 @@ epicsTimeStamp *p_refTime;
 				if(bldPulsePVs[loop].pTD->severity >= INVALID_ALARM )
 				{
 					dataAvailable &= ~ bldPulsePVs[loop].availMask;
-					bldInvalidAlarmCount++;
+					bldInvalidAlarmCount[0]++;
 					if(BLD_MCAST_DEBUG) errlogPrintf("%s has severity %d\n", bldPulsePVs[loop].name, bldPulsePVs[loop].pTD->severity);
 				}
 
 				if( 0 != pvTimePulseIdMatches(p_refTime, &(bldPulsePVs[loop].pTD->stamp)) )
 				{
 					dataAvailable &= ~ bldPulsePVs[loop].availMask;
-					bldUnmatchedTSCount++;
+					bldUnmatchedTSCount[0]++;
 					if(BLD_MCAST_DEBUG) errlogPrintf("%s has unmatched timestamp.nsec [0x%08X,0x%08X]\n",
 							bldPulsePVs[loop].name, p_refTime->nsec, bldPulsePVs[loop].pTD->stamp.nsec);
 				}
@@ -948,7 +946,7 @@ epicsTimeStamp *p_refTime;
 
 				rtncode = fcomGetBlob( bldPulseBlobs[loop].fcid, &bldPulseBlobs[loop].blob, 0 );
 				if ( rtncode ) {
-					bldFcomGetErrs++;
+					bldFcomGetErrs[loop]++;
 					dataAvailable        &= ~bldPulseBlobs[loop].aMsk;
 					bldPulseBlobs[loop].blob = 0;
 					continue;
@@ -972,7 +970,7 @@ epicsTimeStamp *p_refTime;
 							break;
 					}
 
-					bldInvalidAlarmCount++;
+					bldInvalidAlarmCount[loop]++;
 					dataAvailable &= ~bldPulseBlobs[loop].aMsk;
 				}
 passed:
@@ -1092,6 +1090,7 @@ passed:
 				if(BLD_MCAST_DEBUG) perror("Multicast sendto failed\n");
 			}
 #endif
+			bldMcastMsgSent++;
 		}
 #endif
 #ifndef USE_PULSE_CA
@@ -1133,10 +1132,12 @@ void
 dumpTsMismatchStats(FILE *f, int reset)
 {
 int      i;
-unsigned cnt[N_PULSE_BLOBS];
+unsigned cnt [N_PULSE_BLOBS];
+unsigned cnt1[N_PULSE_BLOBS];
 
 	if ( bldMutex ) epicsMutexLock( bldMutex );
-		memcpy(cnt, bldUnmatchedTSCount, sizeof(cnt));
+		memcpy(cnt,  bldUnmatchedTSCount,  sizeof(cnt));
+		memcpy(cnt1, bldInvalidAlarmCount, sizeof(cnt1));
 	if ( bldMutex ) epicsMutexUnlock( bldMutex );
 	if ( !f )
 		f = stdout;
@@ -1144,15 +1145,54 @@ unsigned cnt[N_PULSE_BLOBS];
 	for ( i=0; i<N_PULSE_BLOBS; i++ ) {
 		fprintf(f,"  %40s: %9u times\n", bldPulseBlobs[i].name, bldUnmatchedTSCount[i]);
 	}
+	fprintf(f,"FCOM Data with bad/invalid status\n");
+	for ( i=0; i<N_PULSE_BLOBS; i++ ) {
+		fprintf(f,"  %40s: %9u times\n", bldPulseBlobs[i].name, bldUnmatchedTSCount[i]);
+	}
+	fprintf(f,"MCAST messages posted:     %10u\n", bldMcastMsgSent);
+	fprintf(f,"FCOM 'get' message errors: %10u\n", bldFcomGetErrs);
 	if ( reset ) {
 		if ( bldMutex ) epicsMutexLock( bldMutex );
 			for ( i=0; i<N_PULSE_BLOBS; i++ ) {
 				bldUnmatchedTSCount[i] = 0;
 			}
+			bldMcastMsgSent = 0;
 		if ( bldMutex ) epicsMutexUnlock( bldMutex );
 	}
 }
 #endif
+
+/**************************************************************************************************/
+/* Here we supply the access methods for 'devBusMapped'                                           */
+/**************************************************************************************************/
+
+static int
+timer_delay_rd(DevBusMappedPvt pvt, unsigned *pvalue, dbCommon *prec)
+{
+uint64_t us;
+
+	us = 1000000ULL * (uint64_t)timer_delay_clicks;
+	us = us / (uint64_t)BSP_timer_clock_get(BSPTIMER);
+	*pvalue = (unsigned)us;
+
+	return 0;
+}
+
+static int
+timer_delay_wr(DevBusMappedPvt pvt, unsigned value, dbCommon *prec)
+{
+uint64_t clicks;
+
+	clicks = (uint64_t)BSP_timer_clock_get(BSPTIMER) * (uint64_t)value;	/* delay from fiducial in us */
+	timer_delay_clicks = (uint32_t) (clicks / 1000000ULL);
+
+	return 0;
+}
+
+static DevBusMappedAccessRec timer_delay_io = {
+	rd: timer_delay_rd,
+	wr: timer_delay_wr,
+};
 
 /**************************************************************************************************/
 /* Here we supply the driver report function for epics                                            */
@@ -1166,9 +1206,24 @@ static const struct drvet drvBLD = {2,                              /*2 Table En
 
 epicsExportAddress(drvet,drvBLD);
 
+static void
+check(char *nm, void *ptr)
+{
+	if ( devBusMappedRegister(nm, ptr) ) {
+		errlogPrintf("WARNING: Unable to register '%s'; related statistics may not work\n", nm);
+	}
+}
+
 /* implementation */
 static long BLD_EPICS_Init()
 {
+	if ( devBusMappedRegisterIO("bld_timer_io", &timer_delay_io) )
+		errlogPrintf("ERROR: Unable to register I/O methods for timer delay\n"
+                     "SOFTWARE MAY NOT WORK PROPERLY\n");
+	check("bld_stat_bad_t", &bldUnmatchedTSCount);
+	check("bld_stat_bad_d", &bldInvalidAlarmCount);
+	check("bld_stat_bad_f", &bldFcomGetErrs);
+	check("bld_stat_msg_s", &bldMcastMsgSent);
     BLDMCastStart(1, getenv("IPADDR1"));
     return 0;
 }

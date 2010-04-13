@@ -1,5 +1,11 @@
 	20100413 (Till Straumann):
 
+	* BLDApp/src/BLDMCast.c: register statistics counters and
+	timer delay with devBusMapped so that they can be read/written
+	using EPICS records.
+
+	20100413 (Till Straumann):
+
 	* BLDApp/src/BLDMCast.h: moved (and renamed) definition of
 	destination MC address and port number.
 
