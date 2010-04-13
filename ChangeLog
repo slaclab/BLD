@@ -1,5 +1,11 @@
 	20100413 (Till Straumann):
 
+	* BLDApp/src/devBLDMcastWfRecv.c, BLDApp/src/devBLDMcastWfRecv.dbd,
+	BLDApp/src/bldrx_evr.dbd: Added waveform device support that reads
+	BLD packets into a waveform.
+
+	20100413 (Till Straumann):
+
 	* BLDApp/src/BLDMCast.c: register statistics counters and
 	timer delay with devBusMapped so that they can be read/written
 	using EPICS records.
