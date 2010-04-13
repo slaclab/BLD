@@ -1,0 +1,16 @@
+record(waveform,"$(name)") {
+	field(DESC, "Waveform with BLD data")
+	field(DTYP, "BLD Data Receiver")
+	field(FTVL, "DOUBLE")
+	field(NELM, "7")
+# If there is EVR support you can scan e.g.,
+#   field(SCAN, "Event")
+#   field(EVNT, "16")
+	field(SCAN, "1 second")
+# obtain timestamp from BLD packet
+	field(TSE,  "-2")
+# if RARM > 1 then the record rearms automatically
+	field(RARM, "2")
+	field(SDIS, "$(name).RARM")
+	field(DISV, "0")
+}

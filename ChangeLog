@@ -1,8 +1,8 @@
 	20100413 (Till Straumann):
 
 	* BLDApp/src/devBLDMcastWfRecv.c, BLDApp/src/devBLDMcastWfRecv.dbd,
-	BLDApp/src/bldrx_evr.dbd: Added waveform device support that reads
-	BLD packets into a waveform.
+	BLDApp/src/bldrx_evr.dbd, BLDApp/Db/BLDMCastWfRecv.db:
+	Added waveform device support that reads BLD packets into a waveform.
 
 	20100413 (Till Straumann):
 
