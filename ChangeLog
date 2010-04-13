@@ -1,4 +1,10 @@
+	20100413 (Till Straumann):
+
+	* BLDApp/src/BLDMCast.h: moved (and renamed) definition of
+	destination MC address and port number.
+
 	20100408 (Till Straumann):
+
 	* BLDApp/src/BLDMCast.c, BLDApp/src/BLDMCast.h,
 	BLDApp/src/devBLDMcastStatus.c: Use 'bld' prefix for all global
 	variables.

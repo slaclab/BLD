@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.19 2010/03/26 22:11:49 strauman Exp $ */
+/* $Id: BLDMCast.h,v 1.20 2010/04/08 22:00:17 strauman Exp $ */
 #ifndef _BLD_MCAST_H_
 #define _BLD_MCAST_H_
 
@@ -146,7 +146,10 @@ typedef struct EBEAMINFO
 
 extern EBEAMINFO    bldEbeamInfo;
 extern epicsMutexId bldMutex;
-extern IOSCANPVT    bldIoscan;         /* Trigger EPICS record */
+extern IOSCANPVT    bldIoscan;         /* Trigger full-rate EPICS records */
+
+#define BLDMCAST_DST_IP	    "239.255.24.0"
+#define BLDMCAST_DST_PORT	10148
 
 #ifdef __cplusplus
 }
