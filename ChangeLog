@@ -1,3 +1,8 @@
+	20100415 (Till Straumann):
+
+	* BLDApp/Db/BLDMCast.db: Added records for reading statistics and
+	setting the FCOM sampling delay.
+
 	20100413 (Till Straumann):
 
 	* BLDApp/src/devBLDMcastWfRecv.c, BLDApp/src/devBLDMcastWfRecv.dbd,
