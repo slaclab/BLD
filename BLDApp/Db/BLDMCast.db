@@ -193,175 +193,175 @@ record(longin, "BLD:SYS0:500:TMITLATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C0S2@bld_stat_bad_t")
+	field(INP,  "#C0S2@bld_stat_bad_t,m32")
 }
 
 record(longin, "BLD:SYS0:500:ENG1LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C1S2@bld_stat_bad_t")
+	field(INP,  "#C1S2@bld_stat_bad_t,m32")
 }
 
 record(longin, "BLD:SYS0:500:ENG2LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C2S2@bld_stat_bad_t")
+	field(INP,  "#C2S2@bld_stat_bad_t,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS1LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C3S2@bld_stat_bad_t")
+	field(INP,  "#C3S2@bld_stat_bad_t,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS2LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C4S2@bld_stat_bad_t")
+	field(INP,  "#C4S2@bld_stat_bad_t,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS3LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C5S2@bld_stat_bad_t")
+	field(INP,  "#C5S2@bld_stat_bad_t,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS4LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C6S2@bld_stat_bad_t")
+	field(INP,  "#C6S2@bld_stat_bad_t,m32")
 }
 
 record(longin, "BLD:SYS0:500:BLENLATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C7S2@bld_stat_bad_t")
+	field(INP,  "#C7S2@bld_stat_bad_t,m32")
 }
 
 record(longin, "BLD:SYS0:500:TMITBADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C0S2@bld_stat_bad_d")
+	field(INP,  "#C0S2@bld_stat_bad_d,m32")
 }
 
 record(longin, "BLD:SYS0:500:ENG1BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C1S2@bld_stat_bad_d")
+	field(INP,  "#C1S2@bld_stat_bad_d,m32")
 }
 
 record(longin, "BLD:SYS0:500:ENG2BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C2S2@bld_stat_bad_d")
+	field(INP,  "#C2S2@bld_stat_bad_d,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS1BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C3S2@bld_stat_bad_d")
+	field(INP,  "#C3S2@bld_stat_bad_d,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS2BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C4S2@bld_stat_bad_d")
+	field(INP,  "#C4S2@bld_stat_bad_d,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS3BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C5S2@bld_stat_bad_d")
+	field(INP,  "#C5S2@bld_stat_bad_d,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS4BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C6S2@bld_stat_bad_d")
+	field(INP,  "#C6S2@bld_stat_bad_d,m32")
 }
 
 record(longin, "BLD:SYS0:500:BLENBADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C7S2@bld_stat_bad_d")
+	field(INP,  "#C7S2@bld_stat_bad_d,m32")
 }
 
 record(longin, "BLD:SYS0:500:TMITFCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C0S2@bld_stat_bad_f")
+	field(INP,  "#C0S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:ENG1FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C1S2@bld_stat_bad_f")
+	field(INP,  "#C1S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:ENG2FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C2S2@bld_stat_bad_f")
+	field(INP,  "#C2S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS1FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C3S2@bld_stat_bad_f")
+	field(INP,  "#C3S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS2FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C4S2@bld_stat_bad_f")
+	field(INP,  "#C4S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS3FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C5S2@bld_stat_bad_f")
+	field(INP,  "#C5S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS4FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C6S2@bld_stat_bad_f")
+	field(INP,  "#C6S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:BLENFCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C7S2@bld_stat_bad_f")
+	field(INP,  "#C7S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:MCASTSENT") {
 	field(DESC, "MC Messages Sent")
 	field(SCAN, "10 second")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C0S2@bld_stat_msg_s")
+	field(INP,  "#C0S2@bld_stat_msg_s,m32")
 }
 
 record(ao,     "BLD:SYS0:500:FC_POLL_DELAY") {
