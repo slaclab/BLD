@@ -1,8 +1,19 @@
+	20100420 (Till Straumann):
+
+	* BLDApp/src/BLDMCast.h: changed __ld_le64() so that it no longer
+	modifies data in place but uses a scratch area. A 'load' operation
+	should not have side-effects!
+
 	20100415 (Till Straumann):
 
 	* BLDApp/Db/BLDMCast.db: Added records for reading statistics and
 	setting the FCOM sampling delay.
 
+	20100413 (Till Straumann):
+
+	* BLDApp/src/BLDMCast.c, BLDApp/src/BLDMCast.dbd: removed
+	DELAY_FROM_FIDUCIAL; this parameter is now controlled via a record.
+	
 	20100413 (Till Straumann):
 
 	* BLDApp/src/devBLDMcastWfRecv.c, BLDApp/src/devBLDMcastWfRecv.dbd,

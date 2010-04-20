@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.20 2010/04/08 22:00:17 strauman Exp $ */
+/* $Id: BLDMCast.h,v 1.21 2010/04/13 22:35:19 strauman Exp $ */
 #ifndef _BLD_MCAST_H_
 #define _BLD_MCAST_H_
 
@@ -98,10 +98,10 @@ __ld_le64(Flt64_LE *p)
 Endianness endian = {test:1};
 
 	if ( endian.is.big ) {
-		__u32_a tmp;
-		tmp = p->u[1];
-		__st_le32(p->u+1,p->u[0]);
-		__st_le32(p->u,  tmp);
+		Flt64_LE tmp;
+		__st_le32(tmp.u+1,p->u[0]);
+		__st_le32(tmp.u  ,p->u[1]);
+		return tmp.d;
 	}
 
 	return p->d;
