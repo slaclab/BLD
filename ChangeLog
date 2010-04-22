@@ -1,3 +1,9 @@
+	20100422 (Till Straumann):
+ 	
+	* BLDApp/src/BLDMCast.c: Use new FCOM blob sets to obtain data
+	w/o the need to read after a timer delay. Reading a 'set' returns
+	as soon as all data are available.
+
 	20100420 (Till Straumann):
 
 	* BLDApp/src/BLDMCast.h: changed __ld_le64() so that it no longer

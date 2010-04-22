@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.37 2010/04/08 22:00:16 strauman Exp $ */
+/* $Id: BLDMCast.c,v 1.38 2010/04/13 22:37:25 strauman Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -42,7 +42,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.37 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.38 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -122,7 +122,6 @@ typedef struct BLDPV
 
 typedef struct BLDBLOB {
 	const char *            name;
-	FcomID                  fcid;
 	FcomBlobRef             blob;
 	enum PVAVAILMASK        aMsk;
 } BLDBLOB;
@@ -198,7 +197,7 @@ BLDBLOB bldPulseBlobs[] =
 #if 0
     Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
 #endif
-    [BMCHARGE] = { name: "BPMS:IN20:221:TMIT", fcid: FCOM_ID_NONE, blob: 0, aMsk: AVAIL_BMCHARGE},	/* Charge in Nel, 1.602e-10 nC per Nel*/
+    [BMCHARGE] = { name: "BPMS:IN20:221:TMIT", blob: 0, aMsk: AVAIL_BMCHARGE},	/* Charge in Nel, 1.602e-10 nC per Nel*/
 
 #if 0
     Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
@@ -207,8 +206,8 @@ BLDBLOB bldPulseBlobs[] =
     BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
     BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
 #endif
-    [BMENERGY1X] = { name: "BPMS:LTU1:250:X", fcid: FCOM_ID_NONE, blob: 0, aMsk: AVAIL_BMENERGY1X},	/* Energy in MeV */
-    [BMENERGY2X] = { name: "BPMS:LTU1:450:X", fcid: FCOM_ID_NONE, blob: 0, aMsk: AVAIL_BMENERGY2X},	/* Energy in MeV */
+    [BMENERGY1X] = { name: "BPMS:LTU1:250:X", blob: 0, aMsk: AVAIL_BMENERGY1X},	/* Energy in MeV */
+    [BMENERGY2X] = { name: "BPMS:LTU1:450:X", blob: 0, aMsk: AVAIL_BMENERGY2X},	/* Energy in MeV */
 
 #if 0
     Position X, Y, Angle X, Y at LTU:
@@ -236,14 +235,17 @@ BLDBLOB bldPulseBlobs[] =
          R31 R32 R33 R34]     //rmat elements for bpm4y
 #endif
 
-    [BMPOSITION1X] = { name: "BPMS:LTU1:720:X", fcid: FCOM_ID_NONE, blob: 0, aMsk: AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y },	/* Position in mm/mrad */
-    [BMPOSITION2X] = { name: "BPMS:LTU1:730:X", fcid: FCOM_ID_NONE, blob: 0, aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
-    [BMPOSITION3X] = { name: "BPMS:LTU1:740:X", fcid: FCOM_ID_NONE, blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
-    [BMPOSITION4X] = { name: "BPMS:LTU1:750:X", fcid: FCOM_ID_NONE, blob: 0, aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
-    [BMBUNCHLEN]   = { name: "BLEN:LI24:886:BIMAX", fcid: FCOM_ID_NONE, blob: 0, aMsk: AVAIL_BMBUNCHLEN },	/* Bunch Length in Amps */
+    [BMPOSITION1X] = { name: "BPMS:LTU1:720:X", blob: 0, aMsk: AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y },	/* Position in mm/mrad */
+    [BMPOSITION2X] = { name: "BPMS:LTU1:730:X", blob: 0, aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
+    [BMPOSITION3X] = { name: "BPMS:LTU1:740:X", blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
+    [BMPOSITION4X] = { name: "BPMS:LTU1:750:X", blob: 0, aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
+    [BMBUNCHLEN]   = { name: "BLEN:LI24:886:BIMAX", blob: 0, aMsk: AVAIL_BMBUNCHLEN },	/* Bunch Length in Amps */
 };
 
+
 #define N_PULSE_BLOBS (sizeof(bldPulseBlobs)/sizeof(bldPulseBlobs[0]))
+
+FcomID bldPulseID[N_PULSE_BLOBS] = { 0 };
 
 static enum PVAVAILMASK dataAvailable = 0;
 
@@ -271,6 +273,7 @@ int BLD_MCAST_DEBUG = 0;
 epicsExportAddress(int, BLD_MCAST_DEBUG);
 
 static uint32_t timer_delay_clicks = 10 /* just some value; true thing is written by EPICS record */;
+static uint32_t timer_delay_ms     =  4 /* just some value; true thing is written by EPICS record */;
 
 int DELAY_FOR_CA = 60;	/* in seconds */
 epicsExportAddress(int, DELAY_FOR_CA);
@@ -366,8 +369,6 @@ int      modi=6*3;
 uint32_t mod2[6*3];
 uint32_t mod5[6*3];
 
-uint32_t mint=-1;
-
 void
 moddmp(void)
 {
@@ -378,7 +379,7 @@ int i;
 	}
 }
 
-void EVRFire(void *unused)
+void EVRFire(void *use_sets)
 {/* This function will be registered with EVR callback */
 	epicsUInt32 rate_mask = MOD5_30HZ_MASK|MOD5_10HZ_MASK|MOD5_5HZ_MASK|MOD5_1HZ_MASK|MOD5_HALFHZ_MASK;  /* can be 30HZ,10HZ,5HZ,1HZ,HALFHZ */
 	epicsTimeStamp time_s;
@@ -398,12 +399,9 @@ void EVRFire(void *unused)
 			bldFiducialTime = time_s;
 			/* This is 30Hz. So printf might screw timing */
 			if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Timer Starts\n");
-			BSP_timer_start( BSPTIMER, timer_delay_clicks );
-			{
-				uint32_t tt = BSP_timer_read(BSPTIMER);
-				if (tt<mint)
-					mint = tt;
-			}
+
+			if ( ! use_sets )
+				BSP_timer_start( BSPTIMER, timer_delay_clicks );
 
 		}
 		if ( modi < sizeof(mod2)/sizeof(mod2[0]) ) {
@@ -545,6 +543,11 @@ struct sockaddr_in sockaddrDst;
 unsigned char mcastTTL;
 #endif
 epicsTimeStamp *p_refTime;
+
+#ifndef USE_PULSE_CA
+FcomBlobSetRef  blob_set = 0;
+FcomBlobSetMask got_mask;
+#endif
 
 	/******** Prepare MultiCast **************************************************/
 #ifdef MULTICAST
@@ -741,17 +744,27 @@ epicsTimeStamp *p_refTime;
 	ca_flush_io();
 #else
 	for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
-		if ( FCOM_ID_NONE == (bldPulseBlobs[loop].fcid = fcomLCLSPV2FcomID(bldPulseBlobs[loop].name)) ) {
+		if ( FCOM_ID_NONE == (bldPulseID[loop] = fcomLCLSPV2FcomID(bldPulseBlobs[loop].name)) ) {
 			errlogPrintf("FATAL ERROR: Unable to determine FCOM ID for PV %s\n", bldPulseBlobs[loop].name);
 			return -1;
 		}
-		rtncode = fcomSubscribe( bldPulseBlobs[loop].fcid, FCOM_ASYNC_GET );
+		rtncode = fcomSubscribe( bldPulseID[loop], FCOM_ASYNC_GET );
 		if ( 0 != rtncode ) {
 			errlogPrintf("FATAL ERROR: Unable to subscribe %s (0x%08"PRIx32") to FCOM: %s\n",
 					bldPulseBlobs[loop].name,
-					bldPulseBlobs[loop].fcid,
+					bldPulseID[loop],
 					fcomStrerror(rtncode));
 			return -1;
+		}
+	}
+
+	if ( epicsThreadSleepQuantum() > 0.004 ) {
+		errlogPrintf("WARNING: system clock rate not high enough to timeout -- using asynchronous mode\n");
+		      
+	} else {
+		if ( (rtnval = fcomAllocBlobSet( bldPulseID, sizeof(bldPulseID)/sizeof(bldPulseID[0]), &blob_set)) ) {
+			errlogPrintf("ERROR: Unable to allocate blob set: %s; trying asynchronous mode\n", fcomStrerror(rtnval));
+			blob_set = 0;
 		}
 	}
 #endif
@@ -760,7 +773,11 @@ epicsTimeStamp *p_refTime;
 	/* All ready to go, create event and register with EVR */
 	EVRFireEvent = epicsEventMustCreate(epicsEventEmpty);
 	/* Register EVRFire */
-	evrTimeRegister(EVRFire, 0);
+#ifdef USE_PULSE_CA
+#define blob_set 0
+#endif
+	evrTimeRegister(EVRFire, blob_set);
+#undef  blob_set
 
 	bldAllPVsConnected = TRUE;
 	printf("All PVs are successfully connected!\n");
@@ -783,20 +800,35 @@ epicsTimeStamp *p_refTime;
 	{
 		int status;
 
-		status = epicsEventWaitWithTimeout(EVRFireEvent, DEFAULT_EVR_TIMEOUT);
-		if(status != epicsEventWaitOK)
+#ifndef USE_PULSE_CA
+		if ( blob_set ) {
+			status = fcomGetBlobSet( blob_set, &got_mask, (1<<N_PULSE_BLOBS) - 1, timer_delay_ms );
+			if ( status && FROM_ERR_TIMEDOUT != status ) {
+				errlogPrintf("fcomGetBlobSet failed: %s; sleeping for 2 seconds\n", fcomStrerror(status));
+				epicsThreadSleep( 2.0 );
+				continue;
+			}
+			/* If a timeout happened then fall through; there still might be good
+			 * blobs...
+			 */
+		} else
+#endif
 		{
-			if(status == epicsEventWaitTimeout)
+			status = epicsEventWaitWithTimeout(EVRFireEvent, DEFAULT_EVR_TIMEOUT);
+			if(status != epicsEventWaitOK)
 			{
-				if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Wait EVR timeout, check timing?\n");
-			}
-			else
-			{
-				errlogPrintf("Wait EVR Error, what happened? Let's sleep 2 seconds.\n");
-				epicsThreadSleep(2.0);
-			}
+				if(status == epicsEventWaitTimeout)
+				{
+					if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Wait EVR timeout, check timing?\n");
+				}
+				else
+				{
+					errlogPrintf("Wait EVR Error, what happened? Let's sleep 2 seconds.\n");
+					epicsThreadSleep(2.0);
+				}
 
-			continue;
+				continue;
+			}
 		}
 
 		/* This is 30Hz. So printf might screw timing */
@@ -940,11 +972,24 @@ epicsTimeStamp *p_refTime;
 
 			bldEbeamInfo.uDamageMask = __le32(0);
 
-			for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
+			for ( loop = 0; loop < N_PULSE_BLOBS; loop++, got_mask >>= 1 ) {
 
 				dataAvailable |= bldPulseBlobs[loop].aMsk;
 
-				rtncode = fcomGetBlob( bldPulseBlobs[loop].fcid, &bldPulseBlobs[loop].blob, 0 );
+				if ( blob_set ) {
+					/* NOTE: this could be coded more elegantly but
+					 *       we want to share as much of the code path
+					 *       that doesn't use a 'set' as possible.
+					 */
+					rtncode = ! (got_mask & 1);
+					bldPulseBlobs[loop].blob = blob_set->memb[loop].blob;
+					/* If there was no data then it was probably too late */
+					if ( rtncode )
+						bldUnmatchedTSCount[loop]++;
+				} else {
+					rtncode = fcomGetBlob( bldPulseID[loop], &bldPulseBlobs[loop].blob, 0 );
+				}
+
 				if ( rtncode ) {
 					bldFcomGetErrs[loop]++;
 					dataAvailable        &= ~bldPulseBlobs[loop].aMsk;
@@ -1094,14 +1139,16 @@ passed:
 		}
 #endif
 #ifndef USE_PULSE_CA
-		for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
-			if ( bldPulseBlobs[loop].blob ) {
-				rtncode = fcomReleaseBlob( & bldPulseBlobs[loop].blob );
-				if ( rtncode ) {
-					errlogPrintf("Fatal Error: Unable to release blob (for %s): %s\n",
-							bldPulseBlobs[loop].name,
-							fcomStrerror(rtncode));
-					return -1;
+		if ( ! blob_set ) {
+			for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
+				if ( bldPulseBlobs[loop].blob ) {
+					rtncode = fcomReleaseBlob( & bldPulseBlobs[loop].blob );
+					if ( rtncode ) {
+						errlogPrintf("Fatal Error: Unable to release blob (for %s): %s\n",
+								bldPulseBlobs[loop].name,
+								fcomStrerror(rtncode));
+						return -1;
+					}
 				}
 			}
 		}
@@ -1117,8 +1164,17 @@ passed:
 #endif
 
 #ifndef USE_PULSE_CA
+
+	if ( blob_set ) {
+		rtncode = fcomFreeBlobSet( blob_set );
+		if ( rtncode )
+			fprintf(stderr, "Unable to destroy blob set: %s\n", fcomStrerror(rtncode));
+	}
+
 	for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
-		fcomUnsubscribe( bldPulseBlobs[loop].fcid );
+		rtncode = fcomUnsubscribe( bldPulseID[loop] );
+		if ( rtncode )
+			fprintf(stderr, "Unable to unsubscribe %s from FCOM: %s\n", blsPulseBlobs[loop].name, fcomStrerror(rtncode));
 	}
 #endif
 
@@ -1182,6 +1238,9 @@ static int
 timer_delay_wr(DevBusMappedPvt pvt, unsigned value, dbCommon *prec)
 {
 uint64_t clicks;
+
+	if ( (timer_delay_ms     = value/1000) < 1 )
+		timer_delay_ms = 1;
 
 	clicks = (uint64_t)BSP_timer_clock_get(BSPTIMER) * (uint64_t)value;	/* delay from fiducial in us */
 	timer_delay_clicks = (uint32_t) (clicks / 1000000ULL);
