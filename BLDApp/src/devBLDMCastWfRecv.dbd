@@ -1,1 +1,8 @@
 device(waveform, CONSTANT, devBLDMCastWfRecv, "BLD Data Receiver")
+variable(shuffled)
+variable(tossed)
+variable(tout)
+variable(good)
+variable(mindiff)
+variable(maxdiff)
+variable(MAX_BLOCK_S,double)

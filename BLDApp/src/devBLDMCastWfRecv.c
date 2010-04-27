@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: devBLDMCastWfRecv.c,v 1.1 2010/04/13 22:39:34 strauman Exp $ */
 
 /* Device support for a waveform record to receive
  * BLD multicast data and store all items in a waveform
@@ -31,7 +31,8 @@
 
 #include <BLDMCast.h>
 
-#define MAX_BLOCK_S .007
+#include <time.h>
+
 #define QUEUE_DEPTH 20
 #define N_INFO_VALS 7
 #define __STR__(arg) #arg
@@ -42,6 +43,21 @@ typedef struct WfDpvtRec_ {
 	UdpCommPkt          pkt;
 } WfDpvtRec, *WfDpvt;
 
+int shuffled = 0;
+epicsExportAddress(int, shuffled);
+int tossed   = 0;
+epicsExportAddress(int, tossed);
+int tout     = 0;
+epicsExportAddress(int, tout);
+int good     = 0;
+epicsExportAddress(int, good);
+unsigned maxdiff  = 0;
+epicsExportAddress(int, maxdiff);
+unsigned mindiff  = -1;
+epicsExportAddress(int, mindiff);
+
+double MAX_BLOCK_S = 0.007;
+epicsExportAddress(double, MAX_BLOCK_S);
 
 /* This task just receives packets and sends them to the message queue.
  * We need this so that we can have the main worker block on a single
@@ -54,6 +70,11 @@ int             sd, err;
 waveformRecord  *p_wf = arg;
 WfDpvt          p_dp = p_wf->dpvt;
 UdpCommPkt      pkt;
+char            *ifaddr;
+
+	if ( (ifaddr = getenv("IPADDR1")) ) {
+		udpCommSetIfMcastInp( inet_addr(ifaddr) );
+	}
 
 	if ( (sd = udpCommSocket( BLDMCAST_DST_PORT )) < 0 ) {
 		errlogPrintf("Unable to create socket: %s\n", strerror(-sd));
@@ -71,6 +92,8 @@ UdpCommPkt      pkt;
 		if ( epicsMessageQueueTrySend( p_dp->que, &pkt, sizeof(pkt) ) ) {
 			errlogPrintf("shuffler: queue full?\n");
 			udpCommFreePacket( pkt );
+		} else {
+			shuffled++;
 		}
 	} while (1 );
 
@@ -88,23 +111,39 @@ waveformRecord  *p_wf = arg;
 WfDpvt          p_dp = p_wf->dpvt;
 UdpCommPkt      pkt;
 int             st;
+struct timespec now, then;
+unsigned        diff;
 
 	while ( 0 <= (st = epicsMessageQueueReceive( p_dp->que, &pkt, sizeof(pkt) )) ) {
-printf("Got (st %i), pkt %p\n", st, pkt);
-
 		if ( pkt ) {
 			/* we're not currently waiting for a packet; just discard */
 			udpCommFreePacket( pkt );
+			tossed++;
 		} else {
 			/* NULL pkt indicates a trigger event; we should now 
 			 * wait for data.
 			 */
-			if ( 0 > epicsMessageQueueReceiveWithTimeout( p_dp->que, &pkt, sizeof(pkt), MAX_BLOCK_S  ) ) {
+			clock_gettime(CLOCK_REALTIME,&then);
+			st = epicsMessageQueueReceiveWithTimeout( p_dp->que, &pkt, sizeof(pkt), MAX_BLOCK_S  );
+			clock_gettime(CLOCK_REALTIME,&now);
+
+			if ( then.tv_nsec > now.tv_nsec )
+				now.tv_nsec += 1000000000;
+			diff = now.tv_nsec - then.tv_nsec;
+			diff /= 1000;
+
+			if ( diff < mindiff )
+				mindiff = diff;
+			if ( diff > maxdiff )
+				maxdiff = diff;
+
+			if ( 0 > st) {
 				/* Timed out; set 'pkt' to NULL to indicate that there was no data */
 				pkt = 0;
+				tout++;
+			} else {
+				good++;
 			}
-printf("Got second %p\n",pkt);
-		
 			p_dp->pkt = pkt;
 			dbScanLock( (struct dbCommon*)p_wf );
 				p_wf->rset->process( p_wf );
@@ -183,8 +222,6 @@ EBEAMINFO  *p_info;
 uint32_t   dmg;
 
 	if ( !p_wf->pact ) {
-printf("read_wf phase 1\n");
-
 		if ( 0 == p_wf->rarm )
 			return 0;
 
@@ -197,13 +234,12 @@ printf("read_wf phase 1\n");
 		} else {
 			/* unable to send 'sync' message */
 			p_wf->udf  = TRUE;
-			recGblSetSevr( p_wf, READ_ALARM, INVALID_ALARM );
+			recGblSetSevr( p_wf, WRITE_ALARM, INVALID_ALARM );
 			for ( i=0; i < N_INFO_VALS; i++ ) {
 				p_dbl[i] = thisIsNan;
 			}
 		}
 	} else {
-printf("read_wf phase 2 (pkt %p)\n", p_dp->pkt);
 		/* completion phase */
 		if ( p_dp->pkt ) {
 			p_info = udpCommBufPtr( p_dp->pkt );
@@ -246,7 +282,6 @@ printf("read_wf phase 2 (pkt %p)\n", p_dp->pkt);
 		/* Disarm */
 		if ( 1 == p_wf->rarm )
 			p_wf->rarm = 0;
-printf("Leaving phase 2\n");
 	}
 
 	return 0;
