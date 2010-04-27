@@ -1,5 +1,10 @@
 	20100426 (Till Straumann):
 
+	* BLDApp/src/Makefile: Build 'bldrx' example application and
+	which the devBLDMcastWfRecv device support.
+
+	20100426 (Till Straumann):
+
 	* BLDApp/src/BLDMCast.dbd: Removed DELAY_FROM_FIDUCIAL variable.
 	This is now controllable via an EPICS record (and obsolete anyways
 	if FCOM blob sets are working).

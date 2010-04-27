@@ -9,9 +9,12 @@ include $(TOP)/configure/CONFIG
 # Build the IOC application
 
 PROD_IOC_RTEMS = BLD
-PROD_IOC       = bldget
+PROD_IOC       = bldget bldrx
+
+LIBRARY_IOC    = devBLDMCastWfRecv
 # BLD.dbd will be created and installed
 DBD += BLD.dbd
+DBD += bldrx.dbd
 
 # BLD.dbd will be made up from these files:
 BLD_DBD += base.dbd
@@ -24,6 +27,7 @@ BLD_DBD += devMrfEr.dbd
 #BLD_DBD += dbRestore.dbd
 BLD_DBD += iocAdmin.dbd
 BLD_DBD += fcomUtil.dbd
+BLD_DBD += devBusMapped.dbd
 
 # Add all the support libraries needed by this IOC
 BLD_LIBS += evrSupport
@@ -35,6 +39,9 @@ BLD_LIBS += mrfVme64x
 BLD_LIBS += autosave
 BLD_LIBS += devIocStats
 BLD_LIBS += fcomUtil
+BLD_LIBS += fcom
+BLD_LIBS += udpComm
+BLD_LIBS += devBusMapped
 
 # BLD_registerRecordDeviceDriver.cpp derives from BLD.dbd
 BLD_SRCS += BLDMCast.c
@@ -55,6 +62,22 @@ BLD_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 bldget_SRCS = bldget.c
 bldget_LIBS = udpCommBSD Com
+
+devBLDMCastWfRecv_SRCS = devBLDMCastWfRecv.c
+
+bldrx_DBD += base.dbd
+bldrx_DBD += devBLDMCastWfRecv.dbd
+
+bldrx_SRCS_DEFAULT += BLDMain.cpp
+bldrx_SRCS_RTEMS   += -nil-
+
+bldrx_SRCS += bldrx_registerRecordDeviceDriver.cpp
+
+bldrx_LIBS += devBLDMCastWfRecv
+bldrx_LIBS_DEFAULT += udpCommBSD
+bldrx_LIBS_RTEMS   += udpComm
+
+bldrx_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 #===========================
 
