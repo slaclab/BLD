@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.39 2010/04/22 21:40:53 strauman Exp $ */
+/* $Id: BLDMCast.c,v 1.40 2010/04/27 00:15:04 strauman Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +44,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.39 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.40 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -52,6 +52,22 @@
 
 #define DEFAULT_CA_TIMEOUT	0.04		/* Default CA timeout, for 30Hz */
 #define DEFAULT_EVR_TIMEOUT	0.2		/* Default EVR event timeout, for 30Hz */
+
+#define MCAST_TTL	8
+
+#undef  FETCH_PULSE_PVS     /* Otherwise we monitor pulse PVs */
+#undef  USE_CA_ADD_EVENT    /* ca_create_subscription seems buggy */
+#undef  USE_PULSE_CA        /* Use CA for obtaining pulse PVs; use FCOM otherwise */
+/* T.S: I doubt that ca_create_subscription works any different. 
+ * ca_add_array_event is just a macro mapping to the
+ * ca_add_masked_array_event() wrapper which calls
+ * ca_create_subscription with the DBE_VALUE | DBE_ALARM mask ...
+ */
+#define MULTICAST           /* Use multicast interface */
+#define MULTICAST_UDPCOMM   /* Use UDPCOMM for data output; BSD sockets otherwise */
+
+#define BSPTIMER    0       /* Timer instance -- use first timer */
+
 
 /* We monitor static PVs and update their value upon modification */
 enum STATICPVSINDEX
@@ -138,6 +154,8 @@ BLDPV bldStaticPVs[]=
 };
 #define N_STATIC_PVS (sizeof(bldStaticPVs)/sizeof(bldStaticPVs[0]))
 
+#ifdef USE_PULSE_CA
+
 BLDPV bldPulsePVs[]=
 {
 #if 0
@@ -194,6 +212,8 @@ BLDPV bldPulsePVs[]=
 };
 #define N_PULSE_PVS (sizeof(bldPulsePVs)/sizeof(bldPulsePVs[0]))
 
+#else
+
 BLDBLOB bldPulseBlobs[] =
 {
 #if 0
@@ -249,24 +269,11 @@ BLDBLOB bldPulseBlobs[] =
 
 FcomID bldPulseID[N_PULSE_BLOBS] = { 0 };
 
+FcomBlobSetRef  bldBlobSet = 0;
+
+#endif
+
 static enum PVAVAILMASK dataAvailable = 0;
-
-#define MCAST_LOCAL_IP	"172.27.225.21"
-
-#define MCAST_TTL	8
-
-#undef  FETCH_PULSE_PVS     /* Otherwise we monitor pulse PVs */
-#undef  USE_CA_ADD_EVENT    /* ca_create_subscription seems buggy */
-#undef  USE_PULSE_CA        /* Use CA for obtaining pulse PVs; use FCOM otherwise */
-/* T.S: I doubt that ca_create_subscription works any different. 
- * ca_add_array_event is just a macro mapping to the
- * ca_add_masked_array_event() wrapper which calls
- * ca_create_subscription with the DBE_VALUE | DBE_ALARM mask ...
- */
-#define MULTICAST           /* Use multicast interface */
-#define MULTICAST_UDPCOMM   /* Use UDPCOMM for data output; BSD sockets otherwise */
-
-#define BSPTIMER    0       /* Timer instance -- use first timer */
 
 int BLD_MCAST_ENABLE = 1;
 epicsExportAddress(int, BLD_MCAST_ENABLE);
@@ -506,6 +513,103 @@ static void eventCallback(struct event_handler_args args)
     epicsMutexUnlock(bldMutex);
 }
 
+
+static int
+connectCaPv(const char *name, chid *p_chid)
+{
+int rtncode;
+
+	do {
+
+		rtncode = ECA_NORMAL;
+
+		/* No need for connectionCallback since we want to wait till connected */
+		if ( BLD_MCAST_DEBUG >= 1 ) {
+			printf("creating channel..."); fflush(stdout);
+		}
+
+		SEVCHK(ca_create_channel(name, NULL/*connectionCallback*/, NULL, CA_PRIORITY , p_chid, "ca_create_channel");
+
+		if ( BLD_MCAST_DEBUG >= 1 ) {
+			printf(" done\n");
+		}
+
+		/* Not very necessary */
+		/* SEVCHK(ca_replace_access_rights_event(bldStaticPVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event"); */
+
+		/* We could do subscription in connetion callback. But in this case, better to enforce all connection */
+		if ( BLD_MCAST_DEBUG >= 1 ) {
+			printf("pending for IO ..."); fflush(stdout);
+		}
+
+		rtncode = ca_pend_io(10.0);
+
+		if ( BLD_MCAST_DEBUG >= 1 ) {
+			printf(" done\n");
+		}
+
+		if ( ECA_NORMAL != rtncode ) {
+
+			ca_clear_channel(*p_chid);
+			*p_chid = 0;
+
+			if (rtncode == ECA_TIMEOUT) {
+
+				errlogPrintf("Channel connect timed out: '%s' not found.\n", name);
+				errlogPrintf("Continue to try -- set variable 'bldConnectAbort' to nonzero for aborting within 10s\n");
+
+				if ( ! bldConnectAbort ) {
+					continue;
+				}
+			} else {
+				errlogPrintf("ea_pend_io() returned %i\n", rtncode);
+			}
+			return -1;
+		}
+
+	} while ( ECA_TIMEOUT == rtncode );
+
+	return 0;
+}
+
+static int
+init_pvarray(BLDPV *p_pvs, int n_pvs, int subscribe)
+{
+int           loop;
+unsigned long cnt;
+
+	for(loop=0; loop<n_pvs; loop++)
+	{
+		if ( connectCaPv( p_pvs[loop].name, &p_pvs[loop].pvChId ) ) {
+			errlogPrintf("FATAL: connection attempts aborted!\n");
+			return -1;
+		}
+
+		if ( p_pvs[loop].nElems != (cnt = ca_element_count(p_pvs[loop].pvChId)) ) {
+			errlogPrintf("Number of elements [%ld] of '%s' does not match expectation.\n", cnt, p_pvs[loop].name);
+			return -1;
+		}
+
+		if ( DBF_DOUBLE != ca_field_type(p_pvs[loop].pvChId) ) {/* Native data type has to be double */
+			errlogPrintf("Native data type of '%s' is not double.\n", p_pvs[loop].name);
+			return -1;
+		}
+
+		/* Everything should be double, even not, do conversion */
+		p_pvs[loop].pTD = callocMustSucceed(1, dbr_size_n(DBR_TIME_DOUBLE, p_pvs[loop].nElems), "callocMustSucceed");
+
+		if ( subscribe ) {
+#ifdef USE_CA_ADD_EVENT
+			SEVCHK(ca_add_array_event(DBR_TIME_DOUBLE, p_pvs[loop].nElems, p_pvs[loop].pvChId, eventCallback, &(p_pvs[loop]), 0.0, 0.0, 0.0, NULL), "ca_add_array_event");
+#else
+			SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, p_pvs[loop].nElems, p_pvs[loop].pvChId, DBE_VALUE|DBE_ALARM, eventCallback, &(p_pvs[loop]), NULL), "ca_create_subscription");
+#endif
+		}
+	}
+
+	return 0;
+}
+
 static void BLDMCastTaskEnd(void * parg)
 {
     int loop;
@@ -563,7 +667,6 @@ unsigned char mcastTTL;
 epicsTimeStamp *p_refTime;
 
 #ifndef USE_PULSE_CA
-FcomBlobSetRef  blob_set = 0;
 FcomBlobSetMask got_mask;
 #endif
 
@@ -668,120 +771,42 @@ struct timeval  now;
 #endif
 
 	/************************************************************************* Prepare CA *************************************************************************/
-	printf("Delay %d seconds to wait CA ready!\n", DELAY_FOR_CA);
-	for(loop=DELAY_FOR_CA;loop>0;loop--)
-	{
-		printf("\r%d seconds left!\n", loop);
-		epicsThreadSleep(1.0);
+
+	if ( DELAY_FOR_CA > 0 ) {
+		printf("Delay %d seconds to wait CA ready!\n", DELAY_FOR_CA);
+		for(loop=DELAY_FOR_CA;loop>0;loop--) {
+			printf("\r%d seconds left!\n", loop);
+			epicsThreadSleep(1.0);
+		}
+		printf("\n");
 	}
-	printf("\n");
 
 	SEVCHK(ca_context_create(ca_enable_preemptive_callback),"ca_context_create");
 	SEVCHK(ca_add_exception_event(exceptionCallback,NULL), "ca_add_exception_event");
 
 	/* TODO, clean up resource when fail */
+
 	/* Monitor static PVs */
-	for(loop=0; loop<N_STATIC_PVS; loop++)
-	{
-		do {
-		rtncode = ECA_NORMAL;
-		/* No need for connectionCallback since we want to wait till connected */
-printf("creating channel..."); fflush(stdout);
-		SEVCHK(ca_create_channel(bldStaticPVs[loop].name, NULL/*connectionCallback*/, NULL/*&(bldStaticPVs[loop])*/, CA_PRIORITY ,&(bldStaticPVs[loop].pvChId)), "ca_create_channel");
-printf(" done\n");
-		/* Not very necessary */
-		/* SEVCHK(ca_replace_access_rights_event(bldStaticPVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event"); */
-
-		/* We could do subscription in connetion callback. But in this case, better to enforce all connection */
-printf("pending for IO ..."); fflush(stdout);
-			rtncode = ca_pend_io(10.0);
-printf(" done\n");
-			if ( ECA_NORMAL != rtncode ) {
-				if (rtncode == ECA_TIMEOUT)
-				{
-					errlogPrintf("Channel connect timed out: '%s' not found.\n", bldStaticPVs[loop].name);
-					errlogPrintf("Continue to pend -- set variable 'bldConnectAbort' to nonzero for aborting within 10s\n");
-					if ( bldConnectAbort ) {
-						errlogPrintf("FATAL: connection attempts aborted!\n");
-						return -1;
-					}
-printf("clearing channel ..."); fflush(stdout);
-					ca_clear_channel(bldStaticPVs[loop].pvChId);
-printf(" done\n");
-				} else {
-					errlogPrintf("ea_pend_io() returned %i\n", rtncode);
-					return -1;
-				}
-			}
-		} while ( ECA_TIMEOUT == rtncode );
-
-		if(bldStaticPVs[loop].nElems != ca_element_count(bldStaticPVs[loop].pvChId))
-		{
-			errlogPrintf("Number of elements [%ld] of '%s' does not match expectation.\n", ca_element_count(bldStaticPVs[loop].pvChId), bldStaticPVs[loop].name);
-			return -1;
-		}
-
-		if(DBF_DOUBLE != ca_field_type(bldStaticPVs[loop].pvChId))
-		{/* Native data type has to be double */
-			errlogPrintf("Native data type of '%s' is not double.\n", bldStaticPVs[loop].name);
-			return -1;
-		}
-
-		/* Everything should be double, even not, do conversion */
-		bldStaticPVs[loop].pTD = callocMustSucceed(1, dbr_size_n(DBR_TIME_DOUBLE, bldStaticPVs[loop].nElems), "callocMustSucceed");
-#ifdef USE_CA_ADD_EVENT
-		SEVCHK(ca_add_array_event(DBR_TIME_DOUBLE, bldStaticPVs[loop].nElems, bldStaticPVs[loop].pvChId, eventCallback, &(bldStaticPVs[loop]), 0.0, 0.0, 0.0, NULL), "ca_add_array_event");
-#else
-		SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, bldStaticPVs[loop].nElems, bldStaticPVs[loop].pvChId, DBE_VALUE|DBE_ALARM, eventCallback, &(bldStaticPVs[loop]), NULL), "ca_create_subscription");
-#endif
-	}
+	if ( init_pvarray( bldStaticPVs, N_STATIC_PVS, 1 /* do subscribe */ ) )
+		return -1; /* error message already printed */
 
 	ca_flush_io();
 	/* ca_pend_event(2.0); */
 
 #ifdef USE_PULSE_CA
 	/* We only fetch pulse PVs */
-	for(loop=0; loop<N_PULSE_PVS; loop++)
-	{
-		rtncode = ECA_NORMAL;
-		/* No need for connectionCallback since we want to wait till connected */
-		SEVCHK(ca_create_channel(bldPulsePVs[loop].name, NULL/*connectionCallback*/, NULL/*&(bldPulsePVs[loop])*/, CA_PRIORITY ,&(bldPulsePVs[loop].pvChId)), "ca_create_channel");
-		/* Not very necessary */
-		/* SEVCHK(ca_replace_access_rights_event(bldPulsePVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event"); */
 
-		/* We could do subscription in connetion callback. But in this case, better to enforce all connection */
-		rtncode = ca_pend_io(15.0);
-		if (rtncode == ECA_TIMEOUT)
-		{
-			errlogPrintf("Channel connect timed out: '%s' not found.\n", bldPulsePVs[loop].name);
-			return -1;
-		}
-		if(bldPulsePVs[loop].nElems != ca_element_count(bldPulsePVs[loop].pvChId))
-		{
-			errlogPrintf("Number of elements of '%s' does not match expectation.\n", bldPulsePVs[loop].name);
-			return -1;
-		}
-
-		if(DBF_DOUBLE != ca_field_type(bldPulsePVs[loop].pvChId))
-		{/* native type has to be double */
-			errlogPrintf("Native data type of '%s' is not double.\n", bldPulsePVs[loop].name);
-			return -1;
-		}
-
-		/* Everything should be double, even not, do conversion */
-		bldPulsePVs[loop].pTD = callocMustSucceed(1, dbr_size_n(DBR_TIME_DOUBLE, bldPulsePVs[loop].nElems), "callocMustSucceed");
+	if ( init_pvarray( bldPulsePVs, N_PULSE_PVS,
 #ifdef FETCH_PULSE_PVS
-		/* We don't subscribe to pulse PVs */
+	                   0 /* don't subscribe */
 #else
-#ifdef USE_CA_ADD_EVENT
-		SEVCHK(ca_add_array_event(DBR_TIME_DOUBLE, bldPulsePVs[loop].nElems, bldPulsePVs[loop].pvChId, eventCallback, &(bldPulsePVs[loop]), 0.0, 0.0, 0.0, NULL), "ca_add_array_event");
-#else
-		SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, bldPulsePVs[loop].nElems, bldPulsePVs[loop].pvChId, DBE_VALUE|DBE_ALARM, eventCallback, &(bldPulsePVs[loop]), NULL), "ca_create_subscription");
-#endif
-#endif
+	                   1 /* subscribe       */
+	     ) ) {
+		return -1; /* error message already printed */
 	}
 	ca_flush_io();
 #else
+
 	for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
 		if ( FCOM_ID_NONE == (bldPulseID[loop] = fcomLCLSPV2FcomID(bldPulseBlobs[loop].name)) ) {
 			errlogPrintf("FATAL ERROR: Unable to determine FCOM ID for PV %s\n", bldPulseBlobs[loop].name);
@@ -801,9 +826,9 @@ printf(" done\n");
 		errlogPrintf("WARNING: system clock rate not high enough to timeout -- using asynchronous mode\n");
 		      
 	} else {
-		if ( (rtncode = fcomAllocBlobSet( bldPulseID, sizeof(bldPulseID)/sizeof(bldPulseID[0]), &blob_set)) ) {
+		if ( (rtncode = fcomAllocBlobSet( bldPulseID, sizeof(bldPulseID)/sizeof(bldPulseID[0]), &bldBlobSet)) ) {
 			errlogPrintf("ERROR: Unable to allocate blob set: %s; trying asynchronous mode\n", fcomStrerror(rtncode));
-			blob_set = 0;
+			bldBlobSet = 0;
 		}
 	}
 #endif
@@ -813,12 +838,12 @@ printf(" done\n");
 	EVRFireEvent = epicsEventMustCreate(epicsEventEmpty);
 	/* Register EVRFire */
 #ifdef USE_PULSE_CA
-#define blob_set 0
+#define bldBlobSet 0
 #endif
-	evrTimeRegister(EVRFire, blob_set);
-#undef  blob_set
+	evrTimeRegister(EVRFire, bldBlobSet);
+#undef  bldBlobSet
 
-	bldAllPVsConnected = TRUE;
+	bldAllPVsConnected       = TRUE;
 	printf("All PVs are successfully connected!\n");
 
 	/* Prefill EBEAMINFO with constant values */
@@ -859,6 +884,7 @@ printf(" done\n");
 
 		/* This is 30Hz. So printf might screw timing */
 		if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Do work!\n");
+
 #ifdef USE_PULSE_CA
 #ifdef FETCH_PULSE_PVS
 		/* Timer fires ok, let's then get pulse PVs */
@@ -989,8 +1015,8 @@ printf(" done\n");
 		}
 #else /* USE_PULSE_CA */
 		/* Use FCOM to obtaine pulse-by-pulse data */
-		if ( blob_set ) {
-			status = fcomGetBlobSet( blob_set, &got_mask, (1<<N_PULSE_BLOBS) - 1, FCOM_SET_WAIT_ALL, timer_delay_ms );
+		if ( bldBlobSet ) {
+			status = fcomGetBlobSet( bldBlobSet, &got_mask, (1<<N_PULSE_BLOBS) - 1, FCOM_SET_WAIT_ALL, timer_delay_ms );
 			if ( status && FCOM_ERR_TIMEDOUT != status ) {
 				errlogPrintf("fcomGetBlobSet failed: %s; sleeping for 2 seconds\n", fcomStrerror(status));
 				epicsThreadSleep( 2.0 );
@@ -1028,13 +1054,13 @@ printf(" done\n");
 
 				dataAvailable |= bldPulseBlobs[loop].aMsk;
 
-				if ( blob_set ) {
+				if ( bldBlobSet ) {
 					/* NOTE: this could be coded more elegantly but
 					 *       we want to share as much of the code path
 					 *       that doesn't use a 'set' as possible.
 					 */
 					rtncode = ! (got_mask & 1);
-					bldPulseBlobs[loop].blob = blob_set->memb[loop].blob;
+					bldPulseBlobs[loop].blob = bldBlobSet->memb[loop].blob;
 					/* If there was no data then it was probably too late */
 					if ( rtncode )
 						bldUnmatchedTSCount[loop]++;
@@ -1191,7 +1217,7 @@ passed:
 		}
 #endif
 #ifndef USE_PULSE_CA
-		if ( ! blob_set ) {
+		if ( ! bldBlobSet ) {
 			for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
 				if ( bldPulseBlobs[loop].blob ) {
 					rtncode = fcomReleaseBlob( & bldPulseBlobs[loop].blob );
@@ -1216,8 +1242,8 @@ passed:
 #endif
 
 #ifndef USE_PULSE_CA
-	if ( blob_set ) {
-		rtncode = fcomFreeBlobSet( blob_set );
+	if ( bldBlobSet ) {
+		rtncode = fcomFreeBlobSet( bldBlobSet );
 		if ( rtncode )
 			fprintf(stderr, "Unable to destroy blob set: %s\n", fcomStrerror(rtncode));
 	}
@@ -1353,6 +1379,47 @@ static long BLD_EPICS_Init()
 static long BLD_EPICS_Report(int level)
 {
     printf("\n"BLD_DRV_VERSION"\n\n");
+	printf("Compiled with options:\n"):
+
+	printf("USE_PULSE_CA    :");
+#ifdef USE_PULSE_CA
+		printf(             "  DEFINED (use CA not FCOM to obtain pulse-by-pulse data)\n");
+
+	printf("FETCH_PULSE_PVS :");
+#ifdef FETCH_PULSE_PVS
+			printf(         "  DEFINED (do not monitor pulse-by-pulse PVs)\n");
+#else
+			printf(         "  UNDEFINED (do monitor pulse-by-pulse PVs)\n");
+#endif
+#else
+		printf(             "  UNDEFINED (use FCOM not CA to obtain pulse-by-pulse data)\n");
+#endif
+
+	printf("USE_CA_ADD_EVENT:
+#ifdef  USE_CA_ADD_EVENT
+		printf(             "  DEFINED (use ca_add_array_event, not ca_create_subscription)\n");
+#else
+		printf(             "  UNDEFINED (use ca_create_subscription, not ca_add_array_event)\n");
+#endif
+
+	printf("MULTICAST       :");
+#ifdef MULTICAST
+		printf(             "  DEFINED (use multicast interface to send data)\n");
+#ifdef MULTICAST_UDPCOMM
+			printf(         "  DEFINED (use UDPCOMM/lanIpBasic, not BSD sockets for sending BLD multicast messages)\n");
+#else
+			printf(         "  DEFINED (use BSD sockets, not UDPCOMM/lanIpBasic for sending BLD multicast messages)\n");
+#endif
+#else
+		printf(             "  UNDEFINED (use of multicast interface to send data DISABLED)\n");
+#endif
+		
+#ifndef USE_PULSE_CA
+	if ( bldBlobSet )
+		printf("FCOM uses a blob set to receive data synchronously\n");
+	else
+		printf("FCOM delays (using a hardware timer) and reads data asynchronously\n");
+#endif
 
     return 0;
 }
