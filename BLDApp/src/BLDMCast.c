@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.40 2010/04/27 00:15:04 strauman Exp $ */
+/* $Id: BLDMCast.c,v 1.41 2010/04/27 01:41:49 strauman Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +44,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.40 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.41 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -528,7 +528,7 @@ int rtncode;
 			printf("creating channel..."); fflush(stdout);
 		}
 
-		SEVCHK(ca_create_channel(name, NULL/*connectionCallback*/, NULL, CA_PRIORITY , p_chid, "ca_create_channel");
+		SEVCHK(ca_create_channel(name, NULL/*connectionCallback*/, NULL, CA_PRIORITY , p_chid), "ca_create_channel");
 
 		if ( BLD_MCAST_DEBUG >= 1 ) {
 			printf(" done\n");
@@ -801,6 +801,7 @@ struct timeval  now;
 	                   0 /* don't subscribe */
 #else
 	                   1 /* subscribe       */
+#endif
 	     ) ) {
 		return -1; /* error message already printed */
 	}
@@ -1379,7 +1380,7 @@ static long BLD_EPICS_Init()
 static long BLD_EPICS_Report(int level)
 {
     printf("\n"BLD_DRV_VERSION"\n\n");
-	printf("Compiled with options:\n"):
+	printf("Compiled with options:\n");
 
 	printf("USE_PULSE_CA    :");
 #ifdef USE_PULSE_CA
@@ -1395,7 +1396,7 @@ static long BLD_EPICS_Report(int level)
 		printf(             "  UNDEFINED (use FCOM not CA to obtain pulse-by-pulse data)\n");
 #endif
 
-	printf("USE_CA_ADD_EVENT:
+	printf("USE_CA_ADD_EVENT:");
 #ifdef  USE_CA_ADD_EVENT
 		printf(             "  DEFINED (use ca_add_array_event, not ca_create_subscription)\n");
 #else
