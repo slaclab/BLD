@@ -1,5 +1,12 @@
 	20100426 (Till Straumann):
 
+	* BLDApp/src/BLDMCast.c: moved CA channel creation into a separate
+	subroutine.
+	
+	Let 'report' function print the compile-time options.
+
+	20100426 (Till Straumann):
+
 	* BLDApp/src/devBLDMCastWfRecv.c: Added 'report' function. Dumps
 	statistics when interest level > 0.
 
