@@ -1,26 +1,31 @@
 #########################################
 ## So far lanIpBasic has no MC support ##
 #########################################
-#ld("lanIpBasic.obj")
-#lanIpSetup("172.27.225.21","255.255.255.192",0,0)
+ld("lanIpBasic_mve.obj")
 #lanIpDebug=0
 #padProtoDebug=0
 
 #########################################
 ## So we just use second port and BSD  ##
 #########################################
-ld("miscUtils.obj")
-
-## Attach 2nd NIC to BSD stack:
-ifattach( "mve2", rtems_mve_attach, 0 )
-
-## Configure 2nd NIC
-ifconf( "mve2", "172.27.225.21", "255.255.255.192" )
 
 cd("../..")
 
 # Load obj file
 ld("bin/RTEMS-beatnik/BLD.obj")
+
+fcomUtilSetIPADDR1("-fnet")
+
+## Attach 2nd NIC to BSD stack:
+#ifattach( "mve2", rtems_mve_attach, 0 )
+## Configure 2nd NIC
+#ifconf( "mve2", getenv("IPADDR1"), "255.255.252.0" )
+
+## Configure 2nd NIC using lanIpBasic
+lanIpSetup(getenv("IPADDR1"),"255.255.255.192",0,0)
+
+fcomInit(fcomUtilGethostbyname("mc-lcls-fcom"),1000)
+
 
 ## You may have to change BLD to something else
 ## everywhere it appears in this file

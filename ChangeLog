@@ -1,5 +1,10 @@
 	20100426 (Till Straumann):
 
+	* iocBoot/ioc-sys0-bd01/st.cmd: updated startup file to setup/initialize
+	2nd NIC for udpComm/FCOM.
+
+	20100426 (Till Straumann):
+
 	* BLDApp/src/bldget.c: Set default port and MC address in 
 	subroutine instead of main program. This way they can used
 	from RTEMS, too.
