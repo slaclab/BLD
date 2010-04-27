@@ -1,4 +1,4 @@
-/* $Id: bldget.c,v 1.2 2010/03/26 22:17:42 strauman Exp $ */
+/* $Id: bldget.c,v 1.3 2010/04/20 16:42:02 strauman Exp $ */
 
 /* Test Program for dumping the contents of the BLD packet */
 #include <stdio.h>
@@ -51,13 +51,13 @@ mc_shutdown(int sd)
 }
 
 static const char *lbls[] = {
-	"  Charge:        ", "[nC]",
-	"  L3Energy:      ", "[MeV]",
-	"  LTUPosX:       ", "[mm]",
-	"  LTUPosY:       ", "[mm]",
-	"  LTUAngX:       ", "[mrad]",
-	"  LTUAngY:       ", "[mrad]",
-	"  BunchLen:      ", "[A]",
+	"  Charge:   ", "[nC]",
+	"  L3Energy: ", "[MeV]",
+	"  LTUPosX:  ", "[mm]",
+	"  LTUPosY:  ", "[mm]",
+	"  LTUAngX:  ", "[mrad]",
+	"  LTUAngY:  ", "[mrad]",
+	"  BunchLen: ", "[A]",
 };
 
 static void
@@ -174,18 +174,17 @@ struct sockaddr_in sin;
 		printf("\n");
 
 		utmp = __ld_le32(&info->uDamageMask);
-		printf("  Damage Mask: 0x%08"PRIx32"\n", utmp);
+		printf("  Damage Mask:   0x%08"PRIx32"\n", utmp);
 
 		for ( p_f = &info->ebeamCharge, mask=1, i=0; p_f <= &info->ebeamBunchLen; p_f++, mask<<=1, i++ ) {
 			printf("%s",lbls[2*i]);
 			if ( (utmp & mask) ) {
-				printf("(INVALID)");
+				printf("      (INVALID)");
 			} else {
-				printf("%.6e %s", __ld_le64(p_f), lbls[2*i+1]);
+				printf("%15.6e %s", __ld_le64(p_f), lbls[2*i+1]);
 			}
 			printf("\n");
 		}
-
 
 		udpCommFreePacket(p);
 	} else {
@@ -197,6 +196,12 @@ void
 bldget(const char *mcaddr, unsigned port, const char *mcifaddr, int timeout_ms)
 {
 int        sd;
+
+	if ( !mcaddr )
+		mcaddr = "239.255.24.0";
+
+	if ( 0 == port )
+		port   = 10148;
 
 	if ( (sd = mc_setup(mcaddr, port, mcifaddr)) < 0 ) {
 		goto bail;
@@ -222,10 +227,10 @@ main(int argc, char **argv)
 {
 int         ch;
 int         rval       = 0;
-const char *mcaddr     = "239.255.24.0";
+const char *mcaddr     = 0;
 const char *mcifaddr   = 0;
 int         timeout_ms = 1000;
-unsigned    port       = 10148;
+unsigned    port       = 0;
 
 	while ( (ch = getopt(argc, argv, "hm:i:t:p:")) > 0 ) {
 		switch (ch) {

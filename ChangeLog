@@ -1,5 +1,11 @@
 	20100426 (Till Straumann):
 
+	* BLDApp/src/bldget.c: Set default port and MC address in 
+	subroutine instead of main program. This way they can used
+	from RTEMS, too.
+
+	20100426 (Till Straumann):
+
 	* BLDApp/src/Makefile: Build 'bldrx' example application and
 	which the devBLDMcastWfRecv device support.
 
