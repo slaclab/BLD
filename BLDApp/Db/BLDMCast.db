@@ -368,7 +368,7 @@ record(ao,     "BLD:SYS0:500:FC_POLL_DELAY") {
 	field(DESC, "FID to FCOM Sampling Dly")
 	field(SCAN, "Passive")
 	field(DTYP, "BusAddress")
-	field(OUT,  "#C0S2@0,bld_timer_io")
+	field(OUT,  "#C0S2@0xdeadbeec,bld_timer_io")
 	field(EGU,  "uS")
 	field(LOPR, "100")
 	field(HOPR, "8000")
