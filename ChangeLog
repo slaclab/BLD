@@ -1,5 +1,11 @@
 	20100426 (Till Straumann):
 
+	* BLDApp/src/BLDMCast.dbd: Removed DELAY_FROM_FIDUCIAL variable.
+	This is now controllable via an EPICS record (and obsolete anyways
+	if FCOM blob sets are working).
+
+	20100426 (Till Straumann):
+
 	* BLDApp/src/BLDMCast.c: 
 	 o Use new algorithm to create CA connections. Due to slow reconnection
 	   we now just try and try until we succeed.
