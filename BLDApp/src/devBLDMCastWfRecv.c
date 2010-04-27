@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastWfRecv.c,v 1.2 2010/04/27 00:21:37 strauman Exp $ */
+/* $Id: devBLDMCastWfRecv.c,v 1.3 2010/04/27 00:44:39 strauman Exp $ */
 
 /* Device support for a waveform record to receive
  * BLD multicast data and store all items in a waveform
@@ -300,7 +300,7 @@ report(int interest)
 		epicsPrintf("   Min delay from fiducial to receive all FCOM blobs  : %9u uS\n", bldmcwf_mindiff);
 		epicsPrintf("   Max delay from fiducial to receive all FCOM blobs  : %9u uS\n", bldmcwf_maxdiff);
 
-		epicsPrintf("   Current FCOM timeout                               : %9.4f  S\n", double bldmcwf_max_block_s);
+		epicsPrintf("   Current FCOM timeout                               : %9.4f  S\n", bldmcwf_max_block_s);
 	}
 
 	return 0;
@@ -317,7 +317,7 @@ struct {
 	DEVSUPFUN	read_wf;	
 } devBLDMCastWfRecv = {
 	5,
-	NULL,
+	report,
 	NULL,
 	init_record,
 	NULL,
