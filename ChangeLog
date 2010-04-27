@@ -1,5 +1,10 @@
 	20100426 (Till Straumann):
 
+	* BLDApp/src/devBLDMCastWfRecv.c: Added 'report' function. Dumps
+	statistics when interest level > 0.
+
+	20100426 (Till Straumann):
+
 	* iocBoot/ioc-sys0-bd01/st.cmd: updated startup file to setup/initialize
 	2nd NIC for udpComm/FCOM.
 

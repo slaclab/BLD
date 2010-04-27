@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastWfRecv.c,v 1.1 2010/04/13 22:39:34 strauman Exp $ */
+/* $Id: devBLDMCastWfRecv.c,v 1.2 2010/04/27 00:21:37 strauman Exp $ */
 
 /* Device support for a waveform record to receive
  * BLD multicast data and store all items in a waveform
@@ -43,21 +43,21 @@ typedef struct WfDpvtRec_ {
 	UdpCommPkt          pkt;
 } WfDpvtRec, *WfDpvt;
 
-int shuffled = 0;
-epicsExportAddress(int, shuffled);
-int tossed   = 0;
-epicsExportAddress(int, tossed);
-int tout     = 0;
-epicsExportAddress(int, tout);
-int good     = 0;
-epicsExportAddress(int, good);
-unsigned maxdiff  = 0;
-epicsExportAddress(int, maxdiff);
-unsigned mindiff  = -1;
-epicsExportAddress(int, mindiff);
+int bldmcwf_shuffled = 0;
+epicsExportAddress(int, bldmcwf_shuffled);
+int bldmcwf_tossed   = 0;
+epicsExportAddress(int, bldmcwf_tossed);
+int bldmcwf_tout     = 0;
+epicsExportAddress(int, bldmcwf_tout);
+int bldmcwf_good     = 0;
+epicsExportAddress(int, bldmcwf_good);
+unsigned bldmcwf_maxdiff  = 0;
+epicsExportAddress(int, bldmcwf_maxdiff);
+unsigned bldmcwf_mindiff  = -1;
+epicsExportAddress(int, bldmcwf_mindiff);
 
-double MAX_BLOCK_S = 0.007;
-epicsExportAddress(double, MAX_BLOCK_S);
+double bldmcwf_max_block_s = 1.;
+epicsExportAddress(double, bldmcwf_max_block_s);
 
 /* This task just receives packets and sends them to the message queue.
  * We need this so that we can have the main worker block on a single
@@ -93,7 +93,7 @@ char            *ifaddr;
 			errlogPrintf("shuffler: queue full?\n");
 			udpCommFreePacket( pkt );
 		} else {
-			shuffled++;
+			bldmcwf_shuffled++;
 		}
 	} while (1 );
 
@@ -118,13 +118,13 @@ unsigned        diff;
 		if ( pkt ) {
 			/* we're not currently waiting for a packet; just discard */
 			udpCommFreePacket( pkt );
-			tossed++;
+			bldmcwf_tossed++;
 		} else {
 			/* NULL pkt indicates a trigger event; we should now 
 			 * wait for data.
 			 */
 			clock_gettime(CLOCK_REALTIME,&then);
-			st = epicsMessageQueueReceiveWithTimeout( p_dp->que, &pkt, sizeof(pkt), MAX_BLOCK_S  );
+			st = epicsMessageQueueReceiveWithTimeout( p_dp->que, &pkt, sizeof(pkt), bldmcwf_max_block_s );
 			clock_gettime(CLOCK_REALTIME,&now);
 
 			if ( then.tv_nsec > now.tv_nsec )
@@ -132,17 +132,17 @@ unsigned        diff;
 			diff = now.tv_nsec - then.tv_nsec;
 			diff /= 1000;
 
-			if ( diff < mindiff )
-				mindiff = diff;
-			if ( diff > maxdiff )
-				maxdiff = diff;
+			if ( diff < bldmcwf_mindiff )
+				bldmcwf_mindiff = diff;
+			if ( diff > bldmcwf_maxdiff )
+				bldmcwf_maxdiff = diff;
 
 			if ( 0 > st) {
 				/* Timed out; set 'pkt' to NULL to indicate that there was no data */
 				pkt = 0;
-				tout++;
+				bldmcwf_tout++;
 			} else {
-				good++;
+				bldmcwf_good++;
 			}
 			p_dp->pkt = pkt;
 			dbScanLock( (struct dbCommon*)p_wf );
@@ -282,6 +282,25 @@ uint32_t   dmg;
 		/* Disarm */
 		if ( 1 == p_wf->rarm )
 			p_wf->rarm = 0;
+	}
+
+	return 0;
+}
+
+static long
+report(int interest)
+{
+	epicsPrintf("devBLDMCastWfRecv: receive BLD multicast packet and store data in a waveform\n");
+	if ( interest ) {
+		epicsPrintf("devBLDMCastWfRecv statistics:\n");
+		epicsPrintf("   MC packets received and forwarded to worker        : %9u\n", bldmcwf_shuffled);
+		epicsPrintf("   MC packets discarded by worker (record not scanned): %9u\n", bldmcwf_tossed);
+		epicsPrintf("   No packets received in %7.4f"" seconds (timeout)   : %9u\n", bldmcwf_max_block_s, bldmcwf_tout);
+		epicsPrintf("   Packets processed                                  : %9u\n", bldmcwf_good);
+		epicsPrintf("   Min delay from fiducial to receive all FCOM blobs  : %9u uS\n", bldmcwf_mindiff);
+		epicsPrintf("   Max delay from fiducial to receive all FCOM blobs  : %9u uS\n", bldmcwf_maxdiff);
+
+		epicsPrintf("   Current FCOM timeout                               : %9.4f  S\n", double bldmcwf_max_block_s);
 	}
 
 	return 0;
