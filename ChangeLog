@@ -1,3 +1,18 @@
+	20100426 (Till Straumann):
+
+	* BLDApp/src/BLDMCast.c: 
+	 o Use new algorithm to create CA connections. Due to slow reconnection
+	   we now just try and try until we succeed.
+	 o Added statistics counters/timers for measuring min and max
+	   delay (from fiducial) when fcomGetBlobSet() returns.
+	 o Moved initialization of bldIoscan and bldMutex to driver init
+	   function so that they are available even if the BLD task is not
+	   running yet.
+	 o Removed rate limitation if USE_PULSE_CA is undefined. We want
+	   to work on all pulses where beam is announced (mod5 has BEAMFULL
+	   set).
+	 o FIXED: good return value of devBusMappedRegister() is non-NULL.
+
 	20100422 (Till Straumann):
  	
 	* BLDApp/src/BLDMCast.c: Use new FCOM blob sets to obtain data
