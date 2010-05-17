@@ -191,177 +191,256 @@ record(ai, "BLD:SYS0:500:BLEN") {
 
 record(longin, "BLD:SYS0:500:TMITLATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C0S2@bld_stat_bad_t,m32")
 }
 
 record(longin, "BLD:SYS0:500:ENG1LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C1S2@bld_stat_bad_t,m32")
 }
 
 record(longin, "BLD:SYS0:500:ENG2LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C2S2@bld_stat_bad_t,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS1LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C3S2@bld_stat_bad_t,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS2LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C4S2@bld_stat_bad_t,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS3LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C5S2@bld_stat_bad_t,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS4LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C6S2@bld_stat_bad_t,m32")
 }
 
 record(longin, "BLD:SYS0:500:BLENLATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C7S2@bld_stat_bad_t,m32")
 }
 
 record(longin, "BLD:SYS0:500:TMITBADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C0S2@bld_stat_bad_d,m32")
 }
 
 record(longin, "BLD:SYS0:500:ENG1BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C1S2@bld_stat_bad_d,m32")
 }
 
 record(longin, "BLD:SYS0:500:ENG2BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C2S2@bld_stat_bad_d,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS1BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C3S2@bld_stat_bad_d,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS2BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C4S2@bld_stat_bad_d,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS3BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C5S2@bld_stat_bad_d,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS4BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C6S2@bld_stat_bad_d,m32")
 }
 
 record(longin, "BLD:SYS0:500:BLENBADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C7S2@bld_stat_bad_d,m32")
 }
 
 record(longin, "BLD:SYS0:500:TMITFCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C0S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:ENG1FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C1S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:ENG2FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C2S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS1FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C3S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS2FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C4S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS3FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C5S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:POS4FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C6S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:BLENFCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C7S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:MCASTSENT") {
 	field(DESC, "MC Messages Sent")
-	field(SCAN, "10 second")
+	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C0S2@bld_stat_msg_s,m32")
+}
+
+record(longin, "BLD:SYS0:500:FCOMLATMIN") {
+	field(DESC, "Min. FCOM Latency")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@bld_stat_min_f,m32")
+}
+
+# just write .PROC
+record(longout, "BLD:SYS0:500:FCOMLATMINRST") {
+	field(DESC, "Rst. Min. FCOM Latency")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@bld_stat_min_f,m32")
+	field(VAL,  "-1")
+	field(PINI, "YES")
+}
+
+record(longin, "BLD:SYS0:500:FCOMLATMAX") {
+	field(DESC, "Max. FCOM Latency")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@bld_stat_max_f,m32")
+}
+
+# just write .PROC
+record(longout, "BLD:SYS0:500:FCOMLATMAXRST") {
+	field(DESC, "Rst. Max. FCOM Latency")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@bld_stat_max_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(longin, "BLD:SYS0:500:FCOMLATAVG") {
+	field(DESC, "Avg. FCOM Latency")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@bld_stat_avg_f,m32")
+}
+
+record(longin, "BLD:SYS0:500:BLDLATMAX") {
+	field(DESC, "Max. BLD Post Latency")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@bld_stat_max_p,m32")
+}
+
+# just write .PROC
+record(longout, "BLD:SYS0:500:BLDLATMAXRST") {
+	field(DESC, "Rst. Max. BLD Post Latency")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@bld_stat_max_p,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(longin, "BLD:SYS0:500:BLDLATAVG") {
+	field(DESC, "Avg. BLD Latency")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@bld_stat_avg_p,m32")
+}
+
+record(bi,     "BLD:SYS0:500:FC_MODE")
+	field(DESC, "Flag: FCOM sync vs async mode")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@bld_fcom_use_s,m32")
+	field(PINI, "YES")
+	field(ZNAM, "ASYNC")
+	field(ONAM, "SYNC")
 }
 
 record(ao,     "BLD:SYS0:500:FC_POLL_DELAY") {
