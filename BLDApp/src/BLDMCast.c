@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.41 2010/04/27 01:41:49 strauman Exp $ */
+/* $Id: BLDMCast.c,v 1.42 2010/04/27 01:45:59 strauman Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +44,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.41 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.42 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -273,6 +273,8 @@ FcomBlobSetRef  bldBlobSet = 0;
 
 #endif
 
+static epicsInt32 bldUseFcomSet = 0;
+
 static enum PVAVAILMASK dataAvailable = 0;
 
 int BLD_MCAST_ENABLE = 1;
@@ -298,7 +300,11 @@ epicsMutexId bldMutex = NULL;	/* Protect bldStaticPVs' values */
 epicsUInt32  bldFcomGetErrs[N_PULSE_BLOBS]       = {0};
 epicsUInt32  bldMcastMsgSent                     =  0;
 epicsUInt32  bldMinFcomDelayUs                   = -1;
+epicsUInt32  bldAvgFcomDelayUs                   =  0;
 epicsUInt32  bldMaxFcomDelayUs                   =  0;
+epicsUInt32  bldMaxPostDelayUs                   =  0;
+epicsUInt32  bldAvgPostDelayUs                   =  0;
+
 /* Share with device support */
 
 /*==========================================================*/
@@ -316,6 +322,22 @@ struct timeval  bldFiducialTimeHires;
 int      tsCatch = -1;
 uint32_t tsMismatch[4];
 
+static epicsUInt32
+usSinceFiducial(void)
+{
+struct timeval now;
+
+	gettimeofday( &now, 0 );
+
+	if ( now.tv_usec < bldFiducialTimeHires.tv_usec ) {
+		now.tv_usec += 1000000;
+		now.tv_sec--;	
+	}
+	now.tv_usec  = now.tv_usec - bldFiducialTimeHires.tv_usec;
+	now.tv_usec += now.tv_sec  - bldFiducialTimeHires.tv_sec;
+
+	return (epicsUInt32)now.tv_usec;
+}
 
 
 static void evr_timer_isr(void *arg);
@@ -378,20 +400,6 @@ epicsUInt32 idref, idcmp, diff;
 	return -1;
 }
 
-int      modi=6*3;
-uint32_t mod2[6*3];
-uint32_t mod5[6*3];
-
-void
-moddmp(void)
-{
-int i;
-    printf("    MOD2   --     MOD5\n");
-	for ( i=0; i<sizeof(mod2)/sizeof(mod2[0]); i++ ) {
-		printf("0x%08"PRIx32" -- 0x%08"PRIx32"\n", mod2[i], mod5[i]);
-	}
-}
-
 void EVRFire(void *use_sets)
 {/* This function will be registered with EVR callback */
 #ifdef USE_PULSE_CA
@@ -426,11 +434,6 @@ void EVRFire(void *use_sets)
 				epicsEventSignal(EVRFireEvent);
 			}
 
-		}
-		if ( modi < sizeof(mod2)/sizeof(mod2[0]) ) {
-			mod2[modi] = modifier_a[1];
-			mod5[modi] = modifier_a[4];
-			modi++;
 		}
 	} else {
 		bldFiducialTime.nsec = PULSEID_INVALID;
@@ -670,7 +673,7 @@ epicsTimeStamp *p_refTime;
 FcomBlobSetMask got_mask;
 #endif
 
-struct timeval  now;
+epicsUInt32     this_time;
 
 	/******** Prepare MultiCast **************************************************/
 #ifdef MULTICAST
@@ -823,15 +826,6 @@ struct timeval  now;
 		}
 	}
 
-	if ( epicsThreadSleepQuantum() > 0.004 ) {
-		errlogPrintf("WARNING: system clock rate not high enough to timeout -- using asynchronous mode\n");
-		      
-	} else {
-		if ( (rtncode = fcomAllocBlobSet( bldPulseID, sizeof(bldPulseID)/sizeof(bldPulseID[0]), &bldBlobSet)) ) {
-			errlogPrintf("ERROR: Unable to allocate blob set: %s; trying asynchronous mode\n", fcomStrerror(rtncode));
-			bldBlobSet = 0;
-		}
-	}
 #endif
 
 
@@ -1028,19 +1022,15 @@ struct timeval  now;
 			 */
 		}
 		
-		gettimeofday( &now, 0 );
+		this_time = usSinceFiducial();
 
-		if ( now.tv_usec < bldFiducialTimeHires.tv_usec ) {
-			now.tv_usec += 1000000;
-			now.tv_sec--;	
-		}
-		now.tv_usec  = now.tv_usec - bldFiducialTimeHires.tv_usec;
-		now.tv_usec += now.tv_sec  - bldFiducialTimeHires.tv_sec;
+		if ( this_time > bldMaxFcomDelayUs )
+			bldMaxFcomDelayUs = this_time;
+		if ( this_time < bldMinFcomDelayUs )
+			bldMinFcomDelayUs = this_time;
 
-		if ( now.tv_usec > bldMaxFcomDelayUs )
-			bldMaxFcomDelayUs = now.tv_usec;
-		if ( now.tv_usec < bldMinFcomDelayUs )
-			bldMinFcomDelayUs = now.tv_usec;
+		/* Running average: fn+1 = 127/128 * fn + 1/128 * x = fn - 1/128 fn + 1/128 x */
+		bldAvgFcomDelayUs +=  (- bldAvgFcomDelayUs + this_time) >> 8;
 
 		{
 			FcomBlobRef b1;
@@ -1217,6 +1207,14 @@ passed:
 			bldMcastMsgSent++;
 		}
 #endif
+
+		this_time = usSinceFiducial();
+
+		if ( this_time > bldMaxPostDelayUs )
+			bldMaxPostDelayUs = this_time;
+		/* Running average: fn+1 = 127/128 * fn + 1/128 * x = fn - 1/128 fn + 1/128 x */
+		bldAvgPostDelayUs +=  (- bldAvgPostDelayUs + this_time) >> 8;
+
 #ifndef USE_PULSE_CA
 		if ( ! bldBlobSet ) {
 			for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
@@ -1247,6 +1245,7 @@ passed:
 		rtncode = fcomFreeBlobSet( bldBlobSet );
 		if ( rtncode )
 			fprintf(stderr, "Unable to destroy blob set: %s\n", fcomStrerror(rtncode));
+		bldBlobSet = 0;
 	}
 
 	for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
@@ -1308,23 +1307,23 @@ epicsUInt32 cnt2[N_PULSE_BLOBS];
 /**************************************************************************************************/
 
 static int
-timer_delay_rd(DevBusMappedPvt pvt, unsigned *pvalue, dbCommon *prec)
+timer_delay_rd(DevBusMappedPvt pvt, epicsInt32 *pvalue, dbCommon *prec)
 {
 uint64_t us;
 
 	us = 1000000ULL * (uint64_t)timer_delay_clicks;
 	us = us / (uint64_t)BSP_timer_clock_get(BSPTIMER);
-	*pvalue = (unsigned)us;
+	*pvalue = (epicsInt32)us;
 
 	return 0;
 }
 
 static int
-timer_delay_wr(DevBusMappedPvt pvt, unsigned value, dbCommon *prec)
+timer_delay_wr(DevBusMappedPvt pvt, epicsInt32 value, dbCommon *prec)
 {
 uint64_t clicks;
 
-	if ( (timer_delay_ms     = value/1000) < 1 )
+	if ( (timer_delay_ms     = (unsigned)value/1000) < 1 )
 		timer_delay_ms = 1;
 
 	clicks = (uint64_t)BSP_timer_clock_get(BSPTIMER) * (uint64_t)value;	/* delay from fiducial in us */
@@ -1361,6 +1360,26 @@ check(char *nm, void *ptr)
 /* implementation */
 static long BLD_EPICS_Init()
 {
+int rtncode;
+
+#ifndef USE_PULSE_CA
+	/* Allocate blob set here so that the flag that is read
+	 * into a record already contains the final value, ready
+	 * for being picked up by PINI
+	 */
+	if ( epicsThreadSleepQuantum() > 0.004 ) {
+		errlogPrintf("WARNING: system clock rate not high enough to timeout -- using asynchronous mode\n");
+		      
+	} else {
+		if ( (rtncode = fcomAllocBlobSet( bldPulseID, sizeof(bldPulseID)/sizeof(bldPulseID[0]), &bldBlobSet)) ) {
+			errlogPrintf("ERROR: Unable to allocate blob set: %s; trying asynchronous mode\n", fcomStrerror(rtncode));
+			bldBlobSet = 0;
+		} else {
+			bldUseFcomSet = 1;
+		}
+	}
+#endif
+
 	if ( devBusMappedRegisterIO("bld_timer_io", &timer_delay_io) )
 		errlogPrintf("ERROR: Unable to register I/O methods for timer delay\n"
                      "SOFTWARE MAY NOT WORK PROPERLY\n");
@@ -1368,6 +1387,12 @@ static long BLD_EPICS_Init()
 	check("bld_stat_bad_d", &bldInvalidAlarmCount);
 	check("bld_stat_bad_f", &bldFcomGetErrs);
 	check("bld_stat_msg_s", &bldMcastMsgSent);
+	check("bld_stat_min_f", &bldMinFcomDelayUs);
+	check("bld_stat_max_f", &bldMaxFcomDelayUs);
+	check("bld_stat_avg_f", &bldAvgFcomDelayUs);
+	check("bld_stat_max_p", &bldMaxPostDelayUs);
+	check("bld_stat_avg_p", &bldAvgPostDelayUs);
+	check("bld_fcom_use_s", &bldUseFcomSet);
 
 	scanIoInit(&bldIoscan);
 
