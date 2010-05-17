@@ -1,3 +1,30 @@
+	20100517 (Till Straumann):
+
+	* BLDApp/Db/BLDMCast.c:
+	 o added counters for average latency measurement.
+	 o added counters to measure total latency (until BLD packet it
+	   handed to network stack).
+	 o removed some debugging code.
+	 o moved allocation of blob set to driver 'init' function so that
+	   the record which reads the operating 'mode' can be processed just
+	   a single time via PINI.
+
+	20100517 (Till Straumann):
+
+	* BLDApp/Db/BLDMCastWfRecv.db: added macros to set 'SCAN',
+	'EVNT' and 'RARM' fields.
+
+	20100517 (Till Straumann):
+
+	* BLDApp/Db/BLDMCast.db: 
+	 o changed scanning of statistics from '10 second' to '$(SCAN_STAT)' macro
+	 o added records to read and reset latency counters.
+	 o added record to show 'mode' (FCOM set vs. async mode).
+
+	20100517 (Till Straumann):
+
+	* README: document 'bldget' + 'devBLDMCastRecvWf'.
+
 	20100426 (Till Straumann):
 
 	* BLDApp/src/BLDMCast.c: moved CA channel creation into a separate
