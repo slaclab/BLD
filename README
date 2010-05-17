@@ -1,3 +1,89 @@
 # Documentation is very important!!
 # Explain how your application works and what
 # are the required dependencies and components.
+
+bldget
+======
+
+'bldget' is a command-line utility which blocks for a BLD multicast
+packet and dumps its contents to stdout.
+
+'bldget' is available under RTEMS and linux and it can be built
+to use either lanIpBasic or the regular BSD TCP/IP stack. The latter
+is the default under linux, the former under RTEMS.
+
+The following options (corresponding arguments can be passed to
+the RTEMS variant) are recognized:
+
+  -h: print concise usage info (linux only)
+  -m: multicast group to subscribe to (defaults to 239.255.24.0)
+  -p: port number to listen on (defaults to 10148)
+  -t: timeout (in ms)
+  -i: IP address of (local) interface that should subscribe to
+      the multicast group. This is only relevant on multi-homed
+      machines using BSD TCP/IP. (Note that a machine that has
+      one interface attached to BSD TCP/IP and a secondary attached
+      to lanIpBasic is NOT multi-homed.)
+
+RTEMS call (use NULL pointers / port_no to get defaults):
+
+void
+bldget(const char *mcaddr, unsigned port, const char *mcifaddr, int timeout_ms);
+
+
+devBLDMCastWfRecv:
+=================
+
+I have created device support for a waveform record
+implementing the following behavior (this is for
+diagnostic purposes):
+
+When scanned, the record waits for a BLD multicast
+message and reads its numerical data into waveform
+array elements. Elements marked as 'damaged'
+are set to NaN. The record's timestamp is set
+to the timestamp of the BLD message (which contains
+pulse-id in the nanosecond part).
+
+Using a waveform ensures that you can atomically
+read all data (including timestamp) contained in a single
+BLD message via CA.
+
+You can e.g., use an event record to scan this
+waveform (if you want to be synchronous with
+the event timing system; e.g., you can scan on
+Event 14x) or just use periodic scanning.
+
+The RARM field controls disabling of the record:
+
+If RARM == 2 then the record 'rearms' itself,
+i.e., it continues working.
+
+If RARM == 0 then the record is disabled. Data
+already acquired (including timestamp) is 'frozen'
+and scanning the record doesn't process it.
+
+If RARM == 1 then the record disarms itself
+after receiving BLD data ('one-shot' mode).
+
+This has no direct 'knowledge' of the timing
+so that you can it use under linux, too. 
+
+An IOC which wants to use this device support must
+add the device support's dbd fragment and library
+to the Makefile:
+
+xxxApp_DBD  += devBLDMCastWfRecv.dbd
+xxxApp_LIBS += devBLDMCastWfRecv
+
+A record template 'BLDMCastWfRecv.db' is available
+with the following macros:
+  $(name):   (full) name of the waveform record instance
+  $(scan):   scanning method (e.g., "Event", "1 second")
+  $(evnt):   EVNT value (only relevant if "scan=Event")
+  $(rarm):   RARM value
+
+NOTE: In order to support the desired event codes
+EVR support and properly configured EVR databases
+need to be added to the application.
+
