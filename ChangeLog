@@ -1,5 +1,9 @@
 	20100517 (Till Straumann):
 
+	* BLDApp/srcDisplay/: Added EDM display.
+
+	20100517 (Till Straumann):
+
 	* BLDApp/Db/BLDMCast.c:
 	 o added counters for average latency measurement.
 	 o added counters to measure total latency (until BLD packet it
