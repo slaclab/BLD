@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastWfRecv.c,v 1.3 2010/04/27 00:44:39 strauman Exp $ */
+/* $Id: devBLDMCastWfRecv.c,v 1.4 2010/04/27 00:46:27 strauman Exp $ */
 
 /* Device support for a waveform record to receive
  * BLD multicast data and store all items in a waveform
@@ -132,17 +132,19 @@ unsigned        diff;
 			diff = now.tv_nsec - then.tv_nsec;
 			diff /= 1000;
 
-			if ( diff < bldmcwf_mindiff )
-				bldmcwf_mindiff = diff;
-			if ( diff > bldmcwf_maxdiff )
-				bldmcwf_maxdiff = diff;
-
 			if ( 0 > st) {
 				/* Timed out; set 'pkt' to NULL to indicate that there was no data */
 				pkt = 0;
 				bldmcwf_tout++;
 			} else {
 				bldmcwf_good++;
+
+				/* Record timing only if not timed-out */
+				if ( diff < bldmcwf_mindiff )
+					bldmcwf_mindiff = diff;
+				if ( diff > bldmcwf_maxdiff )
+					bldmcwf_maxdiff = diff;
+
 			}
 			p_dp->pkt = pkt;
 			dbScanLock( (struct dbCommon*)p_wf );
