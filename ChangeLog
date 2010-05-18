@@ -1,3 +1,44 @@
+	20100518 (Till Straumann):
+
+	* BLDApp/Db/BLDMCast.db:
+	 o Introduced a new macro to set SCAN field of old diagnostic BLD
+	   data records. These are deprecated anyways and in a first cut
+	   to phase them out we set them to Passive from the startup script.
+	   If a user desperately needs them then we can set SCAN -> I/O Intr
+	   at run-time.
+	 o Shortened DESC that was too long.
+	 o Added missing brace.
+
+	* BLDApp/Db/IOC-SYS0-BD01.substitutions: Enabled VME interrupt for EVENT7 
+	(which uses event code 146) so that we can use 'Event' scanning with event 146.
+
+	* BLDApp/Db/Makefile: install BLDMCastWfRecv.db.
+
+	* BLDApp/src/BLDMCast.c:
+	 o must compute FCOM IDs and subscribe prior to allocating blob set.  
+	 o increment bldFcomGetErrors[] only if fcomGetBlob() or
+	   fcomGetBlobSet() failed - not if data from a set is missing (this is
+	   already counted as a bad timestamp).
+	 o FIXED: computation of latency average (must right shift *signed* difference).
+	 o FIXED: declaration of timer_delay_rd/timer_delay_wr (silence gcc warning).
+	 o beautification of 'report' printout.
+
+	* BLDApp/src/Makefile: Add devBLDMCastWfRecv devsup to BLD IOC app.
+
+	* BLDApp/src/devBLDMCastWfRecv.c: compute statistics only if something
+	is received w/o timeout.
+
+	* BLDApp/srcDisplay/bld_diagnostics.edl: updated and renamed (added 
+	coeffTable to display BLD data).
+
+	* BLDApp/srcDisplay/Makefile: added.
+
+	* iocBoot/ioc-sys0-bd01/st.cmd:
+	 o load 'BLDMCastWfRecv.db' and supply with macros.
+	 o BLDMCast.db now requires STAT_SCAN and DIAG_SCAN macros.
+
+	* configure/RELASE: updated to use latest modules.
+
 	20100517 (Till Straumann):
 
 	* BLDApp/srcDisplay/: Added EDM display to CVS.
