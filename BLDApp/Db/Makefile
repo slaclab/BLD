@@ -11,6 +11,7 @@ include $(TOP)/configure/CONFIG
 # Create and install (or just install) into <top>/db
 # databases, templates, substitutions like this
 DB += BLDMCast.db
+DB += BLDMCastWfRecv.db
 DB += IOC-SYS0-BD01.db
 
 #----------------------------------------------------
