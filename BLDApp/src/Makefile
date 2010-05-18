@@ -28,6 +28,7 @@ BLD_DBD += devMrfEr.dbd
 BLD_DBD += iocAdmin.dbd
 BLD_DBD += fcomUtil.dbd
 BLD_DBD += devBusMapped.dbd
+BLD_DBD += devBLDMCastWfRecv.dbd
 
 # Add all the support libraries needed by this IOC
 BLD_LIBS += evrSupport
@@ -42,6 +43,7 @@ BLD_LIBS += fcomUtil
 BLD_LIBS += fcom
 BLD_LIBS += udpComm
 BLD_LIBS += devBusMapped
+BLD_LIBS += devBLDMCastWfRecv
 
 # BLD_registerRecordDeviceDriver.cpp derives from BLD.dbd
 BLD_SRCS += BLDMCast.c
