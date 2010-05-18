@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.42 2010/04/27 01:45:59 strauman Exp $ */
+/* $Id: BLDMCast.c,v 1.43 2010/05/17 17:21:22 strauman Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +44,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.42 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.43 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -809,25 +809,7 @@ epicsUInt32     this_time;
 		return -1; /* error message already printed */
 	}
 	ca_flush_io();
-#else
-
-	for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
-		if ( FCOM_ID_NONE == (bldPulseID[loop] = fcomLCLSPV2FcomID(bldPulseBlobs[loop].name)) ) {
-			errlogPrintf("FATAL ERROR: Unable to determine FCOM ID for PV %s\n", bldPulseBlobs[loop].name);
-			return -1;
-		}
-		rtncode = fcomSubscribe( bldPulseID[loop], FCOM_ASYNC_GET );
-		if ( 0 != rtncode ) {
-			errlogPrintf("FATAL ERROR: Unable to subscribe %s (0x%08"PRIx32") to FCOM: %s\n",
-					bldPulseBlobs[loop].name,
-					bldPulseID[loop],
-					fcomStrerror(rtncode));
-			return -1;
-		}
-	}
-
 #endif
-
 
 	/* All ready to go, create event and register with EVR */
 	EVRFireEvent = epicsEventMustCreate(epicsEventEmpty);
@@ -1014,6 +996,8 @@ epicsUInt32     this_time;
 			status = fcomGetBlobSet( bldBlobSet, &got_mask, (1<<N_PULSE_BLOBS) - 1, FCOM_SET_WAIT_ALL, timer_delay_ms );
 			if ( status && FCOM_ERR_TIMEDOUT != status ) {
 				errlogPrintf("fcomGetBlobSet failed: %s; sleeping for 2 seconds\n", fcomStrerror(status));
+				for ( loop = 0; loop < N_PULSE_BLOBS; loop++ )
+					bldFcomGetErrs[loop]++;
 				epicsThreadSleep( 2.0 );
 				continue;
 			}
@@ -1030,7 +1014,7 @@ epicsUInt32     this_time;
 			bldMinFcomDelayUs = this_time;
 
 		/* Running average: fn+1 = 127/128 * fn + 1/128 * x = fn - 1/128 fn + 1/128 x */
-		bldAvgFcomDelayUs +=  (- bldAvgFcomDelayUs + this_time) >> 8;
+		bldAvgFcomDelayUs +=  ((int)(- bldAvgFcomDelayUs + this_time)) >> 8;
 
 		{
 			FcomBlobRef b1;
@@ -1057,10 +1041,11 @@ epicsUInt32     this_time;
 						bldUnmatchedTSCount[loop]++;
 				} else {
 					rtncode = fcomGetBlob( bldPulseID[loop], &bldPulseBlobs[loop].blob, 0 );
+					if ( rtncode )
+						bldFcomGetErrs[loop]++;
 				}
 
 				if ( rtncode ) {
-					bldFcomGetErrs[loop]++;
 					dataAvailable        &= ~bldPulseBlobs[loop].aMsk;
 					bldPulseBlobs[loop].blob = 0;
 					continue;
@@ -1213,7 +1198,7 @@ passed:
 		if ( this_time > bldMaxPostDelayUs )
 			bldMaxPostDelayUs = this_time;
 		/* Running average: fn+1 = 127/128 * fn + 1/128 * x = fn - 1/128 fn + 1/128 x */
-		bldAvgPostDelayUs +=  (- bldAvgPostDelayUs + this_time) >> 8;
+		bldAvgPostDelayUs += ((int) (- bldAvgPostDelayUs + this_time)) >> 8;
 
 #ifndef USE_PULSE_CA
 		if ( ! bldBlobSet ) {
@@ -1307,19 +1292,19 @@ epicsUInt32 cnt2[N_PULSE_BLOBS];
 /**************************************************************************************************/
 
 static int
-timer_delay_rd(DevBusMappedPvt pvt, epicsInt32 *pvalue, dbCommon *prec)
+timer_delay_rd(DevBusMappedPvt pvt, epicsUInt32 *pvalue, dbCommon *prec)
 {
 uint64_t us;
 
 	us = 1000000ULL * (uint64_t)timer_delay_clicks;
 	us = us / (uint64_t)BSP_timer_clock_get(BSPTIMER);
-	*pvalue = (epicsInt32)us;
+	*pvalue = (epicsUInt32)us;
 
 	return 0;
 }
 
 static int
-timer_delay_wr(DevBusMappedPvt pvt, epicsInt32 value, dbCommon *prec)
+timer_delay_wr(DevBusMappedPvt pvt, epicsUInt32 value, dbCommon *prec)
 {
 uint64_t clicks;
 
@@ -1363,6 +1348,23 @@ static long BLD_EPICS_Init()
 int rtncode;
 
 #ifndef USE_PULSE_CA
+	{
+	int loop;
+	for ( loop=0; loop < N_PULSE_BLOBS; loop++) {
+		if ( FCOM_ID_NONE == (bldPulseID[loop] = fcomLCLSPV2FcomID(bldPulseBlobs[loop].name)) ) {
+			errlogPrintf("FATAL ERROR: Unable to determine FCOM ID for PV %s\n", bldPulseBlobs[loop].name);
+			return -1;
+		}
+		rtncode = fcomSubscribe( bldPulseID[loop], FCOM_ASYNC_GET );
+		if ( 0 != rtncode ) {
+			errlogPrintf("FATAL ERROR: Unable to subscribe %s (0x%08"PRIx32") to FCOM: %s\n",
+					bldPulseBlobs[loop].name,
+					bldPulseID[loop],
+					fcomStrerror(rtncode));
+			return -1;
+		}
+	}
+	}
 	/* Allocate blob set here so that the flag that is read
 	 * into a record already contains the final value, ready
 	 * for being picked up by PINI
@@ -1407,11 +1409,11 @@ static long BLD_EPICS_Report(int level)
     printf("\n"BLD_DRV_VERSION"\n\n");
 	printf("Compiled with options:\n");
 
-	printf("USE_PULSE_CA    :");
+	printf("USE_PULSE_CA     :");
 #ifdef USE_PULSE_CA
 		printf(             "  DEFINED (use CA not FCOM to obtain pulse-by-pulse data)\n");
 
-	printf("FETCH_PULSE_PVS :");
+	printf("FETCH_PULSE_PVS  :");
 #ifdef FETCH_PULSE_PVS
 			printf(         "  DEFINED (do not monitor pulse-by-pulse PVs)\n");
 #else
@@ -1421,17 +1423,18 @@ static long BLD_EPICS_Report(int level)
 		printf(             "  UNDEFINED (use FCOM not CA to obtain pulse-by-pulse data)\n");
 #endif
 
-	printf("USE_CA_ADD_EVENT:");
+	printf("USE_CA_ADD_EVENT :");
 #ifdef  USE_CA_ADD_EVENT
 		printf(             "  DEFINED (use ca_add_array_event, not ca_create_subscription)\n");
 #else
 		printf(             "  UNDEFINED (use ca_create_subscription, not ca_add_array_event)\n");
 #endif
 
-	printf("MULTICAST       :");
+	printf("MULTICAST        :");
 #ifdef MULTICAST
 		printf(             "  DEFINED (use multicast interface to send data)\n");
 #ifdef MULTICAST_UDPCOMM
+	printf("MULTICAST_UDPCOMM:");
 			printf(         "  DEFINED (use UDPCOMM/lanIpBasic, not BSD sockets for sending BLD multicast messages)\n");
 #else
 			printf(         "  DEFINED (use BSD sockets, not UDPCOMM/lanIpBasic for sending BLD multicast messages)\n");
@@ -1441,10 +1444,11 @@ static long BLD_EPICS_Report(int level)
 #endif
 		
 #ifndef USE_PULSE_CA
+	printf("FCOM             :");
 	if ( bldBlobSet )
-		printf("FCOM uses a blob set to receive data synchronously\n");
+		printf("  Uses a blob set to receive data synchronously\n");
 	else
-		printf("FCOM delays (using a hardware timer) and reads data asynchronously\n");
+		printf("  Delays (using a hardware timer) and reads data asynchronously\n");
 #endif
 
     return 0;
