@@ -3,8 +3,8 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 731
-y 92
+x 293
+y 155
 w 535
 h 846
 font "helvetica-medium-r-12.0"
@@ -30,9 +30,9 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 304
+x 320
 y 64
-w 224
+w 208
 h 152
 lineColor index 3
 fill
@@ -152,7 +152,7 @@ minor 0
 release 0
 x 8
 y 64
-w 288
+w 304
 h 152
 lineColor index 3
 fill
@@ -336,8 +336,8 @@ beginObjectProperties
 major 4
 minor 0
 release 1
-x 320
-y 72
+x 328
+y 80
 w 192
 h 136
 fgColor index 14
@@ -353,18 +353,24 @@ numElements 7
 font "helvetica-medium-r-12.0"
 endObjectProperties
 
-# (Group)
-object activeGroupClass
+# (Static Text)
+object activeXTextClass
 beginObjectProperties
 major 4
-minor 0
+minor 1
 release 0
-x 8
-y 224
-w 520
-h 616
-
-beginGroup
+x 320
+y 56
+w 160
+h 16
+font "helvetica-medium-i-12.0"
+fontAlign "center"
+fgColor index 14
+bgColor index 3
+value {
+  "BLD Data via Multicast"
+}
+endObjectProperties
 
 # (Rectangle)
 object activeRectangleClass
@@ -462,14 +468,14 @@ minor 1
 release 0
 x 64
 y 418
-w 103
+w 91
 h 14
 font "helvetica-medium-r-12.0"
 fgColor index 14
 bgColor index 0
 useDisplayBg
 value {
-  "BPMS:LTU1:720:X"
+  "BPMS:LTU1:720"
 }
 autoSize
 endObjectProperties
@@ -481,15 +487,15 @@ major 4
 minor 1
 release 0
 x 64
-y 354
-w 103
+y 352
+w 91
 h 14
 font "helvetica-medium-r-12.0"
 fgColor index 14
 bgColor index 0
 useDisplayBg
 value {
-  "BPMS:LTU1:250:X"
+  "BPMS:LTU1:250"
 }
 autoSize
 endObjectProperties
@@ -502,14 +508,14 @@ minor 1
 release 0
 x 64
 y 386
-w 103
+w 91
 h 14
 font "helvetica-medium-r-12.0"
 fgColor index 14
 bgColor index 0
 useDisplayBg
 value {
-  "BPMS:LTU1:450:X"
+  "BPMS:LTU1:450"
 }
 autoSize
 endObjectProperties
@@ -522,14 +528,14 @@ minor 1
 release 0
 x 64
 y 450
-w 103
+w 91
 h 14
 font "helvetica-medium-r-12.0"
 fgColor index 14
 bgColor index 0
 useDisplayBg
 value {
-  "BPMS:LTU1:730:X"
+  "BPMS:LTU1:730"
 }
 autoSize
 endObjectProperties
@@ -542,14 +548,14 @@ minor 1
 release 0
 x 64
 y 482
-w 103
+w 91
 h 14
 font "helvetica-medium-r-12.0"
 fgColor index 14
 bgColor index 0
 useDisplayBg
 value {
-  "BPMS:LTU1:740:X"
+  "BPMS:LTU1:740"
 }
 autoSize
 endObjectProperties
@@ -562,14 +568,14 @@ minor 1
 release 0
 x 64
 y 514
-w 103
+w 91
 h 14
 font "helvetica-medium-r-12.0"
 fgColor index 14
 bgColor index 0
 useDisplayBg
 value {
-  "BPMS:LTU1:750:X"
+  "BPMS:LTU1:750"
 }
 autoSize
 endObjectProperties
@@ -1841,28 +1847,5 @@ onLabel "RST"
 offLabel "RST"
 3d
 font "helvetica-medium-r-10.0"
-endObjectProperties
-
-endGroup
-
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 304
-y 56
-w 160
-h 16
-font "helvetica-medium-i-12.0"
-fontAlign "center"
-fgColor index 14
-bgColor index 3
-value {
-  "BLD Data via Multicast"
-}
 endObjectProperties
 
