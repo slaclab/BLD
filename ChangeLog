@@ -1,5 +1,8 @@
 	20100518 (Till Straumann):
 
+	* RELEASE_NOTES: reversed order of entries (latest appears at the top
+	rather than at the bottom). Added entry for R2-0-0.
+
 	* BLDApp/Db/BLDMCast.db:
 	 o Introduced a new macro to set SCAN field of old diagnostic BLD
 	   data records. These are deprecated anyways and in a first cut
