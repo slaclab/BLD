@@ -55,7 +55,35 @@ ErConfigure(0, 0, 0, 0, 1)
 ## Load record instances ##
 ###########################
 dbLoadRecords("db/IOC-SYS0-BD01.db")
-dbLoadRecords("db/BLDMCast.db")
+# 5 = '2 second'
+
+# Set the BLD data records (which are now deprecated,
+# the BLDMcastWfRecv waveform should be used instead)
+# to 'Passive' to effectively disable them.
+dbLoadRecords("db/BLDMCast.db","DIAG_SCAN=Passive, STAT_SCAN=5")
+
+# Have a BLD listener running on this IOC and fill a waveform
+# with the BLD data.
+# We scan with event 146 (beam + .5Hz)
+#
+# NOTE: There must be one of the EVR:IOC:SYS0:BD01:EVENTxyCTRL
+#       records holding the event number we use here and it
+#       must have VME interrupts (.VME field) enabled.
+#
+#       Furthermore, you cannot use any event but only 
+#       such ones for which an event record has been
+#       instantiated with MRF ER device support -- this
+#       is thanks to the great MRF software design, yeah!
+#
+# The erEvent record enables interrupts for an event
+# the interrupt handler calls scanIoRequest(lists[event]) and
+# there must be an event record registered on that list which
+# then does post_event().
+# (Well, the VME ISR firing 'event' could IMHO directly post_event(event)
+# which would be faster, simpler and more flexible)
+# 
+
+dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:BD01:BLDWAV, scan=Event, evnt=146, rarm=2")
 
 # ======================================================================
 ## Configure AutoSave and Restore
