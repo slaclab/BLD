@@ -18,3 +18,22 @@ record(calc, "$(user):caReconnect")
         field(LLSV, "MAJOR")
 }
 
+record(calc, "$(user):caReconnect2")
+{
+        field(DESC, "Read from ioc-b34-ev02")
+        field(SCAN, "1 second")
+        field(CALC, "(A*B)")
+        field(INPA, "CA:Server2:aiExample.VAL  NPP NMS")
+        field(INPB, "100")
+        field(EGU,  "Counts")
+        field(HOPR, "1000")
+        field(HIHI, "800")
+        field(HIGH, "600")
+        field(LOW,  "400")
+        field(LOLO, "200")
+        field(HHSV, "MAJOR")
+        field(HSV,  "MINOR")
+        field(LSV,  "MINOR")
+        field(LLSV, "MAJOR")
+}
+
