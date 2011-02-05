@@ -1,0 +1,20 @@
+
+record(calc, "$(user):caReconnect")
+{
+        field(DESC, "Read from ioc-b34-cd11")
+        field(SCAN, "1 second")
+        field(CALC, "(A*B)")
+        field(INPA, "CA:Server:aiExample.VAL  NPP NMS")
+        field(INPB, "10")
+        field(EGU,  "Counts")
+        field(HOPR, "100")
+        field(HIHI, "80")
+        field(HIGH, "60")
+        field(LOW,  "40")
+        field(LOLO, "20")
+        field(HHSV, "MAJOR")
+        field(HSV,  "MINOR")
+        field(LSV,  "MINOR")
+        field(LLSV, "MAJOR")
+}
+
