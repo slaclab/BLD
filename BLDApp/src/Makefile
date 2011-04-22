@@ -20,7 +20,7 @@ DBD += bldrx.dbd
 BLD_DBD += base.dbd
 
 # Include dbd files from all support applications:
-BLD_DBD += BLDMCast.dbd
+#BLD_DBD += BLDMCast.dbd
 BLD_DBD += autosaveSupport.dbd
 BLD_DBD += evrSupport.dbd
 BLD_DBD += devMrfEr.dbd
@@ -44,12 +44,13 @@ BLD_LIBS += fcom
 BLD_LIBS += udpComm
 BLD_LIBS += devBusMapped
 BLD_LIBS += devBLDMCastWfRecv
+BLD_SYS_LIBS += udpComm
 
 # BLD_registerRecordDeviceDriver.cpp derives from BLD.dbd
-BLD_SRCS += BLDMCast.c
-BLD_SRCS += devBLDMCastStatus.c
-BLD_SRCS += catest.c
-BLD_SRCS += camon.c
+#BLD_SRCS += BLDMCast.c
+#BLD_SRCS += devBLDMCastStatus.c
+#BLD_SRCS += catest.c
+#BLD_SRCS += camon.c
 BLD_SRCS += BLD_registerRecordDeviceDriver.cpp
 
 # Build the main IOC entry point on workstation OSs.
