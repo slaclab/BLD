@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.44 2010/05/18 23:36:00 strauman Exp $ */
+/* $Id: BLDMCast.c,v 1.46 2011/05/12 22:24:27 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +44,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.44 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.46 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -158,47 +158,46 @@ BLDPV bldStaticPVs[]=
 
 BLDPV bldPulsePVs[]=
 {
-#if 0
-    Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
-#endif
+    /** 
+     * Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
+     */
     [BMCHARGE] = {"BPMS:IN20:221:TMIT", 1, AVAIL_BMCHARGE   , NULL, NULL},	/* Charge in Nel, 1.602e-10 nC per Nel*/
 
-#if 0
-    Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
-    where E0 is the final desired energy at the LTU (the magnet setting BEND:LTU0:125:BDES*1000)
-    dspr1,2  = Dx for the chosen dispersion BPMs (from design model database twiss parameters) (we can store these in BLD IOC PVs)
-    BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
-    BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
-#endif
+    /**
+     * Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
+     * where E0 is the final desired energy at the LTU (the magnet setting BEND:LTU0:125:BDES*1000)
+     * dspr1,2  = Dx for the chosen dispersion BPMs (from design model database twiss parameters) (we can store these in BLD IOC PVs)
+     * BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
+     * BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
+     */
     [BMENERGY1X] = {"BPMS:LTU1:250:X", 1, AVAIL_BMENERGY1X  , NULL, NULL},	/* Energy in MeV */
     [BMENERGY2X] = {"BPMS:LTU1:450:X", 1, AVAIL_BMENERGY2X  , NULL, NULL},	/* Energy in MeV */
 
-#if 0
-    Position X, Y, Angle X, Y at LTU:
-    Using the LTU Feedback BPMs: BPMS:LTU1:720,730,740,750
-    The best estimate calculation is a matrix multiply for the result vector p:
-
-        [xpos(mm)             [bpm1x         //= BPMS:LTU1:720:X (mm)
-    p=   ypos(mm)      = [F]*  bpm2x         //= BPMS:LTU1:730:X
-         xang(mrad)            bpm3x         //= BPMS:LTU1:740:X
-         yang(mrad)]           bpm4x         //= BPMS:LTU1:750:X
-                               bpm1y         //= BPMS:LTU1:720:Y
-                               bpm2y         //= BPMS:LTU1:730:Y
-                               bpm3y         //= BPMS:LTU1:740:Y
-                               bpm4y]        //= BPMS:LTU1:750:Y
-
-    Where F is the 4x8 precalculated fit matrix.  F is approx. pinv(A), for Least Squares fit p = pinv(A)*x
-
-    A = [R11 R12 R13 R14;     //rmat elements for bpm1x
-         R11 R12 R13 R14;     //rmat elements for bpm2x
-         R11 R12 R13 R14;     //rmat elements for bpm3x
-         R11 R12 R13 R14;     //rmat elements for bpm4x
-         R31 R32 R33 R34;     //rmat elements for bpm1y
-         R31 R32 R33 R34;     //rmat elements for bpm2y
-         R31 R32 R33 R34;     //rmat elements for bpm3y
-         R31 R32 R33 R34]     //rmat elements for bpm4y
-#endif
-
+    /**
+     * Position X, Y, Angle X, Y at LTU:
+     * Using the LTU Feedback BPMs: BPMS:LTU1:720,730,740,750
+     * The best estimate calculation is a matrix multiply for the result vector p:
+     *
+     *     [xpos(mm)             [bpm1x         //= BPMS:LTU1:720:X (mm)
+     * p=   ypos(mm)      = [F]*  bpm2x         //= BPMS:LTU1:730:X
+     *      xang(mrad)            bpm3x         //= BPMS:LTU1:740:X
+     *      yang(mrad)]           bpm4x         //= BPMS:LTU1:750:X
+     *                            bpm1y         //= BPMS:LTU1:720:Y
+     *                            bpm2y         //= BPMS:LTU1:730:Y
+     *                            bpm3y         //= BPMS:LTU1:740:Y
+     *                            bpm4y]        //= BPMS:LTU1:750:Y
+     *
+     * Where F is the 4x8 precalculated fit matrix.  F is approx. pinv(A), for Least Squares fit p = pinv(A)*x
+     *
+     * A = [R11 R12 R13 R14;     //rmat elements for bpm1x
+     *      R11 R12 R13 R14;     //rmat elements for bpm2x
+     *      R11 R12 R13 R14;     //rmat elements for bpm3x
+     *      R11 R12 R13 R14;     //rmat elements for bpm4x
+     *      R31 R32 R33 R34;     //rmat elements for bpm1y
+     *      R31 R32 R33 R34;     //rmat elements for bpm2y
+     *      R31 R32 R33 R34;     //rmat elements for bpm3y
+     *      R31 R32 R33 R34]     //rmat elements for bpm4y
+     */
     [BMPOSITION1X] = {"BPMS:LTU1:720:X", 1, AVAIL_BMPOSITION1X, NULL, NULL},	/* Position in mm/mrad */
     [BMPOSITION2X] = {"BPMS:LTU1:730:X", 1, AVAIL_BMPOSITION2X, NULL, NULL},	/* Position in mm/mrad */
     [BMPOSITION3X] = {"BPMS:LTU1:740:X", 1, AVAIL_BMPOSITION3X, NULL, NULL},	/* Position in mm/mrad */
@@ -216,47 +215,46 @@ BLDPV bldPulsePVs[]=
 
 BLDBLOB bldPulseBlobs[] =
 {
-#if 0
-    Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
-#endif
+    /**
+     * Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
+     */
     [BMCHARGE] = { name: "BPMS:IN20:221:TMIT", blob: 0, aMsk: AVAIL_BMCHARGE},	/* Charge in Nel, 1.602e-10 nC per Nel*/
 
-#if 0
-    Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
-    where E0 is the final desired energy at the LTU (the magnet setting BEND:LTU0:125:BDES*1000)
-    dspr1,2  = Dx for the chosen dispersion BPMs (from design model database twiss parameters) (we can store these in BLD IOC PVs)
-    BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
-    BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
-#endif
+    /**
+     * Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
+     * where E0 is the final desired energy at the LTU (the magnet setting BEND:LTU0:125:BDES*1000)
+     * dspr1,2  = Dx for the chosen dispersion BPMs (from design model database twiss parameters) (we can store these in BLD IOC PVs)
+     * BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
+     * BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
+     */
     [BMENERGY1X] = { name: "BPMS:LTU1:250:X", blob: 0, aMsk: AVAIL_BMENERGY1X},	/* Energy in MeV */
     [BMENERGY2X] = { name: "BPMS:LTU1:450:X", blob: 0, aMsk: AVAIL_BMENERGY2X},	/* Energy in MeV */
 
-#if 0
-    Position X, Y, Angle X, Y at LTU:
-    Using the LTU Feedback BPMs: BPMS:LTU1:720,730,740,750
-    The best estimate calculation is a matrix multiply for the result vector p:
-
-        [xpos(mm)             [bpm1x         //= BPMS:LTU1:720:X (mm)
-    p=   ypos(mm)      = [F]*  bpm2x         //= BPMS:LTU1:730:X
-         xang(mrad)            bpm3x         //= BPMS:LTU1:740:X
-         yang(mrad)]           bpm4x         //= BPMS:LTU1:750:X
-                               bpm1y         //= BPMS:LTU1:720:Y
-                               bpm2y         //= BPMS:LTU1:730:Y
-                               bpm3y         //= BPMS:LTU1:740:Y
-                               bpm4y]        //= BPMS:LTU1:750:Y
-
-    Where F is the 4x8 precalculated fit matrix.  F is approx. pinv(A), for Least Squares fit p = pinv(A)*x
-
-    A = [R11 R12 R13 R14;     //rmat elements for bpm1x
-         R11 R12 R13 R14;     //rmat elements for bpm2x
-         R11 R12 R13 R14;     //rmat elements for bpm3x
-         R11 R12 R13 R14;     //rmat elements for bpm4x
-         R31 R32 R33 R34;     //rmat elements for bpm1y
-         R31 R32 R33 R34;     //rmat elements for bpm2y
-         R31 R32 R33 R34;     //rmat elements for bpm3y
-         R31 R32 R33 R34]     //rmat elements for bpm4y
-#endif
-
+    /**
+     * Position X, Y, Angle X, Y at LTU:
+     * Using the LTU Feedback BPMs: BPMS:LTU1:720,730,740,750
+     * The best estimate calculation is a matrix multiply for the result vector p:
+     *
+     *     [xpos(mm)             [bpm1x         //= BPMS:LTU1:720:X (mm)
+     * p=   ypos(mm)      = [F]*  bpm2x         //= BPMS:LTU1:730:X
+     *      xang(mrad)            bpm3x         //= BPMS:LTU1:740:X
+     *      yang(mrad)]           bpm4x         //= BPMS:LTU1:750:X
+     *                            bpm1y         //= BPMS:LTU1:720:Y
+     *                            bpm2y         //= BPMS:LTU1:730:Y
+     *                            bpm3y         //= BPMS:LTU1:740:Y
+     *                            bpm4y]        //= BPMS:LTU1:750:Y
+     *
+     * Where F is the 4x8 precalculated fit matrix.  F is approx. pinv(A), for Least Squares fit p = pinv(A)*x
+     *
+     * A = [R11 R12 R13 R14;     //rmat elements for bpm1x
+     *      R11 R12 R13 R14;     //rmat elements for bpm2x
+     *      R11 R12 R13 R14;     //rmat elements for bpm3x
+     *      R11 R12 R13 R14;     //rmat elements for bpm4x
+     *      R31 R32 R33 R34;     //rmat elements for bpm1y
+     *      R31 R32 R33 R34;     //rmat elements for bpm2y
+     *      R31 R32 R33 R34;     //rmat elements for bpm3y
+     *      R31 R32 R33 R34]     //rmat elements for bpm4y
+     */
     [BMPOSITION1X] = { name: "BPMS:LTU1:720:X", blob: 0, aMsk: AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y },	/* Position in mm/mrad */
     [BMPOSITION2X] = { name: "BPMS:LTU1:730:X", blob: 0, aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
     [BMPOSITION3X] = { name: "BPMS:LTU1:740:X", blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
