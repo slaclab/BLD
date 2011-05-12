@@ -29,6 +29,8 @@ record(ai, "BLD:SYS0:500:CHARGE") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "nC")
+  field(FLNK, "BLD:SYS0:500:EFCHARGE")
+  field(PRIO, "HIGH")
 }
 
 record(ai, "BLD:SYS0:500:ENERGY") {

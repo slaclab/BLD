@@ -2,5 +2,6 @@ device(ai, INST_IO, devAiBLD, "BLD")
 driver(drvBLD)
 
 variable(BLD_MCAST_DEBUG)
+
 variable(BLD_MCAST_ENABLE)
 variable(DELAY_FOR_CA)

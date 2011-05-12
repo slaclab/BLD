@@ -3,16 +3,6 @@ file iocAdmin.db
 {IOC=IOC:SYS0:BD01}
 }
 
-#file evrDevTrig.db 
-#{
-##           Device	   , Description    ,polarity,width,delay,event , EVR  ,  EVR,  IOC 
-##			                                           code ,location,unit
-#  pattern { DEV            ,  DESC          ,POL,     WID,   DES , TEC   , LOCA , UNIT, IOC          ,  DRVL  ,  DRVH   , TCTL , TPOL, TWID, TDES, CTL}
-#	  { BLD:SYS0:500A: , "Spare Trig 0" , 1 ,   20000000,10, LCLSBD  , MCC0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , DG0E , DG0P, DG0W, DG0D, 0  }
-#	  { BLD:SYS0:500B: , "Spare Trig 1" , 1 ,   20000000,10, LCLSBD  , MCC0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , DG1E , DG1P, DG1W, DG1D, 0  }
-#	  { BLD:SYS0:500C:,  "Spare Trig 2" , 1 ,   20000000,10, LCLSBD  , MCC0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , DG2E , DG2P, DG2W, DG2D, 0  }
-#}
-
 file evrWithExtDelays.db
 {
 #                      Default Pulse <--------------------------- Extended Delays -------------------------------------->
@@ -58,4 +48,11 @@ file save_restoreStatus.db
   pattern { P        }
           { IOC:SYS0:BD01: }
 }
+
+file BLDMCastEdef.db
+{
+  pattern {DEVICE      , LOC  , UN, SYS, SLCLNK }
+	  { BLD:SYS0:500, SYS0,EV01, SYS0, ""}
+}
+
 

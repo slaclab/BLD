@@ -13,7 +13,8 @@ include $(TOP)/configure/CONFIG
 DB += BLDMCast.db
 DB += BLDMCastWfRecv.db
 DB += IOC-SYS0-BD01.db
-DB += caClientTest.db
+
+#DB_INSTALLS += $(EVENT)/db/eventCodeSequenceAll.db
 
 #----------------------------------------------------
 # If <anyname>.db template is not named <anyname>*.template add
@@ -22,4 +23,3 @@ DB += caClientTest.db
 include $(TOP)/configure/RULES
 #----------------------------------------
 #  ADD RULES AFTER THIS LINE
-
