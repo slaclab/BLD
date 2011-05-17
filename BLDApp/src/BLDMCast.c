@@ -1,9 +1,10 @@
-/* $Id: BLDMCast.c,v 1.46 2011/05/12 22:24:27 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.47 2011/05/12 23:55:43 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
+#include <errno.h>
 
 #include <sys/time.h>
 
@@ -44,7 +45,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.46 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.47 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -89,6 +90,7 @@ enum PULSEPVSINDEX
     BMPOSITION3X,
     BMPOSITION4X,
     BMBUNCHLEN,
+    BC2STATE,
 	/* Define Y after everything else so that fcom array doesn't have to use them */
     BMPOSITION1Y,
     BMPOSITION2Y,
@@ -114,6 +116,7 @@ enum PVAVAILMASK
     AVAIL_BMPOSITION3Y  = 1<<13,
     AVAIL_BMPOSITION4Y  = 1<<14,
     AVAIL_BMBUNCHLEN    = 1<<15,
+    AVAIL_BC2STATE      = 1<<16,
 };
 
 /* Structure representing one PV (= channel) */
@@ -260,6 +263,7 @@ BLDBLOB bldPulseBlobs[] =
     [BMPOSITION3X] = { name: "BPMS:LTU1:740:X", blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
     [BMPOSITION4X] = { name: "BPMS:LTU1:750:X", blob: 0, aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
     [BMBUNCHLEN]   = { name: "BLEN:LI24:886:BIMAX", blob: 0, aMsk: AVAIL_BMBUNCHLEN },	/* Bunch Length in Amps */
+    [BC2STATE]     = { name: "FBCK:FB05:TR01:STATES", blob: 0, aMsk: AVAIL_BC2STATE}, /* Longitudinal Feedback States, which includes BC2 Energy */
 };
 
 
@@ -414,8 +418,8 @@ void EVRFire(void *use_sets)
 	if(BLD_MCAST_DEBUG >= 4) errlogPrintf("EVR fires (status %i, mod5 0x%08x)\n", status, (unsigned)modifier_a[4]);
 	if (!status)
 	{/* check for LCLS beam and rate-limiting */
-	  if (/*(modifier_a[4] & MOD5_30HZ_MASK*//*MOD5_HALFHZ_MASK*//*MOD5_BEAMFULL_MASK)*/
-	      (modifier_a[1] & TIMESLOT1_MASK || modifier_a[1] & TIMESLOT4_MASK)
+	  if ((modifier_a[4] & /*MOD5_30HZ_MASK*/MOD5_HALFHZ_MASK)/*MOD5_BEAMFULL_MASK)*/
+	      /* 120Hz --- (modifier_a[1] & TIMESLOT1_MASK || modifier_a[1] & TIMESLOT4_MASK) */
 #ifdef USE_PULSE_CA
 		     && (modifier_a[4] & rate_mask)
 #endif
@@ -852,7 +856,6 @@ epicsUInt32     this_time;
 
 		{
 			status = epicsEventWaitWithTimeout(EVRFireEvent, DEFAULT_EVR_TIMEOUT);
-			/*printf("### timer \n");*/
 			if(status != epicsEventWaitOK)
 			{
 				if(status == epicsEventWaitTimeout)
@@ -1047,12 +1050,14 @@ epicsUInt32     this_time;
 					rtncode = ! (got_mask & 1);
 					bldPulseBlobs[loop].blob = bldBlobSet->memb[loop].blob;
 					/* If there was no data then it was probably too late */
-					if ( rtncode )
-						bldUnmatchedTSCount[loop]++;
+					if ( rtncode ) {
+					  bldUnmatchedTSCount[loop]++;
+					}
 				} else {
 					rtncode = fcomGetBlob( bldPulseID[loop], &bldPulseBlobs[loop].blob, 0 );
-					if ( rtncode )
+					if ( rtncode ) {
 						bldFcomGetErrs[loop]++;
+					}
 				}
 
 				if ( rtncode ) {
@@ -1108,8 +1113,13 @@ passed:
 			} else {
 				bldEbeamInfo.uDamageMask |= __le32(0x1);
 			}
+			/** TEST TEST TEST */
 			__st_le64(&bldEbeamInfo.ebeamCharge, __CHARGE__);
 			__CHARGE__ = __CHARGE__ + 0.0001;
+			if (bldPulseBlobs[BC2STATE].blob != 0) {
+			  __CHARGE__ = (double)bldPulseBlobs[BC2STATE].blob->fc_flt[3];
+			}
+			/** TEST TEST TEST */
 
 #define AVAIL_L3ENERGY (AVAIL_BMENERGY1X | AVAIL_BMENERGY2X | AVAIL_DSPR1 | AVAIL_DSPR2 | AVAIL_E0BDES)
 

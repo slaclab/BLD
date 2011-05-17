@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.21 2010/04/13 22:35:19 strauman Exp $ */
+/* $Id: BLDMCast.h,v 1.22 2010/04/20 16:44:09 strauman Exp $ */
 #ifndef _BLD_MCAST_H_
 #define _BLD_MCAST_H_
 
@@ -120,7 +120,7 @@ typedef struct EBEAMINFO
     Uint32_LE     uDamage;
     Uint32_LE     uLogicalId;   /* source 1 */
     Uint32_LE     uPhysicalId;  /* source 2 */
-    Uint32_LE     uDataType;    /* Contains */
+    Uint32_LE     uDataType;    /* Contains - this is the version field */
     Uint32_LE     uExtentSize;  /* Extent */
 
     /* Xtc Section 2 */
