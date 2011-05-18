@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.48 2011/05/17 20:39:25 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.49 2011/05/17 23:59:25 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -45,7 +45,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.48 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.49 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -115,36 +115,31 @@ enum PVAVAILMASK
 };
 
 /* Structure representing one PV (= channel) */
-typedef struct BLDPV
-{
-    const char *	         name;
-    unsigned long	         nElems; /* type is always DOUBLE */
+typedef struct BLDPV {
+  const char *	         name;
+  unsigned long	         nElems; /* type is always DOUBLE */
+  enum PVAVAILMASK         availMask;
+  chid		             pvChId;
+  struct dbr_time_double * pTD;
+  
+  /* No need for eventId, never cancel subscription *\
+     evid  pvEvId;
+     \* No need for eventId, never cancel subscription */
 
-	enum PVAVAILMASK         availMask;
-
-    chid		             pvChId;
-
-    struct dbr_time_double * pTD;
-
-/* No need for eventId, never cancel subscription *\
-    evid  pvEvId;
-\* No need for eventId, never cancel subscription */
-
-/* No need to hold type, always double *\
-    long  dbfType;
-    long  dbrType;
-\* No need to hold type, always double */
+  /* No need to hold type, always double *\
+   long  dbfType;
+   long  dbrType;
+   \* No need to hold type, always double */
 } BLDPV;
 
 typedef struct BLDBLOB {
-	const char *            name;
-	FcomBlobRef             blob;
-	enum PVAVAILMASK        aMsk;
+  const char *            name;
+  FcomBlobRef             blob;
+  enum PVAVAILMASK        aMsk;
 } BLDBLOB;
 
 
-BLDPV bldStaticPVs[]=
-{
+BLDPV bldStaticPVs[]= {
     [DSPR1]  = {"BLD:SYS0:500:DSPR1",  1, AVAIL_DSPR1,  NULL, NULL},	/* For Energy */
     [DSPR2]  = {"BLD:SYS0:500:DSPR2",  1, AVAIL_DSPR2,  NULL, NULL},	/* For Energy */
     [E0BDES] = {"BEND:LTU0:125:BDES",  1, AVAIL_E0BDES, NULL, NULL},	/* Energy in MeV */
@@ -152,54 +147,59 @@ BLDPV bldStaticPVs[]=
 };
 #define N_STATIC_PVS (sizeof(bldStaticPVs)/sizeof(bldStaticPVs[0]))
 
-BLDBLOB bldPulseBlobs[] =
-{
-    /**
-     * Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
-     */
-    [BMCHARGE] = { name: "BPMS:IN20:221:TMIT", blob: 0, aMsk: AVAIL_BMCHARGE},	/* Charge in Nel, 1.602e-10 nC per Nel*/
-
-    /**
-     * Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
-     * where E0 is the final desired energy at the LTU (the magnet setting BEND:LTU0:125:BDES*1000)
-     * dspr1,2  = Dx for the chosen dispersion BPMs (from design model database twiss parameters) (we can store these in BLD IOC PVs)
-     * BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
-     * BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
-     */
-    [BMENERGY1X] = { name: "BPMS:LTU1:250:X", blob: 0, aMsk: AVAIL_BMENERGY1X},	/* Energy in MeV */
-    [BMENERGY2X] = { name: "BPMS:LTU1:450:X", blob: 0, aMsk: AVAIL_BMENERGY2X},	/* Energy in MeV */
-
-    /**
-     * Position X, Y, Angle X, Y at LTU:
-     * Using the LTU Feedback BPMs: BPMS:LTU1:720,730,740,750
-     * The best estimate calculation is a matrix multiply for the result vector p:
-     *
-     *     [xpos(mm)             [bpm1x         //= BPMS:LTU1:720:X (mm)
-     * p=   ypos(mm)      = [F]*  bpm2x         //= BPMS:LTU1:730:X
-     *      xang(mrad)            bpm3x         //= BPMS:LTU1:740:X
-     *      yang(mrad)]           bpm4x         //= BPMS:LTU1:750:X
-     *                            bpm1y         //= BPMS:LTU1:720:Y
-     *                            bpm2y         //= BPMS:LTU1:730:Y
-     *                            bpm3y         //= BPMS:LTU1:740:Y
-     *                            bpm4y]        //= BPMS:LTU1:750:Y
-     *
-     * Where F is the 4x8 precalculated fit matrix.  F is approx. pinv(A), for Least Squares fit p = pinv(A)*x
-     *
-     * A = [R11 R12 R13 R14;     //rmat elements for bpm1x
-     *      R11 R12 R13 R14;     //rmat elements for bpm2x
-     *      R11 R12 R13 R14;     //rmat elements for bpm3x
-     *      R11 R12 R13 R14;     //rmat elements for bpm4x
-     *      R31 R32 R33 R34;     //rmat elements for bpm1y
-     *      R31 R32 R33 R34;     //rmat elements for bpm2y
-     *      R31 R32 R33 R34;     //rmat elements for bpm3y
-     *      R31 R32 R33 R34]     //rmat elements for bpm4y
-     */
-    [BMPOSITION1X] = { name: "BPMS:LTU1:720:X", blob: 0, aMsk: AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y },	/* Position in mm/mrad */
-    [BMPOSITION2X] = { name: "BPMS:LTU1:730:X", blob: 0, aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
-    [BMPOSITION3X] = { name: "BPMS:LTU1:740:X", blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
-    [BMPOSITION4X] = { name: "BPMS:LTU1:750:X", blob: 0, aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
-    [BMBUNCHLEN]   = { name: "BLEN:LI24:886:BIMAX", blob: 0, aMsk: AVAIL_BMBUNCHLEN },	/* Bunch Length in Amps */
-    [BC2STATE]     = { name: "FBCK:FB05:TR01:STATES", blob: 0, aMsk: AVAIL_BC2STATE}, /* Longitudinal Feedback States, which includes BC2 Energy */
+BLDBLOB bldPulseBlobs[] = {
+  /**
+   * Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
+   */
+  [BMCHARGE] = { name: "BPMS:IN20:221:TMIT", blob: 0, aMsk: AVAIL_BMCHARGE},	/* Charge in Nel, 1.602e-10 nC per Nel*/
+  
+  /**
+   * Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
+   * where E0 is the final desired energy at the LTU (the magnet setting BEND:LTU0:125:BDES*1000)
+   * dspr1,2  = Dx for the chosen dispersion BPMs (from design model database twiss parameters) (we can store these in BLD IOC PVs)
+   * BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
+   * BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
+   */
+  [BMENERGY1X] = { name: "BPMS:LTU1:250:X", blob: 0, aMsk: AVAIL_BMENERGY1X},	/* Energy in MeV */
+  [BMENERGY2X] = { name: "BPMS:LTU1:450:X", blob: 0, aMsk: AVAIL_BMENERGY2X},	/* Energy in MeV */
+  
+  /**
+   * Position X, Y, Angle X, Y at LTU:
+   * Using the LTU Feedback BPMs: BPMS:LTU1:720,730,740,750
+   * The best estimate calculation is a matrix multiply for the result vector p:
+   *
+   *     [xpos(mm)             [bpm1x         //= BPMS:LTU1:720:X (mm)
+   * p=   ypos(mm)      = [F]*  bpm2x         //= BPMS:LTU1:730:X
+   *      xang(mrad)            bpm3x         //= BPMS:LTU1:740:X
+   *      yang(mrad)]           bpm4x         //= BPMS:LTU1:750:X
+   *                            bpm1y         //= BPMS:LTU1:720:Y
+   *                            bpm2y         //= BPMS:LTU1:730:Y
+   *                            bpm3y         //= BPMS:LTU1:740:Y
+   *                            bpm4y]        //= BPMS:LTU1:750:Y
+   *
+   * Where F is the 4x8 precalculated fit matrix.  F is approx. pinv(A), for Least Squares fit p = pinv(A)*x
+   *
+   * A = [R11 R12 R13 R14;     //rmat elements for bpm1x
+   *      R11 R12 R13 R14;     //rmat elements for bpm2x
+   *      R11 R12 R13 R14;     //rmat elements for bpm3x
+   *      R11 R12 R13 R14;     //rmat elements for bpm4x
+   *      R31 R32 R33 R34;     //rmat elements for bpm1y
+   *      R31 R32 R33 R34;     //rmat elements for bpm2y
+   *      R31 R32 R33 R34;     //rmat elements for bpm3y
+   *      R31 R32 R33 R34]     //rmat elements for bpm4y
+   */
+  [BMPOSITION1X] = { name: "BPMS:LTU1:720:X", blob: 0,
+		     aMsk: AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y },	/* Position in mm/mrad */
+  [BMPOSITION2X] = { name: "BPMS:LTU1:730:X", blob: 0,
+		     aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
+  [BMPOSITION3X] = { name: "BPMS:LTU1:740:X", blob: 0, 
+		     aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
+  [BMPOSITION4X] = { name: "BPMS:LTU1:750:X", blob: 0, 
+		     aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
+  [BMBUNCHLEN]   = { name: "BLEN:LI24:886:BIMAX", blob: 0,
+		     aMsk: AVAIL_BMBUNCHLEN },	/* Bunch Length in Amps */
+  [BC2STATE]     = { name: "FBCK:FB05:TR01:STATES", blob: 0,
+		     aMsk: AVAIL_BC2STATE}, /* Longitudinal Feedback States, which includes BC2 Energy */
 };
 
 
@@ -259,21 +259,19 @@ struct timeval  bldFiducialTimeHires;
 int      tsCatch = -1;
 uint32_t tsMismatch[4];
 
-static epicsUInt32
-usSinceFiducial(void)
-{
-struct timeval now;
+static epicsUInt32 usSinceFiducial(void) {
+  struct timeval now;
 
-	gettimeofday( &now, 0 );
+  gettimeofday( &now, 0 );
 
-	if ( now.tv_usec < bldFiducialTimeHires.tv_usec ) {
-		now.tv_usec += 1000000;
-		now.tv_sec--;	
-	}
-	now.tv_usec  = now.tv_usec - bldFiducialTimeHires.tv_usec;
-	now.tv_usec += now.tv_sec  - bldFiducialTimeHires.tv_sec;
-
-	return (epicsUInt32)now.tv_usec;
+  if ( now.tv_usec < bldFiducialTimeHires.tv_usec ) {
+    now.tv_usec += 1000000;
+    now.tv_sec--;	
+  }
+  now.tv_usec  = now.tv_usec - bldFiducialTimeHires.tv_usec;
+  now.tv_usec += now.tv_sec  - bldFiducialTimeHires.tv_sec;
+  
+  return (epicsUInt32)now.tv_usec;
 }
 
 
@@ -281,291 +279,274 @@ static void evr_timer_isr(void *arg);
 static int BLDMCastTask(void * parg);
 static void BLDMCastTaskEnd(void * parg);
 
-int BLDMCastStart(int enable, const char * NIC)
-{/* This function will be called in st.cmd after iocInit() */
+/* This function will be called in st.cmd after iocInit() */
+int BLDMCastStart(int enable, const char * NIC) {
     /* Do we need to use RTEMS task priority to get higher priority? */
     BLD_MCAST_ENABLE = enable;
     if(NIC && NIC[0] != 0)
         mcastIntfIp = inet_addr(NIC);
-    if(mcastIntfIp == (in_addr_t)(-1))
-    {
+    if(mcastIntfIp == (in_addr_t)(-1)) {
 	errlogPrintf("Illegal MultiCast NIC IP\n");
 	return -1;
     }
 
-    /******************************************************************* Setup high resolution timer ***************************************************************/
+    /****** Setup high resolution timer ***********************/
     /* you need to setup the timer only once (to connect ISR) */
-    BSP_timer_setup( BSPTIMER, evr_timer_isr, 0, 0 /* do not reload timer when it expires */);
+    BSP_timer_setup( BSPTIMER, evr_timer_isr,
+		     0, 0 /* do not reload timer when it expires */);
 
     epicsAtExit(BLDMCastTaskEnd, NULL);
 
-    return (int)(epicsThreadMustCreate("BLDMCast", TASK_PRIORITY, 20480, (EPICSTHREADFUNC)BLDMCastTask, NULL));
+    return (int)(epicsThreadMustCreate("BLDMCast", TASK_PRIORITY,
+				       20480, (EPICSTHREADFUNC)BLDMCastTask,
+				       NULL));
 }
 
-static int
-pvTimePulseIdMatches(
-	epicsTimeStamp *p_ref,
-	FcomBlobRef p_cmp
-)
-{
-epicsUInt32 idref, idcmp, diff;
+static int pvTimePulseIdMatches(epicsTimeStamp *p_ref,
+				FcomBlobRef p_cmp) {
+  epicsUInt32 idref, idcmp, diff;
 
-	idref = PULSEID((*p_ref));
-	idcmp = p_cmp->fc_tsLo & LOWER_17_BIT_MASK;
-
-	if ( idref == idcmp && idref != PULSEID_INVALID ) {
-		/* Verify that seconds match to less that a few minutes */
-		diff = abs(p_ref->secPastEpoch -
-		           p_cmp->fc_tsHi
-		       );
-		if ( diff < 4*60 )
-			return 0;
-	}
-
-	return -1;
+  idref = PULSEID((*p_ref));
+  idcmp = p_cmp->fc_tsLo & LOWER_17_BIT_MASK;
+  
+  if ( idref == idcmp && idref != PULSEID_INVALID ) {
+    /* Verify that seconds match to less that a few minutes */
+    diff = abs(p_ref->secPastEpoch -
+	       p_cmp->fc_tsHi
+	       );
+    if ( diff < 4*60 )
+      return 0;
+  }
+  
+  return -1;
 }
 
-void EVRFire(void *use_sets)
-{/* This function will be registered with EVR callback */
-	epicsTimeStamp time_s;
+/* This function will be registered with EVR callback */
+void EVRFire(void *use_sets) {
+  epicsTimeStamp time_s;
 
-	/* get the current pattern data - check for good status */
-	evrModifier_ta modifier_a;
-	unsigned long  patternStatus; /* see evrPattern.h for values */
-	int status = evrTimeGetFromPipeline(&time_s,  evrTimeCurrent, modifier_a, &patternStatus, 0,0,0);
-	/* This is 120Hz. So printf will screw timing */
-	if(BLD_MCAST_DEBUG >= 4) errlogPrintf("EVR fires (status %i, mod5 0x%08x)\n", status, (unsigned)modifier_a[4]);
-	if (!status)
-	{/* check for LCLS beam and rate-limiting */
-	  if ((modifier_a[4] & /*MOD5_30HZ_MASK*/MOD5_HALFHZ_MASK)/*MOD5_BEAMFULL_MASK)*/
-	      /* 120Hz --- (modifier_a[1] & TIMESLOT1_MASK || modifier_a[1] & TIMESLOT4_MASK) */
-		   )
- 		{/* ... do beam-sync rate-limited processing here ... */
-			/* call 'BSP_timer_start()' to set/arm the hardware */
-
-			bldFiducialTime = time_s;
-			gettimeofday( &bldFiducialTimeHires, 0 );
-			/* This is 30Hz. So printf might screw timing */
-			if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Timer Starts\n");
-
-			if ( ! use_sets ) {
-				BSP_timer_start( BSPTIMER, timer_delay_clicks );
-			} else {
-				epicsEventSignal(EVRFireEvent);
-			}
-
-		}
+  /* get the current pattern data - check for good status */
+  evrModifier_ta modifier_a;
+  unsigned long  patternStatus; /* see evrPattern.h for values */
+  int status = evrTimeGetFromPipeline(&time_s,  evrTimeCurrent, modifier_a, &patternStatus, 0,0,0);
+  /* This is 120Hz. So printf will screw timing */
+  if(BLD_MCAST_DEBUG >= 4) errlogPrintf("EVR fires (status %i, mod5 0x%08x)\n", status, (unsigned)modifier_a[4]);
+  /* check for LCLS beam and rate-limiting */
+  if (!status) {
+    if ((modifier_a[4] & /*MOD5_30HZ_MASK*/MOD5_HALFHZ_MASK)/*MOD5_BEAMFULL_MASK)*/
+	/* 120Hz --- (modifier_a[1] & TIMESLOT1_MASK || modifier_a[1] & TIMESLOT4_MASK) */
+	  )
+      {/* ... do beam-sync rate-limited processing here ... */
+	/* call 'BSP_timer_start()' to set/arm the hardware */
+	  
+	bldFiducialTime = time_s;
+	gettimeofday( &bldFiducialTimeHires, 0 );
+	/* This is 30Hz. So printf might screw timing */
+	if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Timer Starts\n");
+	
+	if ( ! use_sets ) {
+	  BSP_timer_start( BSPTIMER, timer_delay_clicks );
 	} else {
-		bldFiducialTime.nsec = PULSEID_INVALID;
+	  epicsEventSignal(EVRFireEvent);
 	}
-
-	return;
+	  
+      }
+  } else {
+    bldFiducialTime.nsec = PULSEID_INVALID;
+  }
+  
+  return;
 }
 
-static void evr_timer_isr(void *arg)
-{/* post event/release sema to wakeup worker task here */
-    if(EVRFireEvent) epicsEventSignal(EVRFireEvent);
-    /* This is 30Hz. So printk might screw timing */
-    if(BLD_MCAST_DEBUG >= 3) printk("Timer fires\n");
-    return;
+static void evr_timer_isr(void *arg) {/* post event/release sema to wakeup worker task here */
+  if(EVRFireEvent) {
+    epicsEventSignal(EVRFireEvent);
+  }
+  /* This is 30Hz. So printk might screw timing */
+  if(BLD_MCAST_DEBUG >= 3) {
+    printk("Timer fires\n");
+  }
+  return;
 }
 
-static void printChIdInfo(chid pvChId, char *message)
-{
-    errlogPrintf("\n%s\n",message);
-    errlogPrintf("pv: %s  type(%d) nelements(%ld) host(%s)",
-	ca_name(pvChId),ca_field_type(pvChId),ca_element_count(pvChId),ca_host_name(pvChId));
-    errlogPrintf(" read(%d) write(%d) state(%d)\n", ca_read_access(pvChId),ca_write_access(pvChId),ca_state(pvChId));
+static void printChIdInfo(chid pvChId, char *message) {
+  errlogPrintf("\n%s\n",message);
+  errlogPrintf("pv: %s  type(%d) nelements(%ld) host(%s)",
+	       ca_name(pvChId),ca_field_type(pvChId),ca_element_count(pvChId),ca_host_name(pvChId));
+  errlogPrintf(" read(%d) write(%d) state(%d)\n", ca_read_access(pvChId),ca_write_access(pvChId),ca_state(pvChId));
 }
 
-static void exceptionCallback(struct exception_handler_args args)
-{
-    chid	pvChId = args.chid;
-    long	stat = args.stat; /* Channel access status code*/
-    const char  *channel;
-    static char *noname = "unknown";
-
-    channel = (pvChId ? ca_name(pvChId) : noname);
-
-    if(pvChId) printChIdInfo(pvChId,"exceptionCallback");
-    errlogPrintf("exceptionCallback stat %s channel %s\n", ca_message(stat),channel);
+static void exceptionCallback(struct exception_handler_args args) {
+  chid	pvChId = args.chid;
+  long	stat = args.stat; /* Channel access status code*/
+  const char  *channel;
+  static char *noname = "unknown";
+  
+  channel = (pvChId ? ca_name(pvChId) : noname);
+  
+  if(pvChId) printChIdInfo(pvChId,"exceptionCallback");
+  errlogPrintf("exceptionCallback stat %s channel %s\n", ca_message(stat),channel);
 }
 
-#if 0
-static void accessRightsCallback(struct access_rights_handler_args args)
-{
-    chid	pvChId = args.chid;
+static void eventCallback(struct event_handler_args args) {
+  BLDPV * pPV = args.usr;
 
-    if(BLD_MCAST_DEBUG >= 2) printChIdInfo(pvChId,"accessRightsCallback");
-}
+  if(BLD_MCAST_DEBUG >= 2) {
+    errlogPrintf("Event Callback: %s, status %d\n",
+		 ca_name(args.chid), args.status);
+  }
 
-static void connectionCallback(struct connection_handler_args args)
-{
-    chid	pvChId = args.chid;
-
-    if(BLD_MCAST_DEBUG >= 2) printChIdInfo(pvChId,"connectionCallback");
-}
-#endif
-
-static void eventCallback(struct event_handler_args args)
-{
-    BLDPV * pPV = args.usr;
-
-    if(BLD_MCAST_DEBUG >= 2) errlogPrintf("Event Callback: %s, status %d\n", ca_name(args.chid), args.status);
-
-    epicsMutexLock(bldMutex);
-    if (args.status == ECA_NORMAL)
-    {
-        memcpy(pPV->pTD, args.dbr, dbr_size_n(args.type, args.count));
-        if(pPV->pTD->severity >= INVALID_ALARM)	/* We don't care timestamp for bldStaticPVs. As long as it is not invalid, they are ok */
-			dataAvailable &= ~ pPV->availMask;
-        else
-			dataAvailable |=   pPV->availMask;
-
-        if(BLD_MCAST_DEBUG >= 2)
-        {
-            errlogPrintf("Event Callback: %s, copy type %ld, elements %ld, bytes %d, severity %d\n",
-                ca_name(args.chid), args.type, args.count, dbr_size_n(args.type, args.count), pPV->pTD->severity);
-            errlogPrintf("Value is %f\n", pPV->pTD->value);
-        }
+  epicsMutexLock(bldMutex);
+  if (args.status == ECA_NORMAL) {
+    memcpy(pPV->pTD, args.dbr, dbr_size_n(args.type, args.count));
+    /* We don't care timestamp for bldStaticPVs. As long as it is not invalid, they are ok */
+    if(pPV->pTD->severity >= INVALID_ALARM) {
+      dataAvailable &= ~ pPV->availMask;
     }
-    else
-    {
-		dataAvailable &= ~ pPV->availMask;
+    else {
+      dataAvailable |=   pPV->availMask;
     }
-    epicsMutexUnlock(bldMutex);
+
+    if(BLD_MCAST_DEBUG >= 2) {
+      errlogPrintf("Event Callback: %s, copy type %ld, elements %ld, bytes %d, severity %d\n",
+		   ca_name(args.chid), args.type, args.count,
+		   dbr_size_n(args.type, args.count), pPV->pTD->severity);
+      errlogPrintf("Value is %f\n", pPV->pTD->value);
+    }
+  }
+  else {
+    dataAvailable &= ~ pPV->availMask;
+  }
+  epicsMutexUnlock(bldMutex);
 }
 
 
-static int
-connectCaPv(const char *name, chid *p_chid)
-{
-int rtncode;
+static int connectCaPv(const char *name, chid *p_chid) {
+  int rtncode;
 
-	do {
+  do {
+    rtncode = ECA_NORMAL;
 
-		rtncode = ECA_NORMAL;
+    /* No need for connectionCallback since we want to wait till connected */
+    if ( BLD_MCAST_DEBUG >= 1 ) {
+      printf("creating channel..."); fflush(stdout);
+    }
 
-		/* No need for connectionCallback since we want to wait till connected */
-		if ( BLD_MCAST_DEBUG >= 1 ) {
-			printf("creating channel..."); fflush(stdout);
-		}
+    SEVCHK(ca_create_channel(name, NULL/*connectionCallback*/,
+			     NULL, CA_PRIORITY , p_chid), "ca_create_channel");
 
-		SEVCHK(ca_create_channel(name, NULL/*connectionCallback*/, NULL, CA_PRIORITY , p_chid), "ca_create_channel");
+    if ( BLD_MCAST_DEBUG >= 1 ) {
+      printf(" done\n");
+    }
 
-		if ( BLD_MCAST_DEBUG >= 1 ) {
-			printf(" done\n");
-		}
+    /* Not very necessary */
+    /* SEVCHK(ca_replace_access_rights_event(bldStaticPVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event"); */
+    
+    /* We could do subscription in connetion callback. But in this case, better to enforce all connection */
+    if ( BLD_MCAST_DEBUG >= 1 ) {
+      printf("pending for IO ..."); fflush(stdout);
+    }
 
-		/* Not very necessary */
-		/* SEVCHK(ca_replace_access_rights_event(bldStaticPVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event"); */
+    rtncode = ca_pend_io(10.0);
 
-		/* We could do subscription in connetion callback. But in this case, better to enforce all connection */
-		if ( BLD_MCAST_DEBUG >= 1 ) {
-			printf("pending for IO ..."); fflush(stdout);
-		}
+    if ( BLD_MCAST_DEBUG >= 1 ) {
+      printf(" done\n");
+    }
 
-		rtncode = ca_pend_io(10.0);
-
-		if ( BLD_MCAST_DEBUG >= 1 ) {
-			printf(" done\n");
-		}
-
-		if ( ECA_NORMAL != rtncode ) {
-
-			ca_clear_channel(*p_chid);
-			*p_chid = 0;
-
-			if (rtncode == ECA_TIMEOUT) {
-
-				errlogPrintf("Channel connect timed out: '%s' not found.\n", name);
-				errlogPrintf("Continue to try -- set variable 'bldConnectAbort' to nonzero for aborting within 10s\n");
-
-				if ( ! bldConnectAbort ) {
-					continue;
-				}
-			} else {
-				errlogPrintf("ea_pend_io() returned %i\n", rtncode);
-			}
-			return -1;
-		}
-
-	} while ( ECA_TIMEOUT == rtncode );
-
-	return 0;
-}
-
-static int
-init_pvarray(BLDPV *p_pvs, int n_pvs, int subscribe)
-{
-int           loop;
-unsigned long cnt;
-
-	for(loop=0; loop<n_pvs; loop++)
-	{
-		if ( connectCaPv( p_pvs[loop].name, &p_pvs[loop].pvChId ) ) {
-			errlogPrintf("FATAL: connection attempts aborted!\n");
-			return -1;
-		}
-
-		if ( p_pvs[loop].nElems != (cnt = ca_element_count(p_pvs[loop].pvChId)) ) {
-			errlogPrintf("Number of elements [%ld] of '%s' does not match expectation.\n", cnt, p_pvs[loop].name);
-			return -1;
-		}
-
-		if ( DBF_DOUBLE != ca_field_type(p_pvs[loop].pvChId) ) {/* Native data type has to be double */
-			errlogPrintf("Native data type of '%s' is not double.\n", p_pvs[loop].name);
-			return -1;
-		}
-
-		/* Everything should be double, even not, do conversion */
-		p_pvs[loop].pTD = callocMustSucceed(1, dbr_size_n(DBR_TIME_DOUBLE, p_pvs[loop].nElems), "callocMustSucceed");
-
-		if ( subscribe ) {
-			SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, p_pvs[loop].nElems, p_pvs[loop].pvChId, DBE_VALUE|DBE_ALARM, eventCallback, &(p_pvs[loop]), NULL), "ca_create_subscription");
-		}
+    if ( ECA_NORMAL != rtncode ) {
+      
+      ca_clear_channel(*p_chid);
+      *p_chid = 0;
+      
+      if (rtncode == ECA_TIMEOUT) {
+	errlogPrintf("Channel connect timed out: '%s' not found.\n", name);
+	errlogPrintf("Continue to try -- set variable 'bldConnectAbort' to nonzero for aborting within 10s\n");
+	
+	if ( ! bldConnectAbort ) {
+	  continue;
 	}
-
-	return 0;
+      } else {
+	errlogPrintf("ea_pend_io() returned %i\n", rtncode);
+      }
+      return -1;
+    }
+    
+  } while ( ECA_TIMEOUT == rtncode );
+  
+  return 0;
 }
 
-static void BLDMCastTaskEnd(void * parg)
-{
-    int loop;
+static int init_pvarray(BLDPV *p_pvs, int n_pvs, int subscribe) {
+  int           loop;
+  unsigned long cnt;
 
-    bldAllPVsConnected = FALSE;
-    epicsThreadSleep(2.0);
-
-    epicsMutexLock(bldMutex);
-    for(loop=0; loop<N_STATIC_PVS; loop++)
-    {
-        if(bldStaticPVs[loop].pvChId)
-        {
-            ca_clear_channel(bldStaticPVs[loop].pvChId);
-            bldStaticPVs[loop].pvChId = NULL;
-        }
-        if(bldStaticPVs[loop].pTD)
-        {
-            free(bldStaticPVs[loop].pTD);
-            bldStaticPVs[loop].pTD = NULL;
-        }
+  for(loop=0; loop<n_pvs; loop++) {
+    if ( connectCaPv( p_pvs[loop].name, &p_pvs[loop].pvChId ) ) {
+      errlogPrintf("FATAL: connection attempts aborted!\n");
+      return -1;
     }
+    
+    if ( p_pvs[loop].nElems != (cnt = ca_element_count(p_pvs[loop].pvChId)) ) {
+      errlogPrintf("Number of elements [%ld] of '%s' does not match expectation.\n", cnt, p_pvs[loop].name);
+      return -1;
+    }
+    
+    /* Native data type has to be double */
+    if ( DBF_DOUBLE != ca_field_type(p_pvs[loop].pvChId) ) {
+      errlogPrintf("Native data type of '%s' is not double.\n", p_pvs[loop].name);
+      return -1;
+    }
+    
+    /* Everything should be double, even not, do conversion */
+    p_pvs[loop].pTD = callocMustSucceed(1, dbr_size_n(DBR_TIME_DOUBLE,
+						      p_pvs[loop].nElems),
+					"callocMustSucceed");
+    
+    if ( subscribe ) {
+      SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE,
+				    p_pvs[loop].nElems, p_pvs[loop].pvChId,
+				    DBE_VALUE|DBE_ALARM, eventCallback,
+				    &(p_pvs[loop]), NULL), "ca_create_subscription");
+    }
+  }
 
-    epicsMutexUnlock(bldMutex);
-    printf("BLDMCastTaskEnd\n");
+  return 0;
+}
 
-    return;
+static void BLDMCastTaskEnd(void * parg) {
+  int loop;
+
+  bldAllPVsConnected = FALSE;
+  epicsThreadSleep(2.0);
+  
+  epicsMutexLock(bldMutex);
+  for(loop=0; loop<N_STATIC_PVS; loop++) {
+    if(bldStaticPVs[loop].pvChId) {
+      ca_clear_channel(bldStaticPVs[loop].pvChId);
+      bldStaticPVs[loop].pvChId = NULL;
+    }
+    if(bldStaticPVs[loop].pTD) {
+      free(bldStaticPVs[loop].pTD);
+      bldStaticPVs[loop].pTD = NULL;
+    }
+  }
+
+  epicsMutexUnlock(bldMutex);
+  printf("BLDMCastTaskEnd\n");
+  
+  return;
 }
 
 /** TEST TEST TEST */
 double __CHARGE__ = 3.1415;
+/** TEST TEST TEST */
 
 /**
  * Prepare socket for multicasts.
  * 
  * @return a valid socked file descriptor or -1 if there is a failure
  */
-int BLDMCastTaskPrepareMulticast() {
+static int BLDMCastTaskPrepareMulticast() {
   int rtncode;
   int sFd = udpCommSocket(0);
   if ( sFd < 0 ) {
@@ -594,7 +575,7 @@ int BLDMCastTaskPrepareMulticast() {
   return sFd;
 }
 
-int BLDMCastTaskPrepareCA() {
+static int BLDMCastTaskPrepareCA() {
   int loop;
 
   if ( DELAY_FOR_CA > 0 ) {
@@ -621,7 +602,7 @@ int BLDMCastTaskPrepareCA() {
   return 0;
 }
 
-void BLDMCastInitializeData() {
+static void BLDMCastInitializeData() {
   bldEbeamInfo.uMBZ1       = __le32(0);
   bldEbeamInfo.uMBZ2       = __le32(0);
   
@@ -642,7 +623,7 @@ void BLDMCastInitializeData() {
  * @return 0 if event was received, -1 if there has been a timeout or
  * another error
  */
-int BLDMCastTaskWaitEvent() {
+static int BLDMCastTaskWaitEvent() {
   int status = epicsEventWaitWithTimeout(EVRFireEvent, DEFAULT_EVR_TIMEOUT);
   if(status != epicsEventWaitOK) {
     if(status == epicsEventWaitTimeout) {
@@ -665,7 +646,7 @@ int BLDMCastTaskWaitEvent() {
  * @return 0 if blobs can be used (must check the got_mask bits),
  * or -1 if there is an FCOM time out
  */
-int BLDMCastTaskFcomGetBlobSet(FcomBlobSetMask *got_mask) {
+static int BLDMCastTaskFcomGetBlobSet(FcomBlobSetMask *got_mask) {
   int loop;
   int status;
   if ( bldBlobSet ) {
@@ -684,7 +665,7 @@ int BLDMCastTaskFcomGetBlobSet(FcomBlobSetMask *got_mask) {
   return 0;
 }
 
-void BLDMCastTaskCheckFcomDelays() {
+static void BLDMCastTaskCheckFcomDelays() {
   epicsUInt32     this_time;
 	
   this_time = usSinceFiducial();
@@ -700,7 +681,7 @@ void BLDMCastTaskCheckFcomDelays() {
   bldAvgFcomDelayUs +=  ((int)(- bldAvgFcomDelayUs + this_time)) >> 8;
 }
 
-void BLDMCastTaskCheckPostDelays() {
+static void BLDMCastTaskCheckPostDelays() {
   epicsUInt32     this_time;
 
   this_time = usSinceFiducial();
@@ -713,210 +694,276 @@ void BLDMCastTaskCheckPostDelays() {
 }
 
 /**
- * Main loop of the BLDMCastTask.
+ * This function calls fcomGetBlob() for each blob. The got_mask
+ * parameter indicates whether data has been received. A pointer
+ * to the blob is saved into the 'blob' field. If no new data
+ * has been received the 'blob' field is set to 0.
  *
- * @param sFd socket file descriptor used for the multicast
+ * @param got_mask bitmask defining which blobs in the set
+ * have data.
  */
-int BLDMCastTaskRun(int sFd) {
-  int loop;
-  int rtncode;
-  FcomBlobSetMask got_mask;
+static void BLDMCastTaskGetBlobs(FcomBlobSetMask got_mask) {
+  FcomBlobRef b1;
   epicsTimeStamp *p_refTime;
-
-  while(bldAllPVsConnected) {
-    /** If there is a valid EVR event received, process it */
-    if (BLDMCastTaskWaitEvent() == 0) {
-
-      /* This is 30Hz. So printf might screw timing */
-      if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Do work!\n");
+  int rtncode;
+  int loop;
+      
+  p_refTime = &bldFiducialTime;
+  bldEbeamInfo.uDamageMask = __le32(0);
+	  
+  for ( loop = 0; loop < N_PULSE_BLOBS; loop++, got_mask >>= 1 ) {
+    dataAvailable |= bldPulseBlobs[loop].aMsk;
+	    
+    if ( bldBlobSet ) {
+      /* NOTE: this could be coded more elegantly but
+       *       we want to share as much of the code path
+       *       that doesn't use a 'set' as possible.
+       */
+      rtncode = ! (got_mask & 1);
+      bldPulseBlobs[loop].blob = bldBlobSet->memb[loop].blob;
+      /* If there was no data then it was probably too late */
+      if ( rtncode ) {
+	bldUnmatchedTSCount[loop]++;
+      }
+    } else {
+      rtncode = fcomGetBlob( bldPulseID[loop], &bldPulseBlobs[loop].blob, 0 );
+      if ( rtncode ) {
+	bldFcomGetErrs[loop]++;
+      }
+    }
     
-      /* Use FCOM to obtaine pulse-by-pulse data */
-      if (BLDMCastTaskFcomGetBlobSet(&got_mask) == 0) {
-	BLDMCastTaskCheckFcomDelays();
+    if ( rtncode ) {
+      dataAvailable        &= ~bldPulseBlobs[loop].aMsk;
+      bldPulseBlobs[loop].blob = 0;
+      continue;
+    }
+    b1 = bldPulseBlobs[loop].blob;
+    
+    if ( b1->fc_stat ) {
+      /* If status is not 0 then handle a few special, permissible cases */
+      switch ( loop ) {
+      case BMCHARGE:
+	if ( FC_STAT_BPM_REFLO == b1->fc_stat )
+	  goto passed;
+	break;
 	
-	{ /*block*/
-	  FcomBlobRef b1;
-      
-	  p_refTime = &bldFiducialTime;
-      
-	  epicsMutexLock(bldMutex);
-      
-	  bldEbeamInfo.uDamageMask = __le32(0);
-	  
-	  for ( loop = 0; loop < N_PULSE_BLOBS; loop++, got_mask >>= 1 ) {
+      case BMBUNCHLEN:
+	if ( ! (FC_STAT_BLEN_INVAL_BIMAX_MASK & b1->fc_stat) )
+	  goto passed;
+	break;
 	
-	    dataAvailable |= bldPulseBlobs[loop].aMsk;
-	    
-	    if ( bldBlobSet ) {
-	      /* NOTE: this could be coded more elegantly but
-	       *       we want to share as much of the code path
-	       *       that doesn't use a 'set' as possible.
-	       */
-	      rtncode = ! (got_mask & 1);
-	      bldPulseBlobs[loop].blob = bldBlobSet->memb[loop].blob;
-	      /* If there was no data then it was probably too late */
-	      if ( rtncode ) {
-		bldUnmatchedTSCount[loop]++;
-	      }
-	    } else {
-	      rtncode = fcomGetBlob( bldPulseID[loop], &bldPulseBlobs[loop].blob, 0 );
-	      if ( rtncode ) {
-		bldFcomGetErrs[loop]++;
-	      }
-	    }
-	    
-	    if ( rtncode ) {
-	      dataAvailable        &= ~bldPulseBlobs[loop].aMsk;
-	      bldPulseBlobs[loop].blob = 0;
-	      continue;
-	    }
-	    b1 = bldPulseBlobs[loop].blob;
-	    
-	    if ( b1->fc_stat ) {
-	      /* If status is not 0 then handle a few special, permissible cases */
-	      switch ( loop ) {
-	      case BMCHARGE:
-		if ( FC_STAT_BPM_REFLO == b1->fc_stat )
-		  goto passed;
-		break;
-		
-	      case BMBUNCHLEN:
-		if ( ! (FC_STAT_BLEN_INVAL_BIMAX_MASK & b1->fc_stat) )
-		  goto passed;
-		break;
-		
-	      default:
-		break;
-	      }
-	      
-	      bldInvalidAlarmCount[loop]++;
-	      dataAvailable &= ~bldPulseBlobs[loop].aMsk;
-	    }
-	  passed:
-	    
-	    /* verify timestamp */
-	    if ( 0 != pvTimePulseIdMatches( p_refTime, b1 ) ) {
-	      if ( loop == tsCatch ) {
-		tsMismatch[0]=p_refTime->secPastEpoch;
-		tsMismatch[1]=p_refTime->nsec;
-		tsMismatch[2]=b1->fc_tsHi;
-		tsMismatch[3]=b1->fc_tsLo;
-		tsCatch = -1;
-	      }
-	      bldUnmatchedTSCount[loop]++;
-	      dataAvailable &= ~bldPulseBlobs[loop].aMsk;
-	    }
-	  }
+      default:
+	break;
+      }
       
-	  __st_le32(&bldEbeamInfo.ts_sec,      p_refTime->secPastEpoch);
-	  __st_le32(&bldEbeamInfo.ts_nsec,     p_refTime->nsec);
-	  __st_le32(&bldEbeamInfo.uFiducialId, PULSEID((*p_refTime)));
-	  
-	  /* Calculate beam charge */
-	  if( (dataAvailable & AVAIL_BMCHARGE) ) {
-	    __st_le64(&bldEbeamInfo.ebeamCharge, (double)bldPulseBlobs[BMCHARGE].blob->fcbl_bpm_T * 1.602e-10);
-	  } else {
-	    bldEbeamInfo.uDamageMask |= __le32(0x1);
-	  }
-	  /** TEST TEST TEST */
-	  __st_le64(&bldEbeamInfo.ebeamCharge, __CHARGE__);
-	  __CHARGE__ = __CHARGE__ + 0.0001;
-	  if (bldPulseBlobs[BC2STATE].blob != 0) {
-	    __CHARGE__ = (double)bldPulseBlobs[BC2STATE].blob->fc_flt[3];
-	  }
-	  /** TEST TEST TEST */
-	  
+      bldInvalidAlarmCount[loop]++;
+      dataAvailable &= ~bldPulseBlobs[loop].aMsk;
+    }
+  passed:
+    
+    /* verify timestamp */
+    if ( 0 != pvTimePulseIdMatches( p_refTime, b1 ) ) {
+      if ( loop == tsCatch ) {
+	tsMismatch[0]=p_refTime->secPastEpoch;
+	tsMismatch[1]=p_refTime->nsec;
+	tsMismatch[2]=b1->fc_tsHi;
+	tsMismatch[3]=b1->fc_tsLo;
+	tsCatch = -1;
+      }
+      bldUnmatchedTSCount[loop]++;
+      dataAvailable &= ~bldPulseBlobs[loop].aMsk;
+    }
+  }
+
+  __st_le32(&bldEbeamInfo.ts_sec,      p_refTime->secPastEpoch);
+  __st_le32(&bldEbeamInfo.ts_nsec,     p_refTime->nsec);
+  __st_le32(&bldEbeamInfo.uFiducialId, PULSEID((*p_refTime)));
+}
+
+/**
+ * Calculate the current CHARGE and add to the outgoing
+ * EbeamInfo data.
+ */
+static void BLDMCastTaskAddCharge() {
+  if( (dataAvailable & AVAIL_BMCHARGE) ) {
+    __st_le64(&bldEbeamInfo.ebeamCharge, (double)bldPulseBlobs[BMCHARGE].blob->fcbl_bpm_T * 1.602e-10);
+  } else {
+    bldEbeamInfo.uDamageMask |= __le32(0x1);
+  }
+  /** TEST TEST TEST */
+  __st_le64(&bldEbeamInfo.ebeamCharge, __CHARGE__);
+  __CHARGE__ = __CHARGE__ + 0.0001;
+  if (bldPulseBlobs[BC2STATE].blob != 0) {
+    __CHARGE__ = (double)bldPulseBlobs[BC2STATE].blob->fc_flt[3];
+  }
+  /** TEST TEST TEST */
+}
+
+/**
+ * Calculate the current L3 energy and add to the outgoing
+ * EbeamInfo data.
+ */
+static void BLDMCastTaskAddL3Energy() {
 #define AVAIL_L3ENERGY (AVAIL_BMENERGY1X | AVAIL_BMENERGY2X | AVAIL_DSPR1 | AVAIL_DSPR2 | AVAIL_E0BDES)
 	  
-	  /* Calculate beam energy */
-	  if( AVAIL_L3ENERGY == (AVAIL_L3ENERGY & dataAvailable ) ) {
-	    double tempD;
-	    tempD = bldPulseBlobs[BMENERGY1X].blob->fcbl_bpm_X/(1000.0 * bldStaticPVs[DSPR1].pTD->value);
-	    tempD += bldPulseBlobs[BMENERGY2X].blob->fcbl_bpm_X/(1000.0 * bldStaticPVs[DSPR2].pTD->value);
-	    tempD = tempD/2.0 + 1.0;
-	    tempD *= bldStaticPVs[E0BDES].pTD->value * 1000.0;
-	    __st_le64(&bldEbeamInfo.ebeamL3Energy, tempD);
-	  } else {
-	    bldEbeamInfo.uDamageMask |= __le32(0x2);
-	  }
-	  
+  /* Calculate beam energy */
+  if( AVAIL_L3ENERGY == (AVAIL_L3ENERGY & dataAvailable ) ) {
+    double tempD;
+    tempD = bldPulseBlobs[BMENERGY1X].blob->fcbl_bpm_X/(1000.0 * bldStaticPVs[DSPR1].pTD->value);
+    tempD += bldPulseBlobs[BMENERGY2X].blob->fcbl_bpm_X/(1000.0 * bldStaticPVs[DSPR2].pTD->value);
+    tempD = tempD/2.0 + 1.0;
+    tempD *= bldStaticPVs[E0BDES].pTD->value * 1000.0;
+    __st_le64(&bldEbeamInfo.ebeamL3Energy, tempD);
+  } else {
+    bldEbeamInfo.uDamageMask |= __le32(0x2);
+  }
+}
+
+/**
+ * Calculate the current beam position and add to the outgoing
+ * EbeamInfo data.
+ */
+static void BLDMCastTaskAddBeamPosition() {
 #define AVAIL_LTUPOS ( AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y | \
 		AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y | \
 		AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y | \
 		AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y | \
 		AVAIL_FMTRX )
       
-	  /* Calculate beam position */
-	  if( AVAIL_LTUPOS == (AVAIL_LTUPOS & dataAvailable) ) {
-	    dbr_double_t *pMatrixValue;
-	    double tempDA[4];
-	    int i;
-	    
-	    pMatrixValue = &(bldStaticPVs[FMTRX].pTD->value);
-	    for ( i=0; i<4; i++, pMatrixValue+=8 ) {
-	      double acc = 0.0;
-	      acc += pMatrixValue[0] * bldPulseBlobs[BMPOSITION1X].blob->fcbl_bpm_X;
-	      acc += pMatrixValue[1] * bldPulseBlobs[BMPOSITION1X].blob->fcbl_bpm_Y;
-	      acc += pMatrixValue[2] * bldPulseBlobs[BMPOSITION2X].blob->fcbl_bpm_X;
-	      acc += pMatrixValue[3] * bldPulseBlobs[BMPOSITION2X].blob->fcbl_bpm_Y;
-	      acc += pMatrixValue[4] * bldPulseBlobs[BMPOSITION3X].blob->fcbl_bpm_X;
-	      acc += pMatrixValue[5] * bldPulseBlobs[BMPOSITION3X].blob->fcbl_bpm_Y;
-	      acc += pMatrixValue[6] * bldPulseBlobs[BMPOSITION4X].blob->fcbl_bpm_X;
-	      acc += pMatrixValue[7] * bldPulseBlobs[BMPOSITION4X].blob->fcbl_bpm_Y;
-	      
-	      tempDA[i] = acc;	
-	    }
-	    __st_le64(&bldEbeamInfo.ebeamLTUPosX, tempDA[0]);
-	    __st_le64(&bldEbeamInfo.ebeamLTUPosY, tempDA[1]);
-	    __st_le64(&bldEbeamInfo.ebeamLTUAngX, tempDA[2]);
-	    __st_le64(&bldEbeamInfo.ebeamLTUAngY, tempDA[3]);
-	  } else {
-	    bldEbeamInfo.uDamageMask |= __le32(0x3C);
-	  }
-	  
-	  /* Copy bunch length */
-	  if( (AVAIL_BMBUNCHLEN & dataAvailable) ) {
-	    __st_le64(&bldEbeamInfo.ebeamBunchLen, (double)bldPulseBlobs[BMBUNCHLEN].blob->fcbl_blen_bimax);
-	  } else {
-	    bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-	    bldEbeamInfo.uDamageMask |= __le32(0x40);
-	  }
-	  
-	  if ( __ld_le32( &bldEbeamInfo.uDamageMask ) ) {
-	    bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-	  } else {
-	    bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(0);
-	  }
-	  epicsMutexUnlock(bldMutex);
-	}
+  /* Calculate beam position */
+  if( AVAIL_LTUPOS == (AVAIL_LTUPOS & dataAvailable) ) {
+    dbr_double_t *pMatrixValue;
+    double tempDA[4];
+    int i;
     
-    scanIoRequest(bldIoscan);
-    
-    /* do MultiCast */
-    if(BLD_MCAST_ENABLE)
-      {
-	rtncode = udpCommSend( sFd, &bldEbeamInfo, sizeof(bldEbeamInfo) );
-	if ( rtncode < 0 ) {
-	  if ( BLD_MCAST_DEBUG )
-	    errlogPrintf("Sending multicast packet failed: %s\n", strerror(-rtncode));
-	}
-	bldMcastMsgSent++;
-      }
-    
-    
-    if ( ! bldBlobSet ) {
-      for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
-	if ( bldPulseBlobs[loop].blob ) {
-	  rtncode = fcomReleaseBlob( & bldPulseBlobs[loop].blob );
-	  if ( rtncode ) {
-	    errlogPrintf("Fatal Error: Unable to release blob (for %s): %s\n",
-			 bldPulseBlobs[loop].name,
-			 fcomStrerror(rtncode));
-	    return -1;
-	  }
+    pMatrixValue = &(bldStaticPVs[FMTRX].pTD->value);
+    for ( i=0; i<4; i++, pMatrixValue+=8 ) {
+      double acc = 0.0;
+      acc += pMatrixValue[0] * bldPulseBlobs[BMPOSITION1X].blob->fcbl_bpm_X;
+      acc += pMatrixValue[1] * bldPulseBlobs[BMPOSITION1X].blob->fcbl_bpm_Y;
+      acc += pMatrixValue[2] * bldPulseBlobs[BMPOSITION2X].blob->fcbl_bpm_X;
+      acc += pMatrixValue[3] * bldPulseBlobs[BMPOSITION2X].blob->fcbl_bpm_Y;
+      acc += pMatrixValue[4] * bldPulseBlobs[BMPOSITION3X].blob->fcbl_bpm_X;
+      acc += pMatrixValue[5] * bldPulseBlobs[BMPOSITION3X].blob->fcbl_bpm_Y;
+      acc += pMatrixValue[6] * bldPulseBlobs[BMPOSITION4X].blob->fcbl_bpm_X;
+      acc += pMatrixValue[7] * bldPulseBlobs[BMPOSITION4X].blob->fcbl_bpm_Y;
+      
+      tempDA[i] = acc;	
+    }
+    __st_le64(&bldEbeamInfo.ebeamLTUPosX, tempDA[0]);
+    __st_le64(&bldEbeamInfo.ebeamLTUPosY, tempDA[1]);
+    __st_le64(&bldEbeamInfo.ebeamLTUAngX, tempDA[2]);
+    __st_le64(&bldEbeamInfo.ebeamLTUAngY, tempDA[3]);
+  } else {
+    bldEbeamInfo.uDamageMask |= __le32(0x3C);
+  }
+}
+
+/**
+ * Add bunch length information to the outgoing EbeamInfo data.
+ */
+static void BLDMCastTaskAddBunchLength() {
+  if( (AVAIL_BMBUNCHLEN & dataAvailable) ) {
+    __st_le64(&bldEbeamInfo.ebeamBunchLen, (double)bldPulseBlobs[BMBUNCHLEN].blob->fcbl_blen_bimax);
+  } else {
+    bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+    bldEbeamInfo.uDamageMask |= __le32(0x40);
+  }
+  
+  if ( __ld_le32( &bldEbeamInfo.uDamageMask ) ) {
+    bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+  } else {
+    bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(0);
+  }
+}
+
+static void BLDMCastTaskFillEbeamInfo() {
+  BLDMCastTaskAddCharge();
+  BLDMCastTaskAddL3Energy();
+  BLDMCastTaskAddBeamPosition();
+}
+
+/**
+ * Send the current EbeamInfo to listeners!
+ *
+ * @param sFd socket file descriptor used for the multicast
+ */
+static void BLDMCastTaskSend(int sFd) {
+  int rtncode;
+
+  if(BLD_MCAST_ENABLE) {
+    rtncode = udpCommSend( sFd, &bldEbeamInfo, sizeof(bldEbeamInfo) );
+    if ( rtncode < 0 ) {
+      if ( BLD_MCAST_DEBUG )
+	errlogPrintf("Sending multicast packet failed: %s\n", strerror(-rtncode));
+    }
+    bldMcastMsgSent++;
+  }
+}
+
+/**
+ * Release all blobs acquired during the last cycle.
+ *
+ * @return 0 on success, -1 if one of the blobs could not be
+ * released.
+ */
+static int BLDMCastReleaseBlobs() {
+  int loop;
+  int rtncode;
+
+  if ( ! bldBlobSet ) {
+    for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
+      if ( bldPulseBlobs[loop].blob ) {
+	rtncode = fcomReleaseBlob( & bldPulseBlobs[loop].blob );
+	if ( rtncode ) {
+	  errlogPrintf("Fatal Error: Unable to release blob (for %s): %s\n",
+		       bldPulseBlobs[loop].name,
+		       fcomStrerror(rtncode));
+	  return -1;
 	}
       }
     }
+  }
+  return 0;
+}
+
+/**
+ * Main loop of the BLDMCastTask.
+ *
+ * @param sFd socket file descriptor used for the multicast
+ */
+static int BLDMCastTaskRun(int sFd) {
+  FcomBlobSetMask got_mask;
+
+  while(bldAllPVsConnected) {
+    /** If there is a valid EVR event received, process it */
+    if (BLDMCastTaskWaitEvent() == 0) {
+
+      /** This is 30Hz. So printf might screw timing */
+      if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Do work!\n");
+    
+      /**
+       * Use FCOM to obtaine pulse-by-pulse data and
+       * save new data into the EBeamInfo struct.
+       */
+      if (BLDMCastTaskFcomGetBlobSet(&got_mask) == 0) {
+	BLDMCastTaskCheckFcomDelays();
+
+	epicsMutexLock(bldMutex);
+	  
+	BLDMCastTaskGetBlobs(got_mask);
+	BLDMCastTaskFillEbeamInfo();
+
+	epicsMutexUnlock(bldMutex);
+      }
+    
+      scanIoRequest(bldIoscan);
+    
+      /* do MultiCast */
+      BLDMCastTaskSend(sFd);
+    
+      if (BLDMCastReleaseBlobs() != 0) {
+	return -1;
       }
     }
   }
@@ -924,8 +971,10 @@ int BLDMCastTaskRun(int sFd) {
   return 0;
 }
 
-static int BLDMCastTask(void * parg)
-{
+/**
+ * BLDMTask entry point
+ */
+static int BLDMCastTask(void * parg) {
   int		loop;
   int		rtncode;
 
@@ -979,9 +1028,7 @@ static int BLDMCastTask(void * parg)
   return(0);
 }
 
-void
-dumpEBeamInfo(FILE *f)
-{
+void dumpEBeamInfo(FILE *f) {
   if ( !f ) f = stdout;
 
   if ( bldMutex ) epicsMutexLock( bldMutex );
