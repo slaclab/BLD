@@ -41,6 +41,8 @@ record(ai, "BLD:SYS0:500:ENERGY") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "MeV")
+  field(FLNK, "BLD:SYS0:500:EFENERGY")
+  field(PRIO, "HIGH")
 }
 
 record(ai, "BLD:SYS0:500:POS_X") {
@@ -51,6 +53,8 @@ record(ai, "BLD:SYS0:500:POS_X") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "mm")
+  field(FLNK, "BLD:SYS0:500:EFPOS_X")
+  field(PRIO, "HIGH")
 }
 
 record(ai, "BLD:SYS0:500:POS_Y") {
@@ -61,6 +65,8 @@ record(ai, "BLD:SYS0:500:POS_Y") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "mm")
+  field(FLNK, "BLD:SYS0:500:EFPOS_Y")
+  field(PRIO, "HIGH")
 }
 
 record(ai, "BLD:SYS0:500:ANG_X") {
@@ -71,6 +77,8 @@ record(ai, "BLD:SYS0:500:ANG_X") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "mrad")
+  field(FLNK, "BLD:SYS0:500:EFANG_X")
+  field(PRIO, "HIGH")
 }
 
 record(ai, "BLD:SYS0:500:ANG_Y") {
@@ -81,6 +89,8 @@ record(ai, "BLD:SYS0:500:ANG_Y") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "mrad")
+  field(FLNK, "BLD:SYS0:500:EFANG_Y")
+  field(PRIO, "HIGH")
 }
 
 record(ai, "BLD:SYS0:500:BLEN") {
@@ -91,6 +101,20 @@ record(ai, "BLD:SYS0:500:BLEN") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "Amps")
+  field(FLNK, "BLD:SYS0:500:EFBLEN")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:500:BC2_ENERGY") {
+  field(DESC, "BC2 Beam Energy")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD")
+  field(INP,  "@BC2_ENERGY")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "MeV")
+  field(FLNK, "BLD:SYS0:500:EFBC2_ENERGY")
+  field(PRIO, "HIGH")
 }
 
 record(longin, "BLD:SYS0:500:TMITLATEERRS") {

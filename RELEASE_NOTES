@@ -1,6 +1,10 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-1-0:
+  o Addition of BSA records
+  o Addition of BC2 energy to outgoing data
+
 BLD-R2-0-0:
   o Read fast data from FCOM.
   o Send BLD multicast data using udpComm/lanIpBasic.

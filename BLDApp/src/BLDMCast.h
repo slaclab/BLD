@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.22 2010/04/20 16:44:09 strauman Exp $ */
+/* $Id: BLDMCast.h,v 1.23 2011/05/17 20:39:26 lpiccoli Exp $ */
 #ifndef _BLD_MCAST_H_
 #define _BLD_MCAST_H_
 
@@ -107,6 +107,16 @@ Endianness endian = {test:1};
 	return p->d;
 }
 
+/** Damage mask bits */
+#define BAD_CHARGE     0x01
+#define BAD_ENERGY     0x02
+#define BAD_POS_X      0x04
+#define BAD_POS_Y      0X08
+#define BAD_ANG_X      0x10
+#define BAD_ANG_Y      0x20
+#define BAD_BLEN       0x40
+#define BAD_BC2_ENERGY 0x80
+
 
 typedef struct EBEAMINFO
 {
@@ -140,6 +150,7 @@ typedef struct EBEAMINFO
     Flt64_LE      ebeamLTUAngY;  /* in mrad */
 
     Flt64_LE      ebeamBunchLen; /* in Amps */
+    Flt64_LE      ebeamBC2Energy; /* in MeV */
 } EBEAMINFO;
 
 #define EBEAM_INFO_ERROR 0x4000

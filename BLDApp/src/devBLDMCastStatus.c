@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastStatus.c,v 1.9 2010/03/26 18:20:53 strauman Exp $ */
+/* $Id: devBLDMCastStatus.c,v 1.10 2010/04/08 22:00:17 strauman Exp $ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -23,6 +23,7 @@ typedef enum {
         BLD_AI_ANG_X,
         BLD_AI_ANG_Y,
         BLD_AI_BLEN,
+	BLD_AI_BC2_ENERGY,
         BLD_BI_PV_CON,
         BLD_LI_INV_CNT,
         BLD_LI_TS_CNT
@@ -35,29 +36,28 @@ typedef enum {
                 return (0);\
         }
 
-static long init_ai( struct aiRecord * pai)
-{
-    pai->dpvt = NULL;
+static long init_ai( struct aiRecord * pai) {
+  pai->dpvt = NULL;
 
-    if (pai->inp.type!=INST_IO)
-    {
-        recGblRecordError(S_db_badField, (void *)pai, "devAiBLD Init_record, Illegal INP");
-        pai->pact=TRUE;
-        return (S_db_badField);
-    }
-
-    CHECK_AIPARM("CHARGE",     BLD_AI_CHARGE)
-    CHECK_AIPARM("ENERGY",     BLD_AI_ENERGY)
-    CHECK_AIPARM("POS_X",      BLD_AI_POS_X)
-    CHECK_AIPARM("POS_Y",      BLD_AI_POS_Y)
-    CHECK_AIPARM("ANG_X",      BLD_AI_ANG_X)
-    CHECK_AIPARM("ANG_Y",      BLD_AI_ANG_Y)
-    CHECK_AIPARM("BLEN",       BLD_AI_BLEN)
-
-    recGblRecordError(S_db_badField, (void *) pai, "devAiBLD Init_record, bad parm");
-    pai->pact = TRUE;
-
+  if (pai->inp.type!=INST_IO) {
+    recGblRecordError(S_db_badField, (void *)pai, "devAiBLD Init_record, Illegal INP");
+    pai->pact=TRUE;
     return (S_db_badField);
+  }
+
+  CHECK_AIPARM("CHARGE",     BLD_AI_CHARGE);
+  CHECK_AIPARM("ENERGY",     BLD_AI_ENERGY);
+  CHECK_AIPARM("POS_X",      BLD_AI_POS_X);
+  CHECK_AIPARM("POS_Y",      BLD_AI_POS_Y);
+  CHECK_AIPARM("ANG_X",      BLD_AI_ANG_X);
+  CHECK_AIPARM("ANG_Y",      BLD_AI_ANG_Y);
+  CHECK_AIPARM("BLEN",       BLD_AI_BLEN);
+  CHECK_AIPARM("BC2_ENERGY", BLD_AI_BC2_ENERGY);
+
+  recGblRecordError(S_db_badField, (void *) pai, "devAiBLD Init_record, bad parm");
+  pai->pact = TRUE;
+  
+  return (S_db_badField);
 }
 
 
@@ -78,38 +78,51 @@ int damage = 0;
     {
     case BLD_AI_CHARGE:
         pai->val = __ld_le64(&bldEbeamInfo.ebeamCharge);
-        if(bldEbeamInfo.uDamageMask & __le32(0x1))
-			damage = 1;
+        if(bldEbeamInfo.uDamageMask & __le32(BAD_CHARGE)) {
+	  damage = 1;
+	}
         break;
     case BLD_AI_ENERGY:
         pai->val = __ld_le64(&bldEbeamInfo.ebeamL3Energy);
-        if(bldEbeamInfo.uDamageMask & __le32(0x2))
-			damage = 1;
+        if(bldEbeamInfo.uDamageMask & __le32(BAD_ENERGY)) {
+	  damage = 1;
+	}
         break;
     case BLD_AI_POS_X:
         pai->val = __ld_le64(&bldEbeamInfo.ebeamLTUPosX);
-        if(bldEbeamInfo.uDamageMask & __le32(0x4))
-			damage = 1;
+        if(bldEbeamInfo.uDamageMask & __le32(BAD_POS_X)) {
+	  damage = 1;
+	}
         break;
     case BLD_AI_POS_Y:
         pai->val = __ld_le64(&bldEbeamInfo.ebeamLTUPosY);
-        if(bldEbeamInfo.uDamageMask & __le32(0x8))
-			damage = 1;
+        if(bldEbeamInfo.uDamageMask & __le32(BAD_POS_Y)) {
+	  damage = 1;
+	}
         break;
     case BLD_AI_ANG_X:
         pai->val = __ld_le64(&bldEbeamInfo.ebeamLTUAngX);
-        if(bldEbeamInfo.uDamageMask & __le32(0x10))
-			damage = 1;
+        if(bldEbeamInfo.uDamageMask & __le32(BAD_ANG_X)) {
+	  damage = 1;
+	}
         break;
     case BLD_AI_ANG_Y:
         pai->val = __ld_le64(&bldEbeamInfo.ebeamLTUAngY);
-        if(bldEbeamInfo.uDamageMask & __le32(0x20))
-			damage = 1;
+        if(bldEbeamInfo.uDamageMask & __le32(BAD_ANG_Y)) {
+	  damage = 1;
+	}
         break;
     case BLD_AI_BLEN:
         pai->val = __ld_le64(&bldEbeamInfo.ebeamBunchLen);
-        if(bldEbeamInfo.uDamageMask & __le32(0x40))
-			damage = 1;
+        if(bldEbeamInfo.uDamageMask & __le32(BAD_BLEN)) {
+	  damage = 1;
+	}
+        break;
+    case BLD_AI_BC2_ENERGY:
+        pai->val = __ld_le64(&bldEbeamInfo.ebeamBC2Energy);
+        if(bldEbeamInfo.uDamageMask & __le32(BAD_BC2_ENERGY)) {
+	  damage = 1;
+	}
         break;
     }
 
@@ -121,8 +134,9 @@ int damage = 0;
 
     if(bldMutex) epicsMutexUnlock(bldMutex);
 
-    if ( damage )
-        recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
+    if ( damage ) {
+      recGblSetSevr(pai, CALC_ALARM, INVALID_ALARM);
+    }
 
     pai->udf=FALSE;
 

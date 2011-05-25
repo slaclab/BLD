@@ -1,3 +1,35 @@
+	20110525 (Luciano Piccoli):
+
+	* RELEASE_NOTES: added entry for R2-1-0.
+
+	* BLDApp/Db/BLDMCast.db:
+	  o Added forward link (FLNK) to the PVs used as input to the BSA
+	    records. Changed their priorities to HIGH.
+	  o Scan field must be set to "I/O Intr" in the start up file, 
+	    otherwise BSA won't work.
+
+	* BLDApp/Db/BLDMCastEdef.db:
+	  o Addition of file containing BSA records.
+
+	* BLDApp/Db/IOC-SYS0-BD01.substitutions:
+	  o Added substitution for the BSA records.
+
+	* BLDApp/src/BLDMCast.h:
+	  o Modified the EBEAMINFO struct to include BC2 Energy field at
+	    the end of the struct.
+	  o Changed version of outgoing data packet from 0x1000f to 0x2000f
+	  o 
+	
+	* BLDApp/src/BLDMCast.c:
+	  o Broke up BLDMCastTask main function into smaller more manageable
+	    functions.
+	  o Added FBCK:FB05:LG01:STATES to the list of PVs to be received
+	    via FCOM. It contains the BC2 energy calculated by the Longitudinal
+	    feedback.
+	  o Removed code that used Channel Access to get FCOM data (if code
+	    compiled to do so)
+	  o Moved comments surrounded by "#idef 0" to between /* */ characters.	    
+	
 	20100518 (Till Straumann):
 
 	* RELEASE_NOTES: reversed order of entries (latest appears at the top

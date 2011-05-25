@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.49 2011/05/17 23:59:25 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.50 2011/05/18 18:08:25 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -45,7 +45,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.49 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.50 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -86,39 +86,32 @@ enum PULSEPVSINDEX
     BMPOSITION4X,
     BMBUNCHLEN,
     BC2STATE,
-	/* Define Y after everything else so that fcom array doesn't have to use them */
-    BMPOSITION1Y,
-    BMPOSITION2Y,
-    BMPOSITION3Y,
-    BMPOSITION4Y
 };/* the definition here must match the PV definition below, the order is critical as well */
 
-enum PVAVAILMASK
-{
-    AVAIL_DSPR1         = 1<< 0,
-    AVAIL_DSPR2         = 1<< 1,
-    AVAIL_E0BDES        = 1<< 2,
-    AVAIL_FMTRX         = 1<< 3,
-    AVAIL_BMCHARGE      = 1<< 4,
-    AVAIL_BMENERGY1X    = 1<< 5,
-    AVAIL_BMENERGY2X    = 1<< 6,
-    AVAIL_BMPOSITION1X  = 1<< 7,
-    AVAIL_BMPOSITION2X  = 1<< 8,
-    AVAIL_BMPOSITION3X  = 1<< 9,
-    AVAIL_BMPOSITION4X  = 1<<10,
-    AVAIL_BMPOSITION1Y  = 1<<11,
-    AVAIL_BMPOSITION2Y  = 1<<12,
-    AVAIL_BMPOSITION3Y  = 1<<13,
-    AVAIL_BMPOSITION4Y  = 1<<14,
-    AVAIL_BMBUNCHLEN    = 1<<15,
-    AVAIL_BC2STATE      = 1<<16,
-};
+/** Former PVAVAILMASK enum */
+#define AVAIL_DSPR1         0x0001
+#define AVAIL_DSPR2         0x0002
+#define AVAIL_E0BDES        0x0004
+#define AVAIL_FMTRX         0x0008
+#define AVAIL_BMCHARGE      0x0010
+#define AVAIL_BMENERGY1X    0x0020
+#define AVAIL_BMENERGY2X    0x0040
+#define AVAIL_BMPOSITION1X  0x0080
+#define AVAIL_BMPOSITION2X  0x0100
+#define AVAIL_BMPOSITION3X  0x0200
+#define AVAIL_BMPOSITION4X  0x0400
+#define AVAIL_BMPOSITION1Y  0x0800
+#define AVAIL_BMPOSITION2Y  0x1000
+#define AVAIL_BMPOSITION3Y  0x2000
+#define AVAIL_BMPOSITION4Y  0x4000
+#define AVAIL_BMBUNCHLEN    0x8000
+#define AVAIL_BC2STATE      0x10000
 
 /* Structure representing one PV (= channel) */
 typedef struct BLDPV {
   const char *	         name;
   unsigned long	         nElems; /* type is always DOUBLE */
-  enum PVAVAILMASK         availMask;
+  long         availMask;
   chid		             pvChId;
   struct dbr_time_double * pTD;
   
@@ -135,7 +128,7 @@ typedef struct BLDPV {
 typedef struct BLDBLOB {
   const char *            name;
   FcomBlobRef             blob;
-  enum PVAVAILMASK        aMsk;
+  long        aMsk;
 } BLDBLOB;
 
 
@@ -200,6 +193,10 @@ BLDBLOB bldPulseBlobs[] = {
 		     aMsk: AVAIL_BMBUNCHLEN },	/* Bunch Length in Amps */
   [BC2STATE]     = { name: "FBCK:FB05:TR01:STATES", blob: 0,
 		     aMsk: AVAIL_BC2STATE}, /* Longitudinal Feedback States, which includes BC2 Energy */
+  /* Actual Longitudinal location */
+  /*
+  [BC2STATE]     = { name: "FBCK:FB04:LG01:STATES", blob: 0,
+  aMsk: AVAIL_BC2STATE}, *//* Longitudinal Feedback States, which includes BC2 Energy */
 };
 
 
@@ -211,7 +208,7 @@ FcomBlobSetRef  bldBlobSet = 0;
 
 static epicsInt32 bldUseFcomSet = 0;
 
-static enum PVAVAILMASK dataAvailable = 0;
+static long dataAvailable = 0;
 
 int BLD_MCAST_ENABLE = 1;
 epicsExportAddress(int, BLD_MCAST_ENABLE);
@@ -281,6 +278,7 @@ static void BLDMCastTaskEnd(void * parg);
 
 /* This function will be called in st.cmd after iocInit() */
 int BLDMCastStart(int enable, const char * NIC) {
+
     /* Do we need to use RTEMS task priority to get higher priority? */
     BLD_MCAST_ENABLE = enable;
     if(NIC && NIC[0] != 0)
@@ -333,8 +331,9 @@ void EVRFire(void *use_sets) {
   if(BLD_MCAST_DEBUG >= 4) errlogPrintf("EVR fires (status %i, mod5 0x%08x)\n", status, (unsigned)modifier_a[4]);
   /* check for LCLS beam and rate-limiting */
   if (!status) {
-    if ((modifier_a[4] & /*MOD5_30HZ_MASK*/MOD5_HALFHZ_MASK)/*MOD5_BEAMFULL_MASK)*/
-	/* 120Hz --- (modifier_a[1] & TIMESLOT1_MASK || modifier_a[1] & TIMESLOT4_MASK) */
+    if (/*(modifier_a[4] & *//*MOD5_30HZ_MASK*//*MOD5_HALFHZ_MASK)*//*MOD5_BEAMFULL_MASK)*/
+	(modifier_a[4] & MOD5_BEAMFULL_MASK) 
+	/* 120Hz ---*/ /*(modifier_a[1] & TIMESLOT1_MASK || modifier_a[1] & TIMESLOT4_MASK)*/
 	  )
       {/* ... do beam-sync rate-limited processing here ... */
 	/* call 'BSP_timer_start()' to set/arm the hardware */
@@ -388,6 +387,14 @@ static void exceptionCallback(struct exception_handler_args args) {
   errlogPrintf("exceptionCallback stat %s channel %s\n", ca_message(stat),channel);
 }
 
+static void setBits(long *mask, long bits) {
+  *mask |= bits;
+}
+
+static void clearBits(long *mask, long bits) {
+  *mask &= ~bits;
+}
+
 static void eventCallback(struct event_handler_args args) {
   BLDPV * pPV = args.usr;
 
@@ -401,10 +408,10 @@ static void eventCallback(struct event_handler_args args) {
     memcpy(pPV->pTD, args.dbr, dbr_size_n(args.type, args.count));
     /* We don't care timestamp for bldStaticPVs. As long as it is not invalid, they are ok */
     if(pPV->pTD->severity >= INVALID_ALARM) {
-      dataAvailable &= ~ pPV->availMask;
+      clearBits(&dataAvailable, pPV->availMask);
     }
     else {
-      dataAvailable |=   pPV->availMask;
+      setBits(&dataAvailable, pPV->availMask);
     }
 
     if(BLD_MCAST_DEBUG >= 2) {
@@ -415,7 +422,7 @@ static void eventCallback(struct event_handler_args args) {
     }
   }
   else {
-    dataAvailable &= ~ pPV->availMask;
+    clearBits(&dataAvailable, pPV->availMask);
   }
   epicsMutexUnlock(bldMutex);
 }
@@ -537,10 +544,6 @@ static void BLDMCastTaskEnd(void * parg) {
   return;
 }
 
-/** TEST TEST TEST */
-double __CHARGE__ = 3.1415;
-/** TEST TEST TEST */
-
 /**
  * Prepare socket for multicasts.
  * 
@@ -608,13 +611,15 @@ static void BLDMCastInitializeData() {
   
   bldEbeamInfo.uLogicalId  = __le32(0x06000000);
   bldEbeamInfo.uPhysicalId = __le32(0);
-  bldEbeamInfo.uDataType   = __le32(0x1000f);
-  bldEbeamInfo.uExtentSize = __le32(80);
+  /*  bldEbeamInfo.uDataType   = __le32(0x1000f);*/
+  bldEbeamInfo.uDataType   = __le32(0x2000f); /** This is the new version with BC2 ENERGY added */
+  bldEbeamInfo.uExtentSize = __le32(80 + 8);
   
   bldEbeamInfo.uLogicalId2 = __le32(0x06000000);
   bldEbeamInfo.uPhysicalId2= __le32(0);
-  bldEbeamInfo.uDataType2  = __le32(0x1000f);
-  bldEbeamInfo.uExtentSize2= __le32(80);
+  /*  bldEbeamInfo.uDataType2  = __le32(0x1000f);*/
+  bldEbeamInfo.uDataType2   = __le32(0x2000f); /** This is the new version with BC2 ENERGY added */
+  bldEbeamInfo.uExtentSize2= __le32(80 + 8);
 }
 
 /**
@@ -707,12 +712,12 @@ static void BLDMCastTaskGetBlobs(FcomBlobSetMask got_mask) {
   epicsTimeStamp *p_refTime;
   int rtncode;
   int loop;
-      
+  
   p_refTime = &bldFiducialTime;
   bldEbeamInfo.uDamageMask = __le32(0);
-	  
+	
   for ( loop = 0; loop < N_PULSE_BLOBS; loop++, got_mask >>= 1 ) {
-    dataAvailable |= bldPulseBlobs[loop].aMsk;
+    setBits(&dataAvailable, bldPulseBlobs[loop].aMsk);
 	    
     if ( bldBlobSet ) {
       /* NOTE: this could be coded more elegantly but
@@ -721,19 +726,25 @@ static void BLDMCastTaskGetBlobs(FcomBlobSetMask got_mask) {
        */
       rtncode = ! (got_mask & 1);
       bldPulseBlobs[loop].blob = bldBlobSet->memb[loop].blob;
+      setBits(&dataAvailable, bldPulseBlobs[loop].aMsk);
+
       /* If there was no data then it was probably too late */
       if ( rtncode ) {
+	bldPulseBlobs[loop].blob = 0;
 	bldUnmatchedTSCount[loop]++;
       }
     } else {
+      /** Clear the blob reference before getting a new one... */
+      bldPulseBlobs[loop].blob = 0;
       rtncode = fcomGetBlob( bldPulseID[loop], &bldPulseBlobs[loop].blob, 0 );
       if ( rtncode ) {
+	bldPulseBlobs[loop].blob = 0;
 	bldFcomGetErrs[loop]++;
       }
     }
     
-    if ( rtncode ) {
-      dataAvailable        &= ~bldPulseBlobs[loop].aMsk;
+    if (/* rtncode &&*/ bldPulseBlobs[loop].blob == 0) {
+      clearBits(&dataAvailable, bldPulseBlobs[loop].aMsk);
       bldPulseBlobs[loop].blob = 0;
       continue;
     }
@@ -757,7 +768,7 @@ static void BLDMCastTaskGetBlobs(FcomBlobSetMask got_mask) {
       }
       
       bldInvalidAlarmCount[loop]++;
-      dataAvailable &= ~bldPulseBlobs[loop].aMsk;
+      clearBits(&dataAvailable, bldPulseBlobs[loop].aMsk);
     }
   passed:
     
@@ -771,7 +782,7 @@ static void BLDMCastTaskGetBlobs(FcomBlobSetMask got_mask) {
 	tsCatch = -1;
       }
       bldUnmatchedTSCount[loop]++;
-      dataAvailable &= ~bldPulseBlobs[loop].aMsk;
+      clearBits(&dataAvailable, bldPulseBlobs[loop].aMsk);
     }
   }
 
@@ -784,19 +795,12 @@ static void BLDMCastTaskGetBlobs(FcomBlobSetMask got_mask) {
  * Calculate the current CHARGE and add to the outgoing
  * EbeamInfo data.
  */
-static void BLDMCastTaskAddCharge() {
+static void BLDMCastTaskAddCharge(FcomBlobSetMask got_mask) {/*) {*/
   if( (dataAvailable & AVAIL_BMCHARGE) ) {
     __st_le64(&bldEbeamInfo.ebeamCharge, (double)bldPulseBlobs[BMCHARGE].blob->fcbl_bpm_T * 1.602e-10);
   } else {
-    bldEbeamInfo.uDamageMask |= __le32(0x1);
+    bldEbeamInfo.uDamageMask |= __le32(BAD_CHARGE);
   }
-  /** TEST TEST TEST */
-  __st_le64(&bldEbeamInfo.ebeamCharge, __CHARGE__);
-  __CHARGE__ = __CHARGE__ + 0.0001;
-  if (bldPulseBlobs[BC2STATE].blob != 0) {
-    __CHARGE__ = (double)bldPulseBlobs[BC2STATE].blob->fc_flt[3];
-  }
-  /** TEST TEST TEST */
 }
 
 /**
@@ -815,7 +819,7 @@ static void BLDMCastTaskAddL3Energy() {
     tempD *= bldStaticPVs[E0BDES].pTD->value * 1000.0;
     __st_le64(&bldEbeamInfo.ebeamL3Energy, tempD);
   } else {
-    bldEbeamInfo.uDamageMask |= __le32(0x2);
+    bldEbeamInfo.uDamageMask |= __le32(BAD_ENERGY);/*0x2);*/
   }
 }
 
@@ -855,7 +859,7 @@ static void BLDMCastTaskAddBeamPosition() {
     __st_le64(&bldEbeamInfo.ebeamLTUAngX, tempDA[2]);
     __st_le64(&bldEbeamInfo.ebeamLTUAngY, tempDA[3]);
   } else {
-    bldEbeamInfo.uDamageMask |= __le32(0x3C);
+    bldEbeamInfo.uDamageMask |= __le32(BAD_POS_X | BAD_POS_Y | BAD_ANG_X | BAD_ANG_Y);/*0x3C);*/
   }
 }
 
@@ -867,7 +871,7 @@ static void BLDMCastTaskAddBunchLength() {
     __st_le64(&bldEbeamInfo.ebeamBunchLen, (double)bldPulseBlobs[BMBUNCHLEN].blob->fcbl_blen_bimax);
   } else {
     bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-    bldEbeamInfo.uDamageMask |= __le32(0x40);
+    bldEbeamInfo.uDamageMask |= __le32(BAD_BLEN);/*0x40);*/
   }
   
   if ( __ld_le32( &bldEbeamInfo.uDamageMask ) ) {
@@ -877,10 +881,20 @@ static void BLDMCastTaskAddBunchLength() {
   }
 }
 
-static void BLDMCastTaskFillEbeamInfo() {
-  BLDMCastTaskAddCharge();
+static void BLDMCastTaskAddBC2Energy() {
+  if( (dataAvailable & AVAIL_BC2STATE) ) {
+    __st_le64(&bldEbeamInfo.ebeamBC2Energy, (double)bldPulseBlobs[BC2STATE].blob->fc_flt[3]);
+  } else {
+    bldEbeamInfo.uDamageMask |= __le32(BAD_BC2_ENERGY);
+  }
+}
+
+static void BLDMCastTaskFillEbeamInfo(FcomBlobSetMask got_mask) {/*) {*/
+  BLDMCastTaskAddCharge(got_mask);
   BLDMCastTaskAddL3Energy();
   BLDMCastTaskAddBeamPosition();
+  BLDMCastTaskAddBunchLength();
+  BLDMCastTaskAddBC2Energy();
 }
 
 /**
@@ -921,6 +935,7 @@ static int BLDMCastReleaseBlobs() {
 		       fcomStrerror(rtncode));
 	  return -1;
 	}
+	bldPulseBlobs[loop].blob = 0;
       }
     }
   }
@@ -952,7 +967,7 @@ static int BLDMCastTaskRun(int sFd) {
 	epicsMutexLock(bldMutex);
 	  
 	BLDMCastTaskGetBlobs(got_mask);
-	BLDMCastTaskFillEbeamInfo();
+	BLDMCastTaskFillEbeamInfo(got_mask);
 
 	epicsMutexUnlock(bldMutex);
       }
@@ -961,6 +976,8 @@ static int BLDMCastTaskRun(int sFd) {
     
       /* do MultiCast */
       BLDMCastTaskSend(sFd);
+
+      BLDMCastTaskCheckPostDelays();
     
       if (BLDMCastReleaseBlobs() != 0) {
 	return -1;
@@ -1163,9 +1180,13 @@ check(char *nm, void *ptr)
 }
 
 /* implementation */
-static long BLD_EPICS_Init()
-{
-int rtncode;
+static long BLD_EPICS_Init() {
+  int rtncode;
+ 
+  int i = 0;
+  for (i = 0; i < N_PULSE_BLOBS; ++i) {
+    printf("**** aMsk[%d]: %li\n", i, bldPulseBlobs[i].aMsk);
+  }
 
 	{
 	int loop;
