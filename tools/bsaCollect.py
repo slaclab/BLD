@@ -18,7 +18,16 @@ beamDevices=["BPMS:IN20:221:TMIT", # CHARGE
              "BLEN:LI24:886:BIMAX" # BLEN
              ]
 bldDevices=["BPMS:IN20:221:TMIT", "BPMS:LTU1:250:X", "BLEN:LI24:886:BIMAX"]
-#bldDevices=["BLD:SYS0:500:CHARGEHST" + edefNumber, "BLD:SYS0:500:]
+" " "
+bldDevices=["BLD:SYS0:500:CHARGEHST" + edefNumber, # CHARGE
+            "BLD:SYS0:500:ENERGYHST" + edefNumber, # ENERGY
+            "BLD:SYS0:500:POS_XHST" + edefNumber, # LTU POS_X
+            "BLD:SYS0:500:POS_YHST" + edefNumber, # LTU POS_Y
+            "BLD:SYS0:500:ANG_XHST" + edefNumber, # LTU ANG_X
+            "BLD:SYS0:500:ANG_YHST" + edefNumber, # LTU ANG_Y
+            "BLD:SYS0:500:BLENHST" + edefNumber, # ENERGY
+            ]
+" " "
 beamValues = {}
 bldValues = {}
 

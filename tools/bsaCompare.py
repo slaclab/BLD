@@ -121,7 +121,22 @@ def compareLtu(bldPosX, bldPosY, bldAngX, bldAngY, bpmLtu720X, bpmLtu720Y, bpmLt
     
     return True
 
-# MAIN >>>>
+#-------------------------------------------------------------------------------
+#
+# BEAM LOSS
+#
+#-------------------------------------------------------------------------------
+def compareBlm(bldBlm, blm):
+    if len(bldBlm) != len(blm):
+        return False
+
+    for i in range(len(bldBlm)):
+        if bldBlm[i] != blm[i]:
+            return False
+        
+    return True
+
+#=== MAIN ======================================================================
 
 if len(sys.argv) != 2:
     print "Usage: " + sys.argv[0] + " [edef #]"
@@ -130,6 +145,16 @@ if len(sys.argv) != 2:
 edefNumber = sys.argv[1]
 beamDevices=["BPMS:IN20:221:TMIT", "BPMS:LTU1:250:X", "BPMS:LTU1:450:X", "BPMS:LTU1:720:X", "BPMS:LTU1:720:Y", "BPMS:LTU1:730:X", "BPMS:LTU1:730:Y", "BPMS:LTU1:740:X", "BPMS:LTU1:740:Y", "BPMS:LTU1:750:X", "BPMS:LTU1:750:Y"]
 bldDevices=["BPMS:IN20:221:TMIT", "BPMS:LTU1:250:X"]
+
+#bldDevices=["BLD:SYS0:500:CHARGEHST" + edefNumber, # CHARGE
+#            "BLD:SYS0:500:ENERGYHST" + edefNumber, # ENERGY
+#            "BLD:SYS0:500:POS_XHST" + edefNumber, # LTU POS_X
+#            "BLD:SYS0:500:POS_YHST" + edefNumber, # LTU POS_Y
+#            "BLD:SYS0:500:ANG_XHST" + edefNumber, # LTU ANG_X
+#            "BLD:SYS0:500:ANG_YHST" + edefNumber, # LTU ANG_Y
+#            "BLD:SYS0:500:BLENHST" + edefNumber, # ENERGY
+#            ]
+
 bldCaDevices=["BLD:SYS0:500:DSPR1", "BLD:SYS0:500:DSPR2", "BLD:SYS0:500:FMTRX"]
 bldCaDevicesLen=[1, 1, 32]
 beamValues = {}
@@ -186,6 +211,7 @@ print ""
 print "---> Comparing data <---"
 sys.stdout.write("  Checking Charge: ")
 if compareCharge(bldValues["BPMS:IN20:221:TMIT"], beamValues["BPMS:IN20:221:TMIT"]) == False:
+# if compareCharge(bldValues["BLD:SYS0:500:CHARGEHST" + edefNumber], beamValues["BPMS:IN20:221:TMIT"]) == False:
     print "ERROR"
 else:
     print "OK"
@@ -195,6 +221,9 @@ bldEnergy = calculateEnergy(beamValues["BPMS:LTU1:250:X"], beamValues["BPMS:LTU1
                  bldCaValues["BLD:SYS0:500:DSPR1"][0], bldCaValues["BLD:SYS0:500:DSPR2"][0])
 if compareEnergy(bldEnergy, beamValues["BPMS:LTU1:250:X"], beamValues["BPMS:LTU1:450:X"],
                  bldCaValues["BLD:SYS0:500:DSPR1"][0], bldCaValues["BLD:SYS0:500:DSPR2"][0]) == False:
+#if compareEnergy(bldValues["BLD:SYS0:500:ENERGYHST" + edefNumber],
+#                 beamValues["BPMS:LTU1:250:X"], beamValues["BPMS:LTU1:450:X"],
+#                 bldCaValues["BLD:SYS0:500:DSPR1"][0], bldCaValues["BLD:SYS0:500:DSPR2"][0]) == False:
     print "ERROR"
 else:
     print "OK"
@@ -215,6 +244,23 @@ if compareLtu(bldPosX, bldPosY, bldAngX, bldAngY, beamValues["BPMS:LTU1:720:X"],
               beamValues["BPMS:LTU1:730:Y"], beamValues["BPMS:LTU1:740:X"],
               beamValues["BPMS:LTU1:740:Y"], beamValues["BPMS:LTU1:750:X"],
               beamValues["BPMS:LTU1:750:Y"], bldCaValues["BLD:SYS0:500:FMTRX"]) == False:
+#if compareLtu(bldValues["BLD:SYS0:500:POS_XHST" + edefNumber],
+#              bldValues["BLD:SYS0:500:POS_YHST" + edefNumber],
+#              bldValues["BLD:SYS0:500:ANG_XHST" + edefNumber],
+#              bldValues["BLD:SYS0:500:ANG_YHST" + edefNumber],
+#              beamValues["BPMS:LTU1:720:X"],
+#              beamValues["BPMS:LTU1:720:Y"], beamValues["BPMS:LTU1:730:X"],
+#              beamValues["BPMS:LTU1:730:Y"], beamValues["BPMS:LTU1:740:X"],
+#              beamValues["BPMS:LTU1:740:Y"], beamValues["BPMS:LTU1:750:X"],
+#              beamValues["BPMS:LTU1:750:Y"], bldCaValues["BLD:SYS0:500:FMTRX"]) == False:
+    print "ERROR"
+else:
+    print "OK"
+
+
+sys.stdout.write("  Checking BLEN: ")
+if compareCharge(bldValues["BPMS:IN20:221:TMIT"], beamValues["BPMS:IN20:221:TMIT"]) == False:
+# if compareBlm(bldValues["BLD:SYS0:500:BLENHST" + edefNumber], beamValues["BLEN:LI24:886:BIMAX"]) == False:
     print "ERROR"
 else:
     print "OK"
