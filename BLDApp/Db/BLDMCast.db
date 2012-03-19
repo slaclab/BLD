@@ -82,13 +82,53 @@ record(ai, "BLD:SYS0:500:ANG_Y") {
 }
 
 record(ai, "BLD:SYS0:500:BLEN") {
-  field(DESC, "Beam Bunch Length")
+  field(DESC, "BC2 Charge")
   field(SCAN, "$(DIAG_SCAN)")
   field(DTYP, "BLD")
-  field(INP,  "@BLEN")
+  field(INP,  "@BC2CHARGE")
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "Amps")
+}
+
+record(ai, "BLD:SYS0:500:BC2CHARGE") {
+  field(DESC, "BC2 Charge")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD")
+  field(INP,  "@BC2CHARGE")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "Amps")
+}
+
+record(ai, "BLD:SYS0:500:BC2ENERGY") {
+  field(DESC, "BC2 Energy")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD")
+  field(INP,  "@BC2ENERGY")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "mm")
+}
+
+record(ai, "BLD:SYS0:500:BC1CHARGE") {
+  field(DESC, "BC1 Charge")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD")
+  field(INP,  "@BC1CHARGE")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "Amps")
+}
+
+record(ai, "BLD:SYS0:500:BC1ENERGY") {
+  field(DESC, "BC2 Energy")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD")
+  field(INP,  "@BC1ENERGY")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "mm")
 }
 
 record(longin, "BLD:SYS0:500:TMITLATEERRS") {

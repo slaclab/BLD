@@ -1,4 +1,4 @@
-/* $Id: bldget.c,v 1.3 2010/04/20 16:42:02 strauman Exp $ */
+/* $Id: bldget.c,v 1.4 2010/04/27 00:21:02 strauman Exp $ */
 
 /* Test Program for dumping the contents of the BLD packet */
 #include <stdio.h>
@@ -58,6 +58,8 @@ static const char *lbls[] = {
 	"  LTUAngX:  ", "[mrad]",
 	"  LTUAngY:  ", "[mrad]",
 	"  BunchLen: ", "[A]",
+	"  BC1Change:", "[A]",
+	"  BC1Energy:", "[MeV]",
 };
 
 static void
@@ -176,7 +178,7 @@ struct sockaddr_in sin;
 		utmp = __ld_le32(&info->uDamageMask);
 		printf("  Damage Mask:   0x%08"PRIx32"\n", utmp);
 
-		for ( p_f = &info->ebeamCharge, mask=1, i=0; p_f <= &info->ebeamBunchLen; p_f++, mask<<=1, i++ ) {
+		for ( p_f = &info->ebeamCharge, mask=1, i=0; p_f <= &info->ebeamBC1Energy; p_f++, mask<<=1, i++ ) {
 			printf("%s",lbls[2*i]);
 			if ( (utmp & mask) ) {
 				printf("      (INVALID)");

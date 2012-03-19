@@ -1,6 +1,26 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-0-1: (BLD-R2-0-0-BR branch)
+  o Addition of extra fields:
+    BC2Energy - BPMS:LI24:801:X (in mm)
+    BC1Charge - BLEN:LI21:265:AIMAX (in amps)
+    BC1Energy - BPMS:LI21:233:X (in mm)
+
+  o Change EBEAMINFO.ebeamBunchLen to EBEAMINFO.ebeamBC2Current
+
+  o Change in outgoing data packet
+    Version from 0x1000f to 0x2000f
+    Addition of 3 extra words (for the energy/charge above)
+
+  o Modification of bldgen helper code
+
+  o Addition of PVs:
+    BLD:SYS0:500:BC1CHARGE
+    BLD:SYS0:500:BC1ENERGY
+    BLD:SYS0:500:BC2CHARGE
+    BLD:SYS0:500:BC2ENERGY
+
 BLD-R2-0-0:
   o Read fast data from FCOM.
   o Send BLD multicast data using udpComm/lanIpBasic.

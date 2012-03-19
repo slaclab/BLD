@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastWfRecv.c,v 1.4 2010/04/27 00:46:27 strauman Exp $ */
+/* $Id: devBLDMCastWfRecv.c,v 1.5 2010/05/18 23:36:21 strauman Exp $ */
 
 /* Device support for a waveform record to receive
  * BLD multicast data and store all items in a waveform
@@ -254,7 +254,7 @@ uint32_t   dmg;
 			p_dbl[3] = (dmg & (1<<3) ) ? thisIsNan : __ld_le64( &p_info->ebeamLTUPosY  );
 			p_dbl[4] = (dmg & (1<<4) ) ? thisIsNan : __ld_le64( &p_info->ebeamLTUAngX  );
 			p_dbl[5] = (dmg & (1<<5) ) ? thisIsNan : __ld_le64( &p_info->ebeamLTUAngY  );
-			p_dbl[6] = (dmg & (1<<6) ) ? thisIsNan : __ld_le64( &p_info->ebeamBunchLen );
+			p_dbl[6] = (dmg & (1<<6) ) ? thisIsNan : __ld_le64( &p_info->ebeamBC2Current );
 		} else {
 			/* Nothing received */
 			p_info = 0;

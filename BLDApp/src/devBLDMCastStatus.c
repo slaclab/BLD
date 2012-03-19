@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastStatus.c,v 1.9 2010/03/26 18:20:53 strauman Exp $ */
+/* $Id: devBLDMCastStatus.c,v 1.10 2010/04/08 22:00:17 strauman Exp $ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -25,7 +25,11 @@ typedef enum {
         BLD_AI_BLEN,
         BLD_BI_PV_CON,
         BLD_LI_INV_CNT,
-        BLD_LI_TS_CNT
+        BLD_LI_TS_CNT,
+	BLD_AI_BC2CHARGE,
+	BLD_AI_BC2ENERGY,
+	BLD_AI_BC1CHARGE,
+	BLD_AI_BC1ENERGY,
 } BLDFUNC;
 
 /*      define parameter check for convinence */
@@ -52,7 +56,10 @@ static long init_ai( struct aiRecord * pai)
     CHECK_AIPARM("POS_Y",      BLD_AI_POS_Y)
     CHECK_AIPARM("ANG_X",      BLD_AI_ANG_X)
     CHECK_AIPARM("ANG_Y",      BLD_AI_ANG_Y)
-    CHECK_AIPARM("BLEN",       BLD_AI_BLEN)
+    CHECK_AIPARM("BC2CHARGE",  BLD_AI_BC2CHARGE)
+    CHECK_AIPARM("BC2ENERGY",  BLD_AI_BC2ENERGY)
+    CHECK_AIPARM("BC1CHARGE",  BLD_AI_BC2CHARGE)
+    CHECK_AIPARM("BC1ENERGY",  BLD_AI_BC2ENERGY)
 
     recGblRecordError(S_db_badField, (void *) pai, "devAiBLD Init_record, bad parm");
     pai->pact = TRUE;
@@ -107,8 +114,28 @@ int damage = 0;
 			damage = 1;
         break;
     case BLD_AI_BLEN:
-        pai->val = __ld_le64(&bldEbeamInfo.ebeamBunchLen);
+        pai->val = __ld_le64(&bldEbeamInfo.ebeamBC2Current);
         if(bldEbeamInfo.uDamageMask & __le32(0x40))
+			damage = 1;
+        break;
+    case BLD_AI_BC2CHARGE:
+        pai->val = __ld_le64(&bldEbeamInfo.ebeamBC2Current);
+        if(bldEbeamInfo.uDamageMask & __le32(0x40))
+			damage = 1;
+        break;
+    case BLD_AI_BC2ENERGY:
+        pai->val = __ld_le64(&bldEbeamInfo.ebeamBC2Energy);
+        if(bldEbeamInfo.uDamageMask & __le32(0x80))
+			damage = 1;
+        break;
+    case BLD_AI_BC1CHARGE:
+        pai->val = __ld_le64(&bldEbeamInfo.ebeamBC1Current);
+        if(bldEbeamInfo.uDamageMask & __le32(0x100))
+			damage = 1;
+        break;
+    case BLD_AI_BC1ENERGY:
+        pai->val = __ld_le64(&bldEbeamInfo.ebeamBC1Energy);
+        if(bldEbeamInfo.uDamageMask & __le32(0x200))
 			damage = 1;
         break;
     }

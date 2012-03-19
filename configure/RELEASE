@@ -27,13 +27,24 @@ TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
 # Define location of module tree with respect to
 # EPICS_SITE_TOP
 # =============================================================
-EPICS_MODULES=$(EPICS_SITE_TOP)/modules
+#EPICS_MODULES=$(EPICS_SITE_TOP)/modules
 
 
 # ==============================================================
 # Define the version of EPICS BASE that you will use
 # =============================================================
-BASE_MODULE_VERSION=base-R3-14-8-2-lcls6
+#BASE_MODULE_VERSION=base-R3-14-8-2-lcls6
+
+# =============================================================
+# Define location of the modules tree
+# =============================================================
+EPICS_MODULES=$(MODULES_SITE_TOP)
+
+
+# ==============================================================
+# Define the cvs module version of EPICS BASE that you will use
+# =============================================================
+BASE_MODULE_VERSION=$(EPICS_BASE_VER)
 
 # ===============================================================
 # Define the version of modules needed by
@@ -42,18 +53,18 @@ BASE_MODULE_VERSION=base-R3-14-8-2-lcls6
 # the appropriate version dependencies
 # http://www-group.slac.stanford.edu/cdsoft/epics/swModules3.htm
 # ===============================================================
-SEQ_MODULE_VERSION=seq-R2-0-11-lcls3
-EVENT_MODULE_VERSION=event-R3-2-0
+SEQ_MODULE_VERSION=seq-R2.1.4
+EVENT_MODULE_VERSION=event-R3-2-2-br_generaltime-2-0
 GENERALTIME_MODULE_VERSION=generalTime-R2-2-0
-SSUBRECORD_MODULE_VERSION=sSubRecord-R2-2-0
-AUTOSAVE_MODULE_VERSION=autosave-R4-5-lcls2
+SSUBRECORD_MODULE_VERSION=sSubRecord-R2-2-1
+AUTOSAVE_MODULE_VERSION=autosave-R4-8-lcls3
 #RESTORE_MODULE_VERSION=restore-R2-0-0
-IOCADMIN_MODULE_VERSION=iocAdmin-R3-3-0
-MISCUTILS_MODULE_VERSION=miscUtils-R2-2-0
-FCOM_MODULE_VERSION=fcom-R1-3-0
-FCOMUTIL_MODULE_VERSION=fcomUtil-R0-4-1
-UDPCOMM_MODULE_VERSION=udpComm-R1-2-0
-DEVBUSMAPPED_MODULE_VERSION=devBusMapped-R3-0-0
+IOCADMIN_MODULE_VERSION=iocAdmin-R3-3-1
+MISCUTILS_MODULE_VERSION=miscUtils-R2-2-2
+FCOM_MODULE_VERSION=fcom-R1-3-9
+FCOMUTIL_MODULE_VERSION=fcomUtil-R1-1-8
+UDPCOMM_MODULE_VERSION=udpComm-R2-2-0
+DEVBUSMAPPED_MODULE_VERSION=devBusMapped-R3-0-1
 
 #SEQ_MODULE_VERSION=seq-R2-0-0
 #EVENT_MODULE_VERSION=event-R2-8-2

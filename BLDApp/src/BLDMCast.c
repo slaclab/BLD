@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.43 2010/05/17 17:21:22 strauman Exp $ */
+/* $Id: BLDMCast.c,v 1.44 2010/05/18 23:36:00 strauman Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +44,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.43 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.44 $/$Name: BLD-R2-0-0-BR $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -88,7 +88,10 @@ enum PULSEPVSINDEX
     BMPOSITION2X,
     BMPOSITION3X,
     BMPOSITION4X,
-    BMBUNCHLEN,
+    BC2CHARGE,
+    BC2ENERGY,
+    BC1CHARGE,
+    BC1ENERGY,
 	/* Define Y after everything else so that fcom array doesn't have to use them */
     BMPOSITION1Y,
     BMPOSITION2Y,
@@ -96,6 +99,7 @@ enum PULSEPVSINDEX
     BMPOSITION4Y
 };/* the definition here must match the PV definition below, the order is critical as well */
 
+/*
 enum PVAVAILMASK
 {
     AVAIL_DSPR1         = 1<< 0,
@@ -113,8 +117,31 @@ enum PVAVAILMASK
     AVAIL_BMPOSITION2Y  = 1<<12,
     AVAIL_BMPOSITION3Y  = 1<<13,
     AVAIL_BMPOSITION4Y  = 1<<14,
-    AVAIL_BMBUNCHLEN    = 1<<15,
+    AVAIL_BC2CHARGE    = 1<<15,
 };
+*/
+
+ /** Former PVAVAILMASK enum */
+#define AVAIL_DSPR1         0x0001
+#define AVAIL_DSPR2         0x0002
+#define AVAIL_E0BDES        0x0004
+#define AVAIL_FMTRX         0x0008
+#define AVAIL_BMCHARGE      0x0010
+#define AVAIL_BMENERGY1X    0x0020
+#define AVAIL_BMENERGY2X    0x0040
+#define AVAIL_BMPOSITION1X  0x0080
+#define AVAIL_BMPOSITION2X  0x0100
+#define AVAIL_BMPOSITION3X  0x0200
+#define AVAIL_BMPOSITION4X  0x0400
+#define AVAIL_BMPOSITION1Y  0x0800
+#define AVAIL_BMPOSITION2Y  0x1000
+#define AVAIL_BMPOSITION3Y  0x2000
+#define AVAIL_BMPOSITION4Y  0x4000
+#define AVAIL_BC2CHARGE     0x8000
+#define AVAIL_BC2ENERGY    0x10000
+#define AVAIL_BC1CHARGE    0x10000
+#define AVAIL_BC1ENERGY    0x20000
+
 
 /* Structure representing one PV (= channel) */
 typedef struct BLDPV
@@ -122,7 +149,7 @@ typedef struct BLDPV
     const char *	         name;
     unsigned long	         nElems; /* type is always DOUBLE */
 
-	enum PVAVAILMASK         availMask;
+	long         availMask;
 
     chid		             pvChId;
 
@@ -141,7 +168,7 @@ typedef struct BLDPV
 typedef struct BLDBLOB {
 	const char *            name;
 	FcomBlobRef             blob;
-	enum PVAVAILMASK        aMsk;
+	long                    aMsk;
 } BLDBLOB;
 
 
@@ -203,7 +230,10 @@ BLDPV bldPulsePVs[]=
     [BMPOSITION2X] = {"BPMS:LTU1:730:X", 1, AVAIL_BMPOSITION2X, NULL, NULL},	/* Position in mm/mrad */
     [BMPOSITION3X] = {"BPMS:LTU1:740:X", 1, AVAIL_BMPOSITION3X, NULL, NULL},	/* Position in mm/mrad */
     [BMPOSITION4X] = {"BPMS:LTU1:750:X", 1, AVAIL_BMPOSITION4X, NULL, NULL},	/* Position in mm/mrad */
-    [BMBUNCHLEN]   = {"BLEN:LI24:886:BIMAX", 1, AVAIL_BMBUNCHLEN, NULL, NULL},	/* Bunch Length in Amps */
+    [BC2CHARGE]    = {"BLEN:LI24:886:BIMAX", 1, AVAIL_BC2CHARGE, NULL, NULL},	/* BC2 Charge in Amps */
+    [BC2ENERGY]    = {"BPMS:LI24:801:X", 1, AVAIL_BC2ENERGY, NULL, NULL},	/* BC2 Energy in mm */
+    [BC1CHARGE]    = {"BLEN:LI21:265:AIMAX", 1, AVAIL_BC1CHARGE, NULL, NULL};   /* BC1 Charge in Amps */
+    [BC1ENERGY]    = {"BPMS:LI24:233:X", 1, AVAIL_BC1ENERGY, NULL, NULL};       /* BC1 Energy in mm */
     [BMPOSITION1Y] = {"BPMS:LTU1:720:Y", 1, AVAIL_BMPOSITION1Y, NULL, NULL},	/* Position in mm/mrad */
     [BMPOSITION2Y] = {"BPMS:LTU1:730:Y", 1, AVAIL_BMPOSITION2Y, NULL, NULL},	/* Position in mm/mrad */
     [BMPOSITION3Y] = {"BPMS:LTU1:740:Y", 1, AVAIL_BMPOSITION3Y, NULL, NULL},	/* Position in mm/mrad */
@@ -261,7 +291,10 @@ BLDBLOB bldPulseBlobs[] =
     [BMPOSITION2X] = { name: "BPMS:LTU1:730:X", blob: 0, aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
     [BMPOSITION3X] = { name: "BPMS:LTU1:740:X", blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
     [BMPOSITION4X] = { name: "BPMS:LTU1:750:X", blob: 0, aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
-    [BMBUNCHLEN]   = { name: "BLEN:LI24:886:BIMAX", blob: 0, aMsk: AVAIL_BMBUNCHLEN },	/* Bunch Length in Amps */
+    [BC2CHARGE]    = { name: "BLEN:LI24:886:BIMAX", blob: 0, aMsk: AVAIL_BC2CHARGE },	/* BC2 Charge in Amps */
+    [BC2ENERGY]    = { name: "BPMS:LI24:803:X", blob: 0, aMsk: AVAIL_BC2ENERGY },	/* BC2 Energy in mm */
+    [BC1CHARGE]    = { name: "BLEN:LI21:265:AIMAX", blob: 0, aMsk: AVAIL_BC1CHARGE },	/* BC1 Charge in Amps */
+    [BC1ENERGY]    = { name: "BPMS:LI21:233:X", blob: 0, aMsk: AVAIL_BC1ENERGY },	/* BC1 Energy in mm */
 };
 
 
@@ -275,7 +308,7 @@ FcomBlobSetRef  bldBlobSet = 0;
 
 static epicsInt32 bldUseFcomSet = 0;
 
-static enum PVAVAILMASK dataAvailable = 0;
+static long dataAvailable = 0;
 
 int BLD_MCAST_ENABLE = 1;
 epicsExportAddress(int, BLD_MCAST_ENABLE);
@@ -829,13 +862,13 @@ epicsUInt32     this_time;
 
 	bldEbeamInfo.uLogicalId  = __le32(0x06000000);
 	bldEbeamInfo.uPhysicalId = __le32(0);
-	bldEbeamInfo.uDataType   = __le32(0x1000f);
-	bldEbeamInfo.uExtentSize = __le32(80);
+	bldEbeamInfo.uDataType   = __le32(EBEAMINFO_VERSION_1);
+	bldEbeamInfo.uExtentSize = __le32(EBEAMINFO_VERSION_1_SIZE);
 
 	bldEbeamInfo.uLogicalId2 = __le32(0x06000000);
 	bldEbeamInfo.uPhysicalId2= __le32(0);
-	bldEbeamInfo.uDataType2  = __le32(0x1000f);
-	bldEbeamInfo.uExtentSize2= __le32(80);
+	bldEbeamInfo.uDataType2  = __le32(EBEAMINFO_VERSION_1);
+	bldEbeamInfo.uExtentSize2= __le32(EBEAMINFO_VERSION_1_SIZE);
 
 	while(bldAllPVsConnected)
 	{
@@ -976,15 +1009,47 @@ epicsUInt32     this_time;
 				bldEbeamInfo.uDamageMask |= __le32(0x3C);
 			}
 
-			/* Copy bunch length */
-			if( (AVAIL_BMBUNCHLEN & dataAvailable) )
+			/* Copy BC2 Charge */
+			if( (AVAIL_BC2CHARGE & dataAvailable) )
 			{
-				__st_le64(&bldEbeamInfo.ebeamBunchLen, bldPulsePVs[BMBUNCHLEN].pTD->value);
+				__st_le64(&bldEbeamInfo.ebeamBC2Current, bldPulsePVs[BC2CHARGE].pTD->value);
 			}
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
 				bldEbeamInfo.uDamageMask |= __le32(0x40);
+			}
+
+			/* Copy BC2 Energy */
+			if( (AVAIL_BC2ENERGY & dataAvailable) )
+			{
+				__st_le64(&bldEbeamInfo.ebeamBC2Energy, bldPulsePVs[BC2ENERGY].pTD->value);
+			}
+			else
+			{
+				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+				bldEbeamInfo.uDamageMask |= __le32(0x80);
+			}
+
+			/* BC1 Charge */
+			if(AVAIL_BC1CHANGE & dataAvailable)
+			{
+				__st_le64(&bldEbeamInfo.ebeamBC1Current, 0xAA);
+			}
+			else
+			{
+				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+				bldEbeamInfo.uDamageMask |= __le32(0x100);
+			}
+
+			if(AVAIL_BC1ENERGY & dataAvailable)
+			{
+				__st_le64(&bldEbeamInfo.ebeamBC1Energy, 0xBB);
+			}
+			else
+			{
+				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+				bldEbeamInfo.uDamageMask |= __le32(0x200);
 			}
 
 			epicsMutexUnlock(bldMutex);
@@ -1060,7 +1125,7 @@ epicsUInt32     this_time;
 								goto passed;
 							break;
 
-						case BMBUNCHLEN:
+						case BC2CHARGE:
 							if ( ! (FC_STAT_BLEN_INVAL_BIMAX_MASK & b1->fc_stat) )
 								goto passed;
 							break;
@@ -1155,8 +1220,8 @@ passed:
 			}
 
 			/* Copy bunch length */
-			if( (AVAIL_BMBUNCHLEN & dataAvailable) ) {
-				__st_le64(&bldEbeamInfo.ebeamBunchLen, (double)bldPulseBlobs[BMBUNCHLEN].blob->fcbl_blen_bimax);
+			if( (AVAIL_BC2CHARGE & dataAvailable) ) {
+				__st_le64(&bldEbeamInfo.ebeamBC2Current, (double)bldPulseBlobs[BC2CHARGE].blob->fcbl_blen_bimax);
 			} else {
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
 				bldEbeamInfo.uDamageMask |= __le32(0x40);
@@ -1327,6 +1392,7 @@ static DevBusMappedAccessRec timer_delay_io = {
 /**************************************************************************************************/
 static long     BLD_EPICS_Init();
 static  long    BLD_EPICS_Report(int level);
+static long BLD_report_EBEAMINFO();
 
 static const struct drvet drvBLD = {2,                              /*2 Table Entries */
                               (DRVSUPFUN) BLD_EPICS_Report,  /* Driver Report Routine */
@@ -1451,5 +1517,49 @@ static long BLD_EPICS_Report(int level)
 		printf("  Delays (using a hardware timer) and reads data asynchronously\n");
 #endif
 
+	if ( level > 1 ) {
+	  BLD_report_EBEAMINFO();
+	}
+
     return 0;
 }
+
+static long BLD_report_EBEAMINFO() {
+  printf("ts_sec: %d\n", __ld_le32(&bldEbeamInfo.ts_sec));
+  printf("ts_nsec: %d\n", __ld_le32(&bldEbeamInfo.ts_nsec));
+  printf("mMBZ1: %d\n", __ld_le32(&bldEbeamInfo.uMBZ1));
+  printf("uFiducialId: %d\n", __ld_le32(&bldEbeamInfo.uFiducialId));
+  printf("mMBZ2: %d\n", __ld_le32(&bldEbeamInfo.uMBZ2));
+
+  /* Xtc Section 1 */
+  printf("uDamage: %d\n", __ld_le32(&bldEbeamInfo.uDamage));
+  printf("uLogicalId: %d\n", __ld_le32(&bldEbeamInfo.uLogicalId));
+  printf("uPhysicalId: %d\n", __ld_le32(&bldEbeamInfo.uPhysicalId));
+  printf("uDataType: %d\n", __ld_le32(&bldEbeamInfo.uDataType));
+  printf("uExtentSize: %d\n", __ld_le32(&bldEbeamInfo.uExtentSize));
+
+  /* Xtc Section 2 */
+  printf("uDamage2: %d\n", __ld_le32(&bldEbeamInfo.uDamage2));
+  printf("uLogicalId2: %d\n", __ld_le32(&bldEbeamInfo.uLogicalId2));
+  printf("uPhysicalId2: %d\n", __ld_le32(&bldEbeamInfo.uPhysicalId2));
+  printf("uDataType2: %d\n", __ld_le32(&bldEbeamInfo.uDataType2));
+  printf("uExtentSize2: %d\n", __ld_le32(&bldEbeamInfo.uExtentSize2));
+
+  /* Data */
+  printf("uDamageMask: %d\n", __ld_le32(&bldEbeamInfo.uDamageMask));
+  printf("ebeamCharge: %f\n", __ld_le64(&bldEbeamInfo.ebeamCharge));
+  printf("ebeamL3Energy: %f\n", __ld_le64(&bldEbeamInfo.ebeamL3Energy));
+  printf("ebeamLTUPosX: %f\n", __ld_le64(&bldEbeamInfo.ebeamLTUPosX));
+  printf("ebeamLTUPosY: %f\n", __ld_le64(&bldEbeamInfo.ebeamLTUPosY));
+  printf("ebeamLTUAngX: %f\n", __ld_le64(&bldEbeamInfo.ebeamLTUAngX));
+  printf("ebeamLTUAngY: %f\n", __ld_le64(&bldEbeamInfo.ebeamLTUAngY));
+  
+  printf("ebeamBC1Current: %f Amps\n", __ld_le64(&bldEbeamInfo.ebeamBC1Current));
+  printf("ebeamBC1Energy: %f mm\n", __ld_le64(&bldEbeamInfo.ebeamBC1Energy));
+  printf("ebeamBC2Current: %f Amps\n", __ld_le64(&bldEbeamInfo.ebeamBC1Current));
+  printf("ebeamBC2Energy: %f mm\n", __ld_le64(&bldEbeamInfo.ebeamBC1Energy));
+  
+
+  return 0;
+}
+
