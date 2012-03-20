@@ -1,7 +1,7 @@
 # Put your release notes or change log information
 # in here.
 
-BLD-R2-0-1: (BLD-R2-0-0-BR branch)
+BLD-R2-1-0: (BLD-R2-0-0-BR branch)
   o Addition of extra fields:
     BC2Energy - BPMS:LI24:801:X (in mm)
     BC1Charge - BLEN:LI21:265:AIMAX (in amps)
