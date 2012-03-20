@@ -13,13 +13,19 @@ BLD-R2-0-1: (BLD-R2-0-0-BR branch)
     Version from 0x1000f to 0x2000f
     Addition of 3 extra words (for the energy/charge above)
 
-  o Modification of bldgen helper code
+  o Modification of bldgen helper code (not tested)
 
-  o Addition of PVs:
+  o Addition of PVs (used only if code runs with CA only):
     BLD:SYS0:500:BC1CHARGE
     BLD:SYS0:500:BC1ENERGY
     BLD:SYS0:500:BC2CHARGE
     BLD:SYS0:500:BC2ENERGY
+
+  o Extension of waveform containing new values
+
+  o Updated BLD Diagnostics panel
+
+  o Addition os PVs to count errors for the new values
 
 BLD-R2-0-0:
   o Read fast data from FCOM.

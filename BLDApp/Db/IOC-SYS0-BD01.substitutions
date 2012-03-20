@@ -1,4 +1,4 @@
-file iocAdmin.db
+file iocAdminRTEMS.db
 {
 {IOC=IOC:SYS0:BD01}
 }

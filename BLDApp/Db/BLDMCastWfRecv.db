@@ -2,7 +2,7 @@ record(waveform,"$(name)") {
 	field(DESC, "Waveform with BLD data")
 	field(DTYP, "BLD Data Receiver")
 	field(FTVL, "DOUBLE")
-	field(NELM, "7")
+	field(NELM, "10")
 # If there is EVR support you can scan e.g.,
 #   field(SCAN, "Event")
 #   field(EVNT, "16")

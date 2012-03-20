@@ -3,10 +3,10 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 293
-y 155
+x 576
+y 185
 w 535
-h 846
+h 1015
 font "helvetica-medium-r-12.0"
 ctlFont "helvetica-medium-r-12.0"
 btnFont "helvetica-medium-r-12.0"
@@ -20,7 +20,7 @@ ctlBgColor2 index 12
 topShadowColor index 1
 botShadowColor index 11
 title "Stripline BPM Diagnostics - $(device)"
-snapToGrid
+showGrid
 gridSize 8
 endScreenProperties
 
@@ -33,7 +33,7 @@ release 0
 x 320
 y 64
 w 208
-h 152
+h 212
 lineColor index 3
 fill
 fillColor index 3
@@ -78,7 +78,7 @@ endObjectProperties
 object relatedDisplayClass
 beginObjectProperties
 major 4
-minor 2
+minor 3
 release 0
 x 400
 y 16
@@ -153,7 +153,7 @@ release 0
 x 8
 y 64
 w 304
-h 152
+h 212
 lineColor index 3
 fill
 fillColor index 3
@@ -336,10 +336,10 @@ beginObjectProperties
 major 4
 minor 0
 release 1
-x 328
+x 324
 y 80
-w 192
-h 136
+w 200
+h 188
 fgColor index 14
 bgColor index 4
 oddColBgColor index 4
@@ -347,9 +347,9 @@ evenColBgColor index 8
 topShadowColor index 2
 botShadowColor index 11
 pv "IOC:SYS0:BD01:BLDWAV"
-labels "Charge [nC], L3Energy [MeV], LTUPosX [mm], LTUPosY [mm], LTUAngX [mrad], LTUAngY [mrad], Blen [A]"
+labels "Charge [nC], L3Energy [MeV], LTUPosX [mm], LTUPosY [mm], LTUAngX [mrad], LTUAngY [mrad], BC2Charge [A], BC2Energy [mm], BC1Charge [A], BC1Energy [mm]"
 firstElement 0
-numElements 7
+numElements 10
 font "helvetica-medium-r-12.0"
 endObjectProperties
 
@@ -372,6 +372,19 @@ value {
 }
 endObjectProperties
 
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 8
+y 280
+w 520
+h 726
+
+beginGroup
+
 # (Rectangle)
 object activeRectangleClass
 beginObjectProperties
@@ -379,9 +392,9 @@ major 4
 minor 0
 release 0
 x 8
-y 229
+y 288
 w 520
-h 608
+h 718
 lineColor index 3
 fill
 fillColor index 3
@@ -394,9 +407,9 @@ major 4
 minor 0
 release 0
 x 16
-y 245
+y 304
 w 504
-h 352
+h 458
 lineColor index 14
 fill
 fillColor index 5
@@ -409,7 +422,7 @@ major 4
 minor 1
 release 0
 x 8
-y 221
+y 280
 w 64
 h 16
 font "helvetica-medium-i-12.0"
@@ -428,7 +441,7 @@ major 4
 minor 1
 release 0
 x 24
-y 253
+y 312
 w 144
 h 16
 font "helvetica-bold-i-14.0"
@@ -447,7 +460,7 @@ major 4
 minor 1
 release 0
 x 64
-y 322
+y 381
 w 119
 h 14
 font "helvetica-medium-r-12.0"
@@ -467,7 +480,7 @@ major 4
 minor 1
 release 0
 x 64
-y 418
+y 477
 w 91
 h 14
 font "helvetica-medium-r-12.0"
@@ -487,7 +500,7 @@ major 4
 minor 1
 release 0
 x 64
-y 352
+y 411
 w 91
 h 14
 font "helvetica-medium-r-12.0"
@@ -507,7 +520,7 @@ major 4
 minor 1
 release 0
 x 64
-y 386
+y 445
 w 91
 h 14
 font "helvetica-medium-r-12.0"
@@ -527,7 +540,7 @@ major 4
 minor 1
 release 0
 x 64
-y 450
+y 509
 w 91
 h 14
 font "helvetica-medium-r-12.0"
@@ -547,7 +560,7 @@ major 4
 minor 1
 release 0
 x 64
-y 482
+y 541
 w 91
 h 14
 font "helvetica-medium-r-12.0"
@@ -566,16 +579,275 @@ beginObjectProperties
 major 4
 minor 1
 release 0
+x 200
+y 344
+w 82
+h 28
+font "helvetica-medium-i-12.0"
+fontAlign "center"
+fgColor index 14
+bgColor index 4
+useDisplayBg
+value {
+  "PV/Blob with"
+  "nonzero status"
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 307
+y 344
+w 94
+h 28
+font "helvetica-medium-i-12.0"
+fontAlign "center"
+fgColor index 14
+bgColor index 4
+useDisplayBg
+value {
+  "No Blob received"
+  "or TS mismatch *"
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 329
+y 740
+w 62
+h 20
+font "helvetica-medium-i-8.0"
+fontAlign "center"
+fgColor index 14
+bgColor index 4
+useDisplayBg
+value {
+  "* could also be"
+  "due to EVR error"
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 428
+y 344
+w 76
+h 28
+font "helvetica-medium-i-12.0"
+fontAlign "center"
+fgColor index 14
+bgColor index 4
+useDisplayBg
+value {
+  "fcomGetBlob()"
+  "failures"
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 104
+y 344
+w 45
+h 28
+font "helvetica-medium-i-12.0"
+fontAlign "center"
+fgColor index 14
+bgColor index 4
+useDisplayBg
+value {
+  "Source"
+  "PV/Blob"
+}
+autoSize
+endObjectProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 16
+y 770
+w 504
+h 224
+
+beginGroup
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 16
+y 770
+w 504
+h 72
+lineColor index 14
+fill
+fillColor index 5
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 24
+y 778
+w 136
+h 16
+font "helvetica-bold-i-14.0"
+fgColor index 14
+bgColor index 4
+useDisplayBg
+value {
+  "Multicast Output"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
 x 64
-y 514
-w 91
+y 810
+w 124
 h 14
 font "helvetica-medium-r-12.0"
 fgColor index 14
 bgColor index 0
 useDisplayBg
 value {
-  "BPMS:LTU1:750"
+  "Multicast Frames Sent"
+}
+autoSize
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
+x 200
+y 805
+w 85
+h 24
+controlPv "$(device):MCASTSENT"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 16
+y 850
+w 504
+h 144
+lineColor index 14
+fill
+fillColor index 5
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 24
+y 858
+w 272
+h 16
+font "helvetica-bold-i-14.0"
+fgColor index 14
+bgColor index 4
+useDisplayBg
+value {
+  "Latency (from EVR fiducial-callback)"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 320
+y 946
+w 25
+h 14
+font "helvetica-medium-i-12.0"
+fontAlign "center"
+fgColor index 14
+bgColor index 4
+useDisplayBg
+value {
+  "Avg."
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 432
+y 946
+w 28
+h 14
+font "helvetica-medium-i-12.0"
+fontAlign "center"
+fgColor index 14
+bgColor index 4
+useDisplayBg
+value {
+  "Max."
 }
 autoSize
 endObjectProperties
@@ -587,31 +859,176 @@ major 4
 minor 1
 release 0
 x 64
-y 546
-w 126
+y 966
+w 92
 h 14
 font "helvetica-medium-r-12.0"
 fgColor index 14
 bgColor index 0
 useDisplayBg
 value {
-  "BLEN:LI24:886:BIMAX"
+  "BLD Frame Sent"
 }
 autoSize
 endObjectProperties
 
-# (Group)
-object activeGroupClass
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
+x 312
+y 961
+w 85
+h 24
+controlPv "$(device):BLDLATAVG"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Message Button)
+object activeMessageButtonClass
 beginObjectProperties
 major 4
 minor 0
 release 0
-x 200
-y 317
-w 85
-h 248
+x 472
+y 946
+w 30
+h 14
+fgColor index 14
+onColor index 6
+offColor index 6
+topShadowColor index 3
+botShadowColor index 11
+controlPv "$(device):BLDLATMAXRST.PROC"
+pressValue "1"
+onLabel "RST"
+offLabel "RST"
+3d
+font "helvetica-medium-r-10.0"
+endObjectProperties
 
-beginGroup
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
+x 424
+y 961
+w 85
+h 24
+controlPv "$(device):BLDLATMAX"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 208
+y 898
+w 25
+h 14
+font "helvetica-medium-i-12.0"
+fontAlign "center"
+fgColor index 14
+bgColor index 4
+useDisplayBg
+value {
+  "Min."
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 320
+y 898
+w 25
+h 14
+font "helvetica-medium-i-12.0"
+fontAlign "center"
+fgColor index 14
+bgColor index 4
+useDisplayBg
+value {
+  "Avg."
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 432
+y 898
+w 28
+h 14
+font "helvetica-medium-i-12.0"
+fontAlign "center"
+fgColor index 14
+bgColor index 4
+useDisplayBg
+value {
+  "Max."
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 64
+y 918
+w 125
+h 14
+font "helvetica-medium-r-12.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "FCOM Data Received"
+}
+autoSize
+endObjectProperties
 
 # (Text Monitor)
 object activeXTextDspClass:noedit
@@ -620,10 +1037,10 @@ major 4
 minor 5
 release 0
 x 200
-y 541
+y 913
 w 85
 h 24
-controlPv "$(device):BLENBADERRS"
+controlPv "$(device):FCOMLATMIN"
 font "helvetica-medium-r-12.0"
 fontAlign "right"
 fgColor index 16
@@ -645,11 +1062,11 @@ beginObjectProperties
 major 4
 minor 5
 release 0
-x 200
-y 509
+x 312
+y 913
 w 85
 h 24
-controlPv "$(device):POS4BADERRS"
+controlPv "$(device):FCOMLATAVG"
 font "helvetica-medium-r-12.0"
 fontAlign "right"
 fgColor index 16
@@ -671,8 +1088,84 @@ beginObjectProperties
 major 4
 minor 5
 release 0
+x 424
+y 913
+w 85
+h 24
+controlPv "$(device):FCOMLATMAX"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Message Button)
+object activeMessageButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 248
+y 898
+w 30
+h 14
+fgColor index 14
+onColor index 6
+offColor index 6
+topShadowColor index 3
+botShadowColor index 11
+controlPv "$(device):FCOMLATMINRST.PROC"
+pressValue "1"
+onLabel "RST"
+offLabel "RST"
+3d
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+# (Message Button)
+object activeMessageButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 472
+y 898
+w 30
+h 14
+fgColor index 14
+onColor index 6
+offColor index 6
+topShadowColor index 3
+botShadowColor index 11
+controlPv "$(device):FCOMLATMAXRST.PROC"
+pressValue "1"
+onLabel "RST"
+offLabel "RST"
+3d
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+endGroup
+
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
 x 200
-y 477
+y 536
 w 85
 h 24
 controlPv "$(device):POS3BADERRS"
@@ -698,7 +1191,7 @@ major 4
 minor 5
 release 0
 x 200
-y 445
+y 504
 w 85
 h 24
 controlPv "$(device):POS2BADERRS"
@@ -724,7 +1217,7 @@ major 4
 minor 5
 release 0
 x 200
-y 413
+y 472
 w 85
 h 24
 controlPv "$(device):POS1BADERRS"
@@ -751,7 +1244,7 @@ major 4
 minor 5
 release 0
 x 200
-y 381
+y 440
 w 85
 h 24
 controlPv "$(device):ENG2BADERRS"
@@ -778,7 +1271,7 @@ major 4
 minor 5
 release 0
 x 200
-y 349
+y 408
 w 85
 h 24
 controlPv "$(device):ENG1BADERRS"
@@ -804,7 +1297,7 @@ major 4
 minor 5
 release 0
 x 200
-y 317
+y 376
 w 85
 h 24
 controlPv "$(device):TMITBADERRS"
@@ -823,23 +1316,6 @@ objType "monitors"
 noExecuteClipMask
 endObjectProperties
 
-endGroup
-
-endObjectProperties
-
-# (Group)
-object activeGroupClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 312
-y 317
-w 85
-h 248
-
-beginGroup
-
 # (Text Monitor)
 object activeXTextDspClass:noedit
 beginObjectProperties
@@ -847,7 +1323,7 @@ major 4
 minor 5
 release 0
 x 313
-y 349
+y 408
 w 85
 h 24
 controlPv "$(device):ENG1LATEERRS"
@@ -873,7 +1349,7 @@ major 4
 minor 5
 release 0
 x 313
-y 381
+y 440
 w 85
 h 24
 controlPv "$(device):ENG2LATEERRS"
@@ -900,7 +1376,7 @@ major 4
 minor 5
 release 0
 x 313
-y 445
+y 504
 w 85
 h 24
 controlPv "$(device):POS2LATEERRS"
@@ -926,7 +1402,7 @@ major 4
 minor 5
 release 0
 x 313
-y 477
+y 536
 w 85
 h 24
 controlPv "$(device):POS3LATEERRS"
@@ -952,7 +1428,7 @@ major 4
 minor 5
 release 0
 x 313
-y 317
+y 376
 w 85
 h 24
 controlPv "$(device):TMITLATEERRS"
@@ -978,7 +1454,7 @@ major 4
 minor 5
 release 0
 x 313
-y 413
+y 472
 w 85
 h 24
 controlPv "$(device):POS1LATEERRS"
@@ -1004,77 +1480,8 @@ beginObjectProperties
 major 4
 minor 5
 release 0
-x 313
-y 509
-w 85
-h 24
-controlPv "$(device):POS4LATEERRS"
-font "helvetica-medium-r-12.0"
-fontAlign "right"
-fgColor index 16
-fgAlarm
-bgColor index 12
-limitsFromDb
-nullColor index 0
-useHexPrefix
-showUnits
-useAlarmBorder
-newPos
-objType "monitors"
-noExecuteClipMask
-endObjectProperties
-
-# (Text Monitor)
-object activeXTextDspClass:noedit
-beginObjectProperties
-major 4
-minor 5
-release 0
-x 313
-y 541
-w 85
-h 24
-controlPv "$(device):BLENLATEERRS"
-font "helvetica-medium-r-12.0"
-fontAlign "right"
-fgColor index 16
-fgAlarm
-bgColor index 12
-limitsFromDb
-nullColor index 0
-useHexPrefix
-showUnits
-useAlarmBorder
-newPos
-objType "monitors"
-noExecuteClipMask
-endObjectProperties
-
-endGroup
-
-endObjectProperties
-
-# (Group)
-object activeGroupClass
-beginObjectProperties
-major 4
-minor 0
-release 0
 x 424
-y 317
-w 85
-h 248
-
-beginGroup
-
-# (Text Monitor)
-object activeXTextDspClass:noedit
-beginObjectProperties
-major 4
-minor 5
-release 0
-x 424
-y 349
+y 408
 w 85
 h 24
 controlPv "$(device):ENG1FCOMERRS"
@@ -1100,7 +1507,7 @@ major 4
 minor 5
 release 0
 x 424
-y 381
+y 440
 w 85
 h 24
 controlPv "$(device):ENG2FCOMERRS"
@@ -1127,7 +1534,7 @@ major 4
 minor 5
 release 0
 x 424
-y 445
+y 504
 w 85
 h 24
 controlPv "$(device):POS2FCOMERRS"
@@ -1153,7 +1560,7 @@ major 4
 minor 5
 release 0
 x 424
-y 477
+y 536
 w 85
 h 24
 controlPv "$(device):POS3FCOMERRS"
@@ -1179,7 +1586,7 @@ major 4
 minor 5
 release 0
 x 424
-y 317
+y 376
 w 85
 h 24
 controlPv "$(device):TMITFCOMERRS"
@@ -1205,7 +1612,7 @@ major 4
 minor 5
 release 0
 x 424
-y 413
+y 472
 w 85
 h 24
 controlPv "$(device):POS1FCOMERRS"
@@ -1232,7 +1639,7 @@ major 4
 minor 5
 release 0
 x 424
-y 509
+y 568
 w 85
 h 24
 controlPv "$(device):POS4FCOMERRS"
@@ -1257,8 +1664,80 @@ beginObjectProperties
 major 4
 minor 5
 release 0
+x 313
+y 568
+w 85
+h 24
+controlPv "$(device):POS4LATEERRS"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
+x 200
+y 568
+w 85
+h 24
+controlPv "$(device):POS4BADERRS"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 64
+y 573
+w 91
+h 14
+font "helvetica-medium-r-12.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "BPMS:LTU1:750"
+}
+autoSize
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
 x 424
-y 541
+y 600
 w 85
 h 24
 controlPv "$(device):BLENFCOMERRS"
@@ -1277,575 +1756,373 @@ objType "monitors"
 noExecuteClipMask
 endObjectProperties
 
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
+x 313
+y 600
+w 85
+h 24
+controlPv "$(device):BLENLATEERRS"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
+x 200
+y 600
+w 85
+h 24
+controlPv "$(device):BLENBADERRS"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 64
+y 605
+w 126
+h 14
+font "helvetica-medium-r-12.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "BLEN:LI24:886:BIMAX"
+}
+autoSize
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
+x 424
+y 632
+w 85
+h 24
+controlPv "$(device):BC2ENFCOMERRS"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
+x 313
+y 632
+w 85
+h 24
+controlPv "$(device):BC2ENLATEERRS"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
+x 200
+y 632
+w 85
+h 24
+controlPv "$(device):BC2ENBADERRS"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 64
+y 637
+w 98
+h 14
+font "helvetica-medium-r-12.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "BPMS:LI24:801:X"
+}
+autoSize
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
+x 424
+y 664
+w 85
+h 24
+controlPv "$(device):BC1CHFCOMERRS"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
+x 313
+y 664
+w 85
+h 24
+controlPv "$(device):BC1CHLATEERRS"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
+x 200
+y 664
+w 85
+h 24
+controlPv "$(device):BC1CHBADERRS"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 64
+y 669
+w 127
+h 14
+font "helvetica-medium-r-12.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "BLEN:LI21:265:AIMAX"
+}
+autoSize
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
+x 424
+y 696
+w 85
+h 24
+controlPv "$(device):BC1ENFCOMERRS"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
+x 313
+y 696
+w 85
+h 24
+controlPv "$(device):BC1ENLATEERRS"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 5
+release 0
+x 200
+y 696
+w 85
+h 24
+controlPv "$(device):BC1ENBADERRS"
+font "helvetica-medium-r-12.0"
+fontAlign "right"
+fgColor index 16
+fgAlarm
+bgColor index 12
+limitsFromDb
+nullColor index 0
+useHexPrefix
+showUnits
+useAlarmBorder
+newPos
+objType "monitors"
+noExecuteClipMask
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 64
+y 701
+w 98
+h 14
+font "helvetica-medium-r-12.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "BPMS:LI21:233:X"
+}
+autoSize
+endObjectProperties
+
 endGroup
 
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 200
-y 285
-w 82
-h 28
-font "helvetica-medium-i-12.0"
-fontAlign "center"
-fgColor index 14
-bgColor index 4
-useDisplayBg
-value {
-  "PV/Blob with"
-  "nonzero status"
-}
-autoSize
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 307
-y 285
-w 94
-h 28
-font "helvetica-medium-i-12.0"
-fontAlign "center"
-fgColor index 14
-bgColor index 4
-useDisplayBg
-value {
-  "No Blob received"
-  "or TS mismatch *"
-}
-autoSize
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 323
-y 573
-w 62
-h 20
-font "helvetica-medium-i-8.0"
-fontAlign "center"
-fgColor index 14
-bgColor index 4
-useDisplayBg
-value {
-  "* could also be"
-  "due to EVR error"
-}
-autoSize
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 428
-y 285
-w 76
-h 28
-font "helvetica-medium-i-12.0"
-fontAlign "center"
-fgColor index 14
-bgColor index 4
-useDisplayBg
-value {
-  "fcomGetBlob()"
-  "failures"
-}
-autoSize
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 104
-y 285
-w 45
-h 28
-font "helvetica-medium-i-12.0"
-fontAlign "center"
-fgColor index 14
-bgColor index 4
-useDisplayBg
-value {
-  "Source"
-  "PV/Blob"
-}
-autoSize
-endObjectProperties
-
-# (Rectangle)
-object activeRectangleClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 16
-y 604
-w 504
-h 72
-lineColor index 14
-fill
-fillColor index 5
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 24
-y 612
-w 136
-h 16
-font "helvetica-bold-i-14.0"
-fgColor index 14
-bgColor index 4
-useDisplayBg
-value {
-  "Multicast Output"
-}
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 64
-y 644
-w 124
-h 14
-font "helvetica-medium-r-12.0"
-fgColor index 14
-bgColor index 0
-useDisplayBg
-value {
-  "Multicast Frames Sent"
-}
-autoSize
-endObjectProperties
-
-# (Text Monitor)
-object activeXTextDspClass:noedit
-beginObjectProperties
-major 4
-minor 5
-release 0
-x 200
-y 639
-w 85
-h 24
-controlPv "$(device):MCASTSENT"
-font "helvetica-medium-r-12.0"
-fontAlign "right"
-fgColor index 16
-fgAlarm
-bgColor index 12
-limitsFromDb
-nullColor index 0
-useHexPrefix
-showUnits
-useAlarmBorder
-newPos
-objType "monitors"
-noExecuteClipMask
-endObjectProperties
-
-# (Rectangle)
-object activeRectangleClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 16
-y 684
-w 504
-h 144
-lineColor index 14
-fill
-fillColor index 5
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 24
-y 692
-w 272
-h 16
-font "helvetica-bold-i-14.0"
-fgColor index 14
-bgColor index 4
-useDisplayBg
-value {
-  "Latency (from EVR fiducial-callback)"
-}
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 320
-y 780
-w 25
-h 14
-font "helvetica-medium-i-12.0"
-fontAlign "center"
-fgColor index 14
-bgColor index 4
-useDisplayBg
-value {
-  "Avg."
-}
-autoSize
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 432
-y 780
-w 28
-h 14
-font "helvetica-medium-i-12.0"
-fontAlign "center"
-fgColor index 14
-bgColor index 4
-useDisplayBg
-value {
-  "Max."
-}
-autoSize
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 64
-y 800
-w 92
-h 14
-font "helvetica-medium-r-12.0"
-fgColor index 14
-bgColor index 0
-useDisplayBg
-value {
-  "BLD Frame Sent"
-}
-autoSize
-endObjectProperties
-
-# (Text Monitor)
-object activeXTextDspClass:noedit
-beginObjectProperties
-major 4
-minor 5
-release 0
-x 312
-y 795
-w 85
-h 24
-controlPv "$(device):BLDLATAVG"
-font "helvetica-medium-r-12.0"
-fontAlign "right"
-fgColor index 16
-fgAlarm
-bgColor index 12
-limitsFromDb
-nullColor index 0
-useHexPrefix
-showUnits
-useAlarmBorder
-newPos
-objType "monitors"
-noExecuteClipMask
-endObjectProperties
-
-# (Message Button)
-object activeMessageButtonClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 472
-y 780
-w 30
-h 14
-fgColor index 14
-onColor index 6
-offColor index 6
-topShadowColor index 3
-botShadowColor index 11
-controlPv "$(device):BLDLATMAXRST.PROC"
-pressValue "1"
-onLabel "RST"
-offLabel "RST"
-3d
-font "helvetica-medium-r-10.0"
-endObjectProperties
-
-# (Text Monitor)
-object activeXTextDspClass:noedit
-beginObjectProperties
-major 4
-minor 5
-release 0
-x 424
-y 795
-w 85
-h 24
-controlPv "$(device):BLDLATMAX"
-font "helvetica-medium-r-12.0"
-fontAlign "right"
-fgColor index 16
-fgAlarm
-bgColor index 12
-limitsFromDb
-nullColor index 0
-useHexPrefix
-showUnits
-useAlarmBorder
-newPos
-objType "monitors"
-noExecuteClipMask
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 208
-y 732
-w 25
-h 14
-font "helvetica-medium-i-12.0"
-fontAlign "center"
-fgColor index 14
-bgColor index 4
-useDisplayBg
-value {
-  "Min."
-}
-autoSize
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 320
-y 732
-w 25
-h 14
-font "helvetica-medium-i-12.0"
-fontAlign "center"
-fgColor index 14
-bgColor index 4
-useDisplayBg
-value {
-  "Avg."
-}
-autoSize
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 432
-y 732
-w 28
-h 14
-font "helvetica-medium-i-12.0"
-fontAlign "center"
-fgColor index 14
-bgColor index 4
-useDisplayBg
-value {
-  "Max."
-}
-autoSize
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 64
-y 752
-w 125
-h 14
-font "helvetica-medium-r-12.0"
-fgColor index 14
-bgColor index 0
-useDisplayBg
-value {
-  "FCOM Data Received"
-}
-autoSize
-endObjectProperties
-
-# (Text Monitor)
-object activeXTextDspClass:noedit
-beginObjectProperties
-major 4
-minor 5
-release 0
-x 200
-y 747
-w 85
-h 24
-controlPv "$(device):FCOMLATMIN"
-font "helvetica-medium-r-12.0"
-fontAlign "right"
-fgColor index 16
-fgAlarm
-bgColor index 12
-limitsFromDb
-nullColor index 0
-useHexPrefix
-showUnits
-useAlarmBorder
-newPos
-objType "monitors"
-noExecuteClipMask
-endObjectProperties
-
-# (Text Monitor)
-object activeXTextDspClass:noedit
-beginObjectProperties
-major 4
-minor 5
-release 0
-x 312
-y 747
-w 85
-h 24
-controlPv "$(device):FCOMLATAVG"
-font "helvetica-medium-r-12.0"
-fontAlign "right"
-fgColor index 16
-fgAlarm
-bgColor index 12
-limitsFromDb
-nullColor index 0
-useHexPrefix
-showUnits
-useAlarmBorder
-newPos
-objType "monitors"
-noExecuteClipMask
-endObjectProperties
-
-# (Text Monitor)
-object activeXTextDspClass:noedit
-beginObjectProperties
-major 4
-minor 5
-release 0
-x 424
-y 747
-w 85
-h 24
-controlPv "$(device):FCOMLATMAX"
-font "helvetica-medium-r-12.0"
-fontAlign "right"
-fgColor index 16
-fgAlarm
-bgColor index 12
-limitsFromDb
-nullColor index 0
-useHexPrefix
-showUnits
-useAlarmBorder
-newPos
-objType "monitors"
-noExecuteClipMask
-endObjectProperties
-
-# (Message Button)
-object activeMessageButtonClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 248
-y 732
-w 30
-h 14
-fgColor index 14
-onColor index 6
-offColor index 6
-topShadowColor index 3
-botShadowColor index 11
-controlPv "$(device):FCOMLATMINRST.PROC"
-pressValue "1"
-onLabel "RST"
-offLabel "RST"
-3d
-font "helvetica-medium-r-10.0"
-endObjectProperties
-
-# (Message Button)
-object activeMessageButtonClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 472
-y 732
-w 30
-h 14
-fgColor index 14
-onColor index 6
-offColor index 6
-topShadowColor index 3
-botShadowColor index 11
-controlPv "$(device):FCOMLATMAXRST.PROC"
-pressValue "1"
-onLabel "RST"
-offLabel "RST"
-3d
-font "helvetica-medium-r-10.0"
 endObjectProperties
 

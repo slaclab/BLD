@@ -187,6 +187,27 @@ record(longin, "BLD:SYS0:500:BLENLATEERRS") {
 	field(INP,  "#C7S2@bld_stat_bad_t,m32")
 }
 
+record(longin, "BLD:SYS0:500:BC2ENLATEERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C8S2@bld_stat_bad_t,m32")
+}
+
+record(longin, "BLD:SYS0:500:BC1CHLATEERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C9S2@bld_stat_bad_t,m32")
+}
+
+record(longin, "BLD:SYS0:500:BC1ENLATEERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C10S2@bld_stat_bad_t,m32")
+}
+
 record(longin, "BLD:SYS0:500:TMITBADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
@@ -243,6 +264,27 @@ record(longin, "BLD:SYS0:500:BLENBADERRS") {
 	field(INP,  "#C7S2@bld_stat_bad_d,m32")
 }
 
+record(longin, "BLD:SYS0:500:BC2ENBADERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C8S2@bld_stat_bad_d,m32")
+}
+
+record(longin, "BLD:SYS0:500:BC1CHBADERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C9S2@bld_stat_bad_d,m32")
+}
+
+record(longin, "BLD:SYS0:500:BC1ENBADERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C10S2@bld_stat_bad_d,m32")
+}
+
 record(longin, "BLD:SYS0:500:TMITFCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
@@ -297,6 +339,27 @@ record(longin, "BLD:SYS0:500:BLENFCOMERRS") {
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C7S2@bld_stat_bad_f,m32")
+}
+
+record(longin, "BLD:SYS0:500:BC2ENFCOMERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C8S2@bld_stat_bad_f,m32")
+}
+
+record(longin, "BLD:SYS0:500:BC1CHFCOMERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C9S2@bld_stat_bad_f,m32")
+}
+
+record(longin, "BLD:SYS0:500:BC1ENFCOMERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C10S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:MCASTSENT") {

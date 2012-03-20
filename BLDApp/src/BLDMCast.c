@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.44 2010/05/18 23:36:00 strauman Exp $ */
+/* $Id: BLDMCast.c,v 1.44.2.1 2012/03/19 22:32:23 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +44,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.44 $/$Name: BLD-R2-0-0-BR $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.44.2.1 $/$Name: BLD-R2-0-0-BR $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -139,8 +139,8 @@ enum PVAVAILMASK
 #define AVAIL_BMPOSITION4Y  0x4000
 #define AVAIL_BC2CHARGE     0x8000
 #define AVAIL_BC2ENERGY    0x10000
-#define AVAIL_BC1CHARGE    0x10000
-#define AVAIL_BC1ENERGY    0x20000
+#define AVAIL_BC1CHARGE    0x20000
+#define AVAIL_BC1ENERGY    0x40000
 
 
 /* Structure representing one PV (= channel) */
@@ -226,18 +226,18 @@ BLDPV bldPulsePVs[]=
          R31 R32 R33 R34]     //rmat elements for bpm4y
 #endif
 
-    [BMPOSITION1X] = {"BPMS:LTU1:720:X", 1, AVAIL_BMPOSITION1X, NULL, NULL},	/* Position in mm/mrad */
-    [BMPOSITION2X] = {"BPMS:LTU1:730:X", 1, AVAIL_BMPOSITION2X, NULL, NULL},	/* Position in mm/mrad */
-    [BMPOSITION3X] = {"BPMS:LTU1:740:X", 1, AVAIL_BMPOSITION3X, NULL, NULL},	/* Position in mm/mrad */
-    [BMPOSITION4X] = {"BPMS:LTU1:750:X", 1, AVAIL_BMPOSITION4X, NULL, NULL},	/* Position in mm/mrad */
+    [BMPOSITION1X] = {"BPMS:LTU1:720:X"    , 1, AVAIL_BMPOSITION1X, NULL, NULL},	/* Position in mm/mrad */
+    [BMPOSITION2X] = {"BPMS:LTU1:730:X"    , 1, AVAIL_BMPOSITION2X, NULL, NULL},	/* Position in mm/mrad */
+    [BMPOSITION3X] = {"BPMS:LTU1:740:X"    , 1, AVAIL_BMPOSITION3X, NULL, NULL},	/* Position in mm/mrad */
+    [BMPOSITION4X] = {"BPMS:LTU1:750:X"    , 1, AVAIL_BMPOSITION4X, NULL, NULL},	/* Position in mm/mrad */
     [BC2CHARGE]    = {"BLEN:LI24:886:BIMAX", 1, AVAIL_BC2CHARGE, NULL, NULL},	/* BC2 Charge in Amps */
-    [BC2ENERGY]    = {"BPMS:LI24:801:X", 1, AVAIL_BC2ENERGY, NULL, NULL},	/* BC2 Energy in mm */
+    [BC2ENERGY]    = {"BPMS:LI24:801:X"    , 1, AVAIL_BC2ENERGY, NULL, NULL},	/* BC2 Energy in mm */
     [BC1CHARGE]    = {"BLEN:LI21:265:AIMAX", 1, AVAIL_BC1CHARGE, NULL, NULL};   /* BC1 Charge in Amps */
-    [BC1ENERGY]    = {"BPMS:LI24:233:X", 1, AVAIL_BC1ENERGY, NULL, NULL};       /* BC1 Energy in mm */
-    [BMPOSITION1Y] = {"BPMS:LTU1:720:Y", 1, AVAIL_BMPOSITION1Y, NULL, NULL},	/* Position in mm/mrad */
-    [BMPOSITION2Y] = {"BPMS:LTU1:730:Y", 1, AVAIL_BMPOSITION2Y, NULL, NULL},	/* Position in mm/mrad */
-    [BMPOSITION3Y] = {"BPMS:LTU1:740:Y", 1, AVAIL_BMPOSITION3Y, NULL, NULL},	/* Position in mm/mrad */
-    [BMPOSITION4Y] = {"BPMS:LTU1:750:Y", 1, AVAIL_BMPOSITION4Y, NULL, NULL},	/* Position in mm/mrad */
+    [BC1ENERGY]    = {"BPMS:LI21:233:X"    , 1, AVAIL_BC1ENERGY, NULL, NULL};       /* BC1 Energy in mm */
+    [BMPOSITION1Y] = {"BPMS:LTU1:720:Y"    , 1, AVAIL_BMPOSITION1Y, NULL, NULL},	/* Position in mm/mrad */
+    [BMPOSITION2Y] = {"BPMS:LTU1:730:Y"    , 1, AVAIL_BMPOSITION2Y, NULL, NULL},	/* Position in mm/mrad */
+    [BMPOSITION3Y] = {"BPMS:LTU1:740:Y"    , 1, AVAIL_BMPOSITION3Y, NULL, NULL},	/* Position in mm/mrad */
+    [BMPOSITION4Y] = {"BPMS:LTU1:750:Y"    , 1, AVAIL_BMPOSITION4Y, NULL, NULL},	/* Position in mm/mrad */
 
 };
 #define N_PULSE_PVS (sizeof(bldPulsePVs)/sizeof(bldPulsePVs[0]))
@@ -287,14 +287,14 @@ BLDBLOB bldPulseBlobs[] =
          R31 R32 R33 R34]     //rmat elements for bpm4y
 #endif
 
-    [BMPOSITION1X] = { name: "BPMS:LTU1:720:X", blob: 0, aMsk: AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y },	/* Position in mm/mrad */
-    [BMPOSITION2X] = { name: "BPMS:LTU1:730:X", blob: 0, aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
-    [BMPOSITION3X] = { name: "BPMS:LTU1:740:X", blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
-    [BMPOSITION4X] = { name: "BPMS:LTU1:750:X", blob: 0, aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
+    [BMPOSITION1X] = { name: "BPMS:LTU1:720:X"    , blob: 0, aMsk: AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y },	/* Position in mm/mrad */
+    [BMPOSITION2X] = { name: "BPMS:LTU1:730:X"    , blob: 0, aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
+    [BMPOSITION3X] = { name: "BPMS:LTU1:740:X"    , blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
+    [BMPOSITION4X] = { name: "BPMS:LTU1:750:X"    , blob: 0, aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
     [BC2CHARGE]    = { name: "BLEN:LI24:886:BIMAX", blob: 0, aMsk: AVAIL_BC2CHARGE },	/* BC2 Charge in Amps */
-    [BC2ENERGY]    = { name: "BPMS:LI24:803:X", blob: 0, aMsk: AVAIL_BC2ENERGY },	/* BC2 Energy in mm */
+    [BC2ENERGY]    = { name: "BPMS:LI24:801:X"    , blob: 0, aMsk: AVAIL_BC2ENERGY },	/* BC2 Energy in mm */
     [BC1CHARGE]    = { name: "BLEN:LI21:265:AIMAX", blob: 0, aMsk: AVAIL_BC1CHARGE },	/* BC1 Charge in Amps */
-    [BC1ENERGY]    = { name: "BPMS:LI21:233:X", blob: 0, aMsk: AVAIL_BC1ENERGY },	/* BC1 Energy in mm */
+    [BC1ENERGY]    = { name: "BPMS:LI21:233:X"    , blob: 0, aMsk: AVAIL_BC1ENERGY },	/* BC1 Energy in mm */
 };
 
 
@@ -1010,48 +1010,57 @@ epicsUInt32     this_time;
 			}
 
 			/* Copy BC2 Charge */
-			if( (AVAIL_BC2CHARGE & dataAvailable) )
+			/*
+			if( AVAIL_BC2CHARGE == (AVAIL_BC2CHARGE & dataAvailable) )
 			{
-				__st_le64(&bldEbeamInfo.ebeamBC2Current, bldPulsePVs[BC2CHARGE].pTD->value);
+			  bldPulsePVs[BC2CHARGE].pTD->value = 0xAAAA;
+			  __st_le64(&bldEbeamInfo.ebeamBC2Current, bldPulsePVs[BC2CHARGE].pTD->value);
 			}
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
 				bldEbeamInfo.uDamageMask |= __le32(0x40);
 			}
-
+			*/
 			/* Copy BC2 Energy */
-			if( (AVAIL_BC2ENERGY & dataAvailable) )
+			/*
+			if( AVAIL_BC2ENERGY == (AVAIL_BC2ENERGY & dataAvailable) )
 			{
-				__st_le64(&bldEbeamInfo.ebeamBC2Energy, bldPulsePVs[BC2ENERGY].pTD->value);
+			  bldPulsePVs[BC2ENERGY].pTD->value=0xBBBB;
+			  __st_le64(&bldEbeamInfo.ebeamBC2Energy, bldPulsePVs[BC2ENERGY].pTD->value);
 			}
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
 				bldEbeamInfo.uDamageMask |= __le32(0x80);
 			}
-
+			*/
 			/* BC1 Charge */
-			if(AVAIL_BC1CHANGE & dataAvailable)
+			/*
+			if(AVAIL_BC1CHARGE == (AVAIL_BC1CHARGE & dataAvailable))
 			{
-				__st_le64(&bldEbeamInfo.ebeamBC1Current, 0xAA);
+			  bldPulsePVs[BC1CHARGE].pTD->value = 0xCCCC;
+			  __st_le64(&bldEbeamInfo.ebeamBC1Current, bldPulsePVs[BC1CHARGE].pTD->value);
 			}
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
 				bldEbeamInfo.uDamageMask |= __le32(0x100);
 			}
-
-			if(AVAIL_BC1ENERGY & dataAvailable)
+			*/
+			/* BC1 Energy */
+			/*
+			if(AVAIL_BC1ENERGY == (AVAIL_BC1ENERGY & dataAvailable))
 			{
-				__st_le64(&bldEbeamInfo.ebeamBC1Energy, 0xBB);
+			  bldPulsePVs[BC1ENERGY].pTD->value = 0xDDDD;
+			  __st_le64(&bldEbeamInfo.ebeamBC1Energy, bldPulsePVs[BC1ENERGY].pTD->value);
 			}
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
 				bldEbeamInfo.uDamageMask |= __le32(0x200);
 			}
-
+			*/
 			epicsMutexUnlock(bldMutex);
 
 		}
@@ -1220,18 +1229,66 @@ passed:
 			}
 
 			/* Copy bunch length */
+			/*
 			if( (AVAIL_BC2CHARGE & dataAvailable) ) {
-				__st_le64(&bldEbeamInfo.ebeamBC2Current, (double)bldPulseBlobs[BC2CHARGE].blob->fcbl_blen_bimax);
+			  __st_le64(&bldEbeamInfo.ebeamBC2Current, (double)bldPulseBlobs[BC2CHARGE].blob->fcbl_blen_bimax);
 			} else {
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
 				bldEbeamInfo.uDamageMask |= __le32(0x40);
 			}
+			*/
+
+			/* Copy BC2 Charge */
+			if( AVAIL_BC2CHARGE & dataAvailable )
+			{
+			  __st_le64(&bldEbeamInfo.ebeamBC2Current, (double)bldPulseBlobs[BC2CHARGE].blob->fcbl_blen_bimax);
+			}
+			else
+			{
+				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+				bldEbeamInfo.uDamageMask |= __le32(0x40);
+			}
+
+			/* Copy BC2 Energy */
+			if( AVAIL_BC2ENERGY & dataAvailable )
+			{
+			  __st_le64(&bldEbeamInfo.ebeamBC2Energy, (double)bldPulseBlobs[BC2ENERGY].blob->fcbl_bpm_X);
+			}
+			else
+			{
+				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+				bldEbeamInfo.uDamageMask |= __le32(0x80);
+			}
+
+			/* BC1 Charge */
+			if( AVAIL_BC1CHARGE & dataAvailable )
+			{
+			  __st_le64(&bldEbeamInfo.ebeamBC1Current, (double)bldPulseBlobs[BC1CHARGE].blob->fcbl_blen_aimax);
+			}
+			else
+			{
+				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+				bldEbeamInfo.uDamageMask |= __le32(0x100);
+			}
+
+			/* BC1 Energy */
+			if( AVAIL_BC1ENERGY & dataAvailable )
+			{
+			  __st_le64(&bldEbeamInfo.ebeamBC1Energy, (double)bldPulseBlobs[BC1ENERGY].blob->fcbl_bpm_X);
+			}
+			else
+			{
+				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+				bldEbeamInfo.uDamageMask |= __le32(0x200);
+			}
+
 
 			if ( __ld_le32( &bldEbeamInfo.uDamageMask ) ) {
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
 			} else {
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(0);
 			}
+
 			epicsMutexUnlock(bldMutex);
 		}
 #endif /* USE_PULSE_CA */
@@ -1556,9 +1613,10 @@ static long BLD_report_EBEAMINFO() {
   
   printf("ebeamBC1Current: %f Amps\n", __ld_le64(&bldEbeamInfo.ebeamBC1Current));
   printf("ebeamBC1Energy: %f mm\n", __ld_le64(&bldEbeamInfo.ebeamBC1Energy));
-  printf("ebeamBC2Current: %f Amps\n", __ld_le64(&bldEbeamInfo.ebeamBC1Current));
-  printf("ebeamBC2Energy: %f mm\n", __ld_le64(&bldEbeamInfo.ebeamBC1Energy));
-  
+  printf("ebeamBC2Current: %f Amps\n", __ld_le64(&bldEbeamInfo.ebeamBC2Current));
+  printf("ebeamBC2Energy: %f mm\n", __ld_le64(&bldEbeamInfo.ebeamBC2Energy));
+
+  printf("Data Available Mask: %x\n", dataAvailable);
 
   return 0;
 }
