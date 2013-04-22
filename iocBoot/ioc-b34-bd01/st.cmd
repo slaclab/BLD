@@ -38,7 +38,7 @@ epicsEnvSet("IOCSH_PS1","ioc-b34-bd01>")
 #setenv("EPICS_CA_AUTO_ADDR_LIST","NO")
 #setenv("EPICS_CA_ADDR_LIST","172.27.11.54 172.27.9.76 172.27.9.77 172.27.9.78")
 
-#putenv ("EPICS_CA_MAX_ARRAY_BYTES=8000000")
+putenv ("EPICS_CA_MAX_ARRAY_BYTES=8000000")
 #putenv ("EPICS_CA_SERVER_PORT=5068")
 
 ## Register all support components
@@ -57,7 +57,9 @@ dbLoadRecords("db/IOC-SYS0-BD01.db")
 # Set the BLD data records (which are now deprecated,
 # the BLDMcastWfRecv waveform should be used instead)
 # to 'Passive' to effectively disable them.
-dbLoadRecords("db/BLDMCast.db","DIAG_SCAN=Passive, STAT_SCAN=5")
+#dbLoadRecords("db/BLDMCast.db","DIAG_SCAN=Passive, STAT_SCAN=5")
+dbLoadRecords("db/BLDMCast.db","DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+
 
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.
@@ -104,7 +106,7 @@ cd("iocBoot")
 ## =============================================
 #set_pass1_restoreFile("bldParams.sav")
 
-BLD_MCAST_DEBUG=0
+BLD_MCAST_DEBUG=2
 #DELAY_FOR_CA=30
 #bldConnectAbort=9
 

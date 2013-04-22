@@ -29,6 +29,16 @@ record(ai, "BLD:SYS0:500:CHARGE") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "nC")
+  field(FLNK, "BLD:SYS0:500:CHARGETS")
+  field(PRIO, "HIGH")
+}
+
+record(sub, "BLD:SYS0:500:CHARGETS") {
+    field(INAM, "subInit")
+    field(SNAM, "subProcess")
+    field(TSEL, "BLD:SYS0:500:CHARGE.TIME")
+  field(FLNK, "BLD:SYS0:500:EFCHARGE")
+#    field(SCAN, "PASSIVE")
 }
 
 record(ai, "BLD:SYS0:500:ENERGY") {
@@ -39,6 +49,7 @@ record(ai, "BLD:SYS0:500:ENERGY") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "MeV")
+  field(FLNK, "BLD:SYS0:500:EFENERGY")
 }
 
 record(ai, "BLD:SYS0:500:POS_X") {
@@ -49,6 +60,7 @@ record(ai, "BLD:SYS0:500:POS_X") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "mm")
+  field(FLNK, "BLD:SYS0:500:EFPOS_X")
 }
 
 record(ai, "BLD:SYS0:500:POS_Y") {
@@ -59,6 +71,7 @@ record(ai, "BLD:SYS0:500:POS_Y") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "mm")
+  field(FLNK, "BLD:SYS0:500:EFPOS_Y")
 }
 
 record(ai, "BLD:SYS0:500:ANG_X") {
@@ -69,6 +82,7 @@ record(ai, "BLD:SYS0:500:ANG_X") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "mrad")
+  field(FLNK, "BLD:SYS0:500:EFANG_X")
 }
 
 record(ai, "BLD:SYS0:500:ANG_Y") {
@@ -79,6 +93,7 @@ record(ai, "BLD:SYS0:500:ANG_Y") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "mrad")
+  field(FLNK, "BLD:SYS0:500:EFANG_Y")
 }
 
 record(ai, "BLD:SYS0:500:BLEN") {
@@ -99,6 +114,7 @@ record(ai, "BLD:SYS0:500:BC2CHARGE") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "Amps")
+  field(FLNK, "BLD:SYS0:500:EFBC2CHARGE")
 }
 
 record(ai, "BLD:SYS0:500:BC2ENERGY") {
@@ -109,6 +125,7 @@ record(ai, "BLD:SYS0:500:BC2ENERGY") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "mm")
+  field(FLNK, "BLD:SYS0:500:EFBC2ENERGY")
 }
 
 record(ai, "BLD:SYS0:500:BC1CHARGE") {
@@ -119,6 +136,7 @@ record(ai, "BLD:SYS0:500:BC1CHARGE") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "Amps")
+  field(FLNK, "BLD:SYS0:500:EFBC1CHARGE")
 }
 
 record(ai, "BLD:SYS0:500:BC1ENERGY") {
@@ -129,6 +147,7 @@ record(ai, "BLD:SYS0:500:BC1ENERGY") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "mm")
+  field(FLNK, "BLD:SYS0:500:EFBC1ENERGY")
 }
 
 record(longin, "BLD:SYS0:500:TMITLATEERRS") {
@@ -208,6 +227,13 @@ record(longin, "BLD:SYS0:500:BC1ENLATEERRS") {
 	field(INP,  "#C10S2@bld_stat_bad_t,m32")
 }
 
+record(longin, "BLD:SYS0:500:UNDLATEERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C11S2@bld_stat_bad_t,m32")
+}
+
 record(longin, "BLD:SYS0:500:TMITBADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
@@ -285,6 +311,13 @@ record(longin, "BLD:SYS0:500:BC1ENBADERRS") {
 	field(INP,  "#C10S2@bld_stat_bad_d,m32")
 }
 
+record(longin, "BLD:SYS0:500:UNDBADERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C11S2@bld_stat_bad_d,m32")
+}
+
 record(longin, "BLD:SYS0:500:TMITFCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
@@ -360,6 +393,13 @@ record(longin, "BLD:SYS0:500:BC1ENFCOMERRS") {
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C10S2@bld_stat_bad_f,m32")
+}
+
+record(longin, "BLD:SYS0:500:UNDFCOMERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C11S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:SYS0:500:MCASTSENT") {

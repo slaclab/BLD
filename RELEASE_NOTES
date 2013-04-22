@@ -1,6 +1,17 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-1-1: (BLD-R2-0-0-BR branch)
+  o Addition of Db file with BSA records 
+
+  o Change in startup script to allow individual PVs
+    (e.g. BLD:SYS0:500:CHARGE) to be updated on
+    "I/O Intr". This is required in order to have
+    BSA records working.
+
+  o FLNK fields were added to individual PVs, pointing
+    to the BSA records.
+
 BLD-R2-1-0: (BLD-R2-0-0-BR branch)
   o Addition of extra fields:
     BC2Energy - BPMS:LI24:801:X (in mm)

@@ -4,3 +4,6 @@ driver(drvBLD)
 variable(BLD_MCAST_DEBUG)
 variable(BLD_MCAST_ENABLE)
 variable(DELAY_FOR_CA)
+
+function(subInit)
+function(subProcess)

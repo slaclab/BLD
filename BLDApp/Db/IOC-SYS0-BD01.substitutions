@@ -3,6 +3,21 @@ file iocAdminRTEMS.db
 {IOC=IOC:SYS0:BD01}
 }
 
+file evr.db
+{
+#                               Default Pulse
+#         Device         Card   Delay   Width (clock ticks)    
+pattern { DEV          , CARD , DELAY , WIDTH}
+        { EVR:SYS0:BD01,  0   ,   8   ,  12  }
+}
+file evrWithFrontPanel.db
+{
+#                               Default Pulse
+#         Device         Card   Delay   Width (clock ticks)    
+pattern { DEV          , CARD , DELAY , WIDTH , FP0 , FP1 , FP2 , FP3 }
+        { EVR:SYS0:BD01,  1   ,   8   ,  12   ,  0  ,  1  ,  22 , 23  }
+}
+
 #file evrDevTrig.db 
 #{
 ##           Device	   , Description    ,polarity,width,delay,event , EVR  ,  EVR,  IOC 
@@ -59,3 +74,8 @@ file save_restoreStatus.db
           { IOC:SYS0:BD01: }
 }
 
+file bsaBLDEdef.db {
+    pattern
+    { DEVICE, LOC, UN, SLCLNK }
+    { BLD:SYS0:500, SYS0, 500, "" }
+}

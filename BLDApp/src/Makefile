@@ -32,10 +32,10 @@ BLD_DBD += devBLDMCastWfRecv.dbd
 
 # Add all the support libraries needed by this IOC
 BLD_LIBS += evrSupport
-BLD_LIBS += sSubRecord
 #BLD_LIBS += generalTime
 BLD_LIBS += devMrfEr
 BLD_LIBS += mrfVme64x
+BLD_LIBS += sSubRecord
 #BLD_LIBS += restore
 BLD_LIBS += autosave
 BLD_LIBS += devIocStats

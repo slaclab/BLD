@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastStatus.c,v 1.10 2010/04/08 22:00:17 strauman Exp $ */
+/* $Id: devBLDMCastStatus.c,v 1.10.2.1 2012/03/19 22:32:25 lpiccoli Exp $ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -13,6 +13,8 @@
 #include <aiRecord.h>
 
 #include "BLDMCast.h"
+
+extern int BLD_MCAST_DEBUG;
 
 /* define function flags */
 typedef enum {
@@ -84,9 +86,16 @@ int damage = 0;
     switch ((int)pai->dpvt)
     {
     case BLD_AI_CHARGE:
-        pai->val = __ld_le64(&bldEbeamInfo.ebeamCharge);
-        if(bldEbeamInfo.uDamageMask & __le32(0x1))
-			damage = 1;
+      pai->val = __ld_le64(&bldEbeamInfo.ebeamCharge);
+      /*
+      if(bldEbeamInfo.uDamageMask & __le32(0x1))
+	damage = 1;
+      */
+      if (BLD_MCAST_DEBUG == 1) {
+	epicsUInt32 idcmp;
+	idcmp = bldEbeamInfo.ts_nsec & 0x0001FFFF;
+	printf ("%d\n", idcmp);
+      }
         break;
     case BLD_AI_ENERGY:
         pai->val = __ld_le64(&bldEbeamInfo.ebeamL3Energy);
@@ -144,7 +153,7 @@ int damage = 0;
 		/* do timestamp by device support */
         pai->time.secPastEpoch = __ld_le32(&bldEbeamInfo.ts_sec);
         pai->time.nsec         = __ld_le32(&bldEbeamInfo.ts_nsec);
-	}
+    }
 
     if(bldMutex) epicsMutexUnlock(bldMutex);
 
@@ -168,5 +177,22 @@ struct BLD_DEV_SUP_SET
 };
 
 struct BLD_DEV_SUP_SET devAiBLD = {6, NULL, NULL, init_ai, ai_ioint_info, read_ai, NULL};
+
+#include <subRecord.h>
+#include <registryFunction.h>
+#include <epicsExport.h>
+
+long subInit(struct subRecord *psub) {
+  printf("subInit was called\n");
+  return 0;
+}
+
+long subProcess(struct subRecord *psub) {
+  psub->val = (int)(psub->time.nsec & 0x1FFFF);
+  return 0;
+}
+
+epicsRegisterFunction(subInit);
+epicsRegisterFunction(subProcess);
 
 epicsExportAddress(dset, devAiBLD);
