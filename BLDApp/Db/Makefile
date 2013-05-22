@@ -15,6 +15,7 @@ DB += bsaBLDEdef.db
 DB += BLDMCast.db
 DB += BLDMCastWfRecv.db
 DB += IOC-SYS0-BD01.db
+DB += IOC-SYS0-FB05.db
 
 DB_INSTALLS += $(EVENT)/db/eventCodeSequenceAll.db
 

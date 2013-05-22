@@ -1,0 +1,81 @@
+file iocAdminRTEMS.db
+{
+{IOC=IOC:SYS0:FB05}
+}
+
+file evr.db
+{
+#                               Default Pulse
+#         Device         Card   Delay   Width (clock ticks)    
+pattern { DEV          , CARD , DELAY , WIDTH}
+        { EVR:SYS0:FB05,  0   ,   8   ,  12  }
+}
+file evrWithFrontPanel.db
+{
+#                               Default Pulse
+#         Device         Card   Delay   Width (clock ticks)    
+pattern { DEV          , CARD , DELAY , WIDTH , FP0 , FP1 , FP2 , FP3 }
+        { EVR:SYS0:FB05,  1   ,   8   ,  12   ,  0  ,  1  ,  22 , 23  }
+}
+
+#file evrDevTrig.db 
+#{
+##           Device	   , Description    ,polarity,width,delay,event , EVR  ,  EVR,  IOC 
+##			                                           code ,location,unit
+#  pattern { DEV            ,  DESC          ,POL,     WID,   DES , TEC   , LOCA , UNIT, IOC          ,  DRVL  ,  DRVH   , TCTL , TPOL, TWID, TDES, CTL}
+#	  { BLD:SYS0:501A: , "Spare Trig 0" , 1 ,   20000000,10, LCLSBD  , MCC0 , FB05, IOC:SYS0:FB05, -2.8E06, 2.8E06  , DG0E , DG0P, DG0W, DG0D, 0  }
+#	  { BLD:SYS0:501B: , "Spare Trig 1" , 1 ,   20000000,10, LCLSBD  , MCC0 , FB05, IOC:SYS0:FB05, -2.8E06, 2.8E06  , DG1E , DG1P, DG1W, DG1D, 0  }
+#	  { BLD:SYS0:501C:,  "Spare Trig 2" , 1 ,   20000000,10, LCLSBD  , MCC0 , FB05, IOC:SYS0:FB05, -2.8E06, 2.8E06  , DG2E , DG2P, DG2W, DG2D, 0  }
+#}
+
+file evrWithExtDelays.db
+{
+#                      Default Pulse <--------------------------- Extended Delays -------------------------------------->
+#        Device     Card Delay Width State    Clock PreScaler   Pulse Widths       Delays             Polarities
+pattern { DEV      ,CARD,DELAY,WIDTH,STATE   , DG0C,DG1C,DG2C, DG0W,DG1W,DG2W, DG0D,DG1D,DG2D,   DG0P  ,  DG1P  ,  DG2P  }
+        {EVR:SYS0:FB05,0,  0  , 12  ,Enabled , 119 ,119 ,119 , 1000,1000, 5  , 500 ,900 ,7200, Inverted, Normal ,Inverted}
+}
+file evrEventCtrl.db
+{
+#         Device      Card  <----------------------------  Event -------------------------->
+pattern { DEV       , CARD , NAME    , ID ,P0,P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12,P13,VME}
+        {EVR:SYS0:FB05, 0  , EVENT1  ,140 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0 }
+        {EVR:SYS0:FB05, 0  , EVENT2  ,141 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0 }
+        {EVR:SYS0:FB05, 0  , EVENT3  ,142 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0 }
+        {EVR:SYS0:FB05, 0  , EVENT4  , 43 , 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 , 1 , 1 , 1 , 0 }
+        {EVR:SYS0:FB05, 0  , EVENT5  ,144 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0 }
+        {EVR:SYS0:FB05, 0  , EVENT6  ,145 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0 }
+        {EVR:SYS0:FB05, 0  , EVENT7  ,146 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 1 }
+        {EVR:SYS0:FB05, 0  , EVENT8  , 10 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0 }
+        {EVR:SYS0:FB05, 0  , EVENT9  , 11 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0 }
+        {EVR:SYS0:FB05, 0  , EVENT10 , 12 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0 }
+        {EVR:SYS0:FB05, 0  , EVENT11 , 13 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0 }
+        {EVR:SYS0:FB05, 0  , EVENT12 , 14 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0 }
+        {EVR:SYS0:FB05, 0  , EVENT13 , 15 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0 }
+        {EVR:SYS0:FB05, 0  , EVENT14 , 16 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0 }
+}
+
+file evrPatternAll.db
+{
+#           Device        ,  SLC Pattern, EVR/Trigger
+#                                           Links
+  pattern { DEVICE        ,  LINK4      , LINK5 , LINK6 , TREF    , TS1ST, TS2ND }
+          { IOC:SYS0:FB05 ,   ""        ,  ""   ,  ""   , 1.03E06 ,   1  ,   4   }
+}
+file evrEventAll.db
+{
+  pattern { DEVICE        }
+          { IOC:SYS0:FB05 }
+}
+
+file save_restoreStatus.db
+{
+  pattern { P        }
+          { IOC:SYS0:FB05: }
+}
+
+file bsaBLDEdef.db {
+    pattern
+    { DEVICE, LOC, UN, SLCLNK }
+    { BLD:SYS0:501, SYS0, 501, "" }
+}
