@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.44.2.1 2012/03/19 22:32:23 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.44.2.2 2012/03/20 20:48:29 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +44,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.44.2.1 $/$Name: BLD-R2-0-0-BR $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.44.2.2 $/$Name: BLD-R2-0-0-BR $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -65,6 +65,12 @@
  */
 #define MULTICAST           /* Use multicast interface */
 #define MULTICAST_UDPCOMM   /* Use UDPCOMM for data output; BSD sockets otherwise */
+
+#define FB05TEST
+#ifdef FB05TEST
+#undef MULTICAST
+#undef MULTICAST_UDFCOMM
+#endif
 
 #define BSPTIMER    0       /* Timer instance -- use first timer */
 
@@ -174,10 +180,17 @@ typedef struct BLDBLOB {
 
 BLDPV bldStaticPVs[]=
 {
+#ifdef FB05TEST
+    [DSPR1]  = {"BLD:SYS0:501:DSPR1",  1, AVAIL_DSPR1,  NULL, NULL},	/* For Energy */
+    [DSPR2]  = {"BLD:SYS0:501:DSPR2",  1, AVAIL_DSPR2,  NULL, NULL},	/* For Energy */
+    [E0BDES] = {"BEND:LTU0:125:BDES",  1, AVAIL_E0BDES, NULL, NULL},	/* Energy in MeV */
+    [FMTRX]  = {"BLD:SYS0:501:FMTRX", 32, AVAIL_FMTRX,  NULL, NULL}	/* For Position */
+#else
     [DSPR1]  = {"BLD:SYS0:500:DSPR1",  1, AVAIL_DSPR1,  NULL, NULL},	/* For Energy */
     [DSPR2]  = {"BLD:SYS0:500:DSPR2",  1, AVAIL_DSPR2,  NULL, NULL},	/* For Energy */
     [E0BDES] = {"BEND:LTU0:125:BDES",  1, AVAIL_E0BDES, NULL, NULL},	/* Energy in MeV */
     [FMTRX]  = {"BLD:SYS0:500:FMTRX", 32, AVAIL_FMTRX,  NULL, NULL}	/* For Position */
+#endif
 };
 #define N_STATIC_PVS (sizeof(bldStaticPVs)/sizeof(bldStaticPVs[0]))
 
