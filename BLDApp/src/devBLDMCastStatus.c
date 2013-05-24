@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastStatus.c,v 1.10.2.1 2012/03/19 22:32:25 lpiccoli Exp $ */
+/* $Id: devBLDMCastStatus.c,v 1.10.2.2 2013/04/22 20:27:46 lpiccoli Exp $ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -87,10 +87,8 @@ int damage = 0;
     {
     case BLD_AI_CHARGE:
       pai->val = __ld_le64(&bldEbeamInfo.ebeamCharge);
-      /*
       if(bldEbeamInfo.uDamageMask & __le32(0x1))
 	damage = 1;
-      */
       if (BLD_MCAST_DEBUG == 1) {
 	epicsUInt32 idcmp;
 	idcmp = bldEbeamInfo.ts_nsec & 0x0001FFFF;

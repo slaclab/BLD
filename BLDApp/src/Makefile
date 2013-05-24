@@ -50,7 +50,13 @@ BLD_SRCS += BLDMCast.c
 BLD_SRCS += devBLDMCastStatus.c
 BLD_SRCS += catest.c
 BLD_SRCS += camon.c
+BLD_SRCS += getBLD.c
 BLD_SRCS += BLD_registerRecordDeviceDriver.cpp
+
+BLD_SRCS += BLDMCastReceiver.c
+BLD_SRCS += BLDMCastReceiverPhaseCavity.c
+BLD_SRCS += devBLDMCastReceiverPhaseCavity.c
+
 
 # Build the main IOC entry point on workstation OSs.
 BLD_SRCS_DEFAULT += BLDMain.cpp

@@ -1,0 +1,71 @@
+record(ai, "BLD:SYS0:$(LOCA):PCAV_CHARGE1") {
+  field(DESC, "Phase Cavity Charge1")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_PCAV")
+  field(INP,  "@PCAV_CHARGE1")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "nC")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFPCAV_CHARGE1")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):PCAV_CHARGE2") {
+  field(DESC, "Phase Cavity Charge2")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_PCAV")
+  field(INP,  "@PCAV_CHARGE2")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "nC")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFPCAV_CHARGE2")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):PCAV_FITTIME1") {
+  field(DESC, "Phase Cavity FitTime1")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_PCAV")
+  field(INP,  "@PCAV_FITTIME1")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "nC")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFPCAV_FITTIME1")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):PCAV_FITTIME2") {
+  field(DESC, "Phase Cavity FitTime2")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_PCAV")
+  field(INP,  "@PCAV_FITTIME2")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "nC")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFPCAV_FITTIME2")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):PCAV_PULSEID") {
+  field(DESC, "Phase Cavity PULSEID")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_PCAV")
+  field(INP,  "@PCAV_PULSEID")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "nC")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFPCAV_PULSEID")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):PCAV_STATUS") {
+  field(DESC, "Phase Cavity STATUS")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_PCAV")
+  field(INP,  "@PCAV_STATUS")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "nC")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFPCAV_STATUS")
+  field(PRIO, "HIGH")
+}

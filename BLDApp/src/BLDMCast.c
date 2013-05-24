@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.44.2.2 2012/03/20 20:48:29 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.44.2.3 2013/05/22 18:15:10 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +44,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.44.2.2 $/$Name: BLD-R2-0-0-BR $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.44.2.3 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -63,8 +63,8 @@
  * ca_add_masked_array_event() wrapper which calls
  * ca_create_subscription with the DBE_VALUE | DBE_ALARM mask ...
  */
-#define MULTICAST           /* Use multicast interface */
-#define MULTICAST_UDPCOMM   /* Use UDPCOMM for data output; BSD sockets otherwise */
+#define xxxMULTICAST           /* Use multicast interface */
+#define xxxMULTICAST_UDPCOMM   /* Use UDPCOMM for data output; BSD sockets otherwise */
 
 #define FB05TEST
 #ifdef FB05TEST
@@ -358,6 +358,9 @@ static in_addr_t mcastIntfIp = 0;
 
 static epicsEventId EVRFireEvent = NULL;
 
+epicsEventId EVRFireEventPCAV = NULL;
+int pcavPulseId = 0;
+
 /* EPICS time has pulse ID in lower bits of nanoseconds;
  * for measuring high-resolution delays we also need
  * the real nano- or at least microseconds.
@@ -478,6 +481,7 @@ void EVRFire(void *use_sets)
 				BSP_timer_start( BSPTIMER, timer_delay_clicks );
 			} else {
 				epicsEventSignal(EVRFireEvent);
+				epicsEventSignal(EVRFireEventPCAV);
 			}
 
 		}
@@ -490,7 +494,11 @@ void EVRFire(void *use_sets)
 
 static void evr_timer_isr(void *arg)
 {/* post event/release sema to wakeup worker task here */
-    if(EVRFireEvent) epicsEventSignal(EVRFireEvent);
+  if(EVRFireEvent) { 
+    epicsEventSignal(EVRFireEvent);
+    epicsEventSignal(EVRFireEventPCAV);
+  }
+
     /* This is 30Hz. So printk might screw timing */
     if(BLD_MCAST_DEBUG >= 3) printk("Timer fires\n");
     return;
@@ -1178,6 +1186,7 @@ passed:
 			__st_le32(&bldEbeamInfo.ts_sec,      p_refTime->secPastEpoch);
 			__st_le32(&bldEbeamInfo.ts_nsec,     p_refTime->nsec);
 			__st_le32(&bldEbeamInfo.uFiducialId, PULSEID((*p_refTime)));
+			pcavPulseId = PULSEID(*p_refTime);
 
 			/* Calculate beam charge */
 			if( (dataAvailable & AVAIL_BMCHARGE) ) {
@@ -1537,6 +1546,11 @@ int rtncode;
 	bldMutex = epicsMutexMustCreate();
 
 	BLDMCastStart(1, getenv("IPADDR1"));
+
+	/** This starts the Multicast Receiver Tasks */
+	EVRFireEventPCAV = epicsEventMustCreate(epicsEventEmpty);
+	bld_receivers_start();
+
 	return 0;
 }
 
@@ -1587,9 +1601,13 @@ static long BLD_EPICS_Report(int level)
 		printf("  Delays (using a hardware timer) and reads data asynchronously\n");
 #endif
 
-	if ( level > 1 ) {
+	printf("Latest PULSEID   : %d\n", __ld_le32(&bldEbeamInfo.uFiducialId));
+
+	if ( level > 3 ) {
 	  BLD_report_EBEAMINFO();
 	}
+
+	bld_receivers_report(level);
 
     return 0;
 }

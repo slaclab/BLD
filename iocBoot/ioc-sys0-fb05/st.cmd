@@ -32,7 +32,7 @@ fcomInit(fcomUtilGethostbyname("mc-lcls-fcom"),1000)
 
 ##< envPaths
 # Set IOC Shell Prompt as well:
-epicsEnvSet("IOCSH_PS1","ioc-sys0-bd01>")
+epicsEnvSet("IOCSH_PS1","ioc-sys0-fb05>")
 
 setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
 setenv("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
@@ -62,6 +62,7 @@ dbLoadRecords("db/IOC-SYS0-FB05.db")
 # to 'Passive' to effectively disable them.
 #dbLoadRecords("db/BLDMCast.db","DIAG_SCAN=Passive, STAT_SCAN=5")
 dbLoadRecords("db/BLDMCast.db","LOCA=501, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+dbLoadRecords("db/BLDMCastReceiverPhaseCavity.db","LOCA=501, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.
@@ -84,7 +85,7 @@ dbLoadRecords("db/BLDMCast.db","LOCA=501, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 # which would be faster, simpler and more flexible)
 # 
 
-dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:BD01:BLDWAV, scan=Event, evnt=146, rarm=2")
+dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:FB05:BLDWAV, scan=Event, evnt=146, rarm=2")
 
 # ======================================================================
 ## Configure AutoSave and Restore
