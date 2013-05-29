@@ -1,9 +1,8 @@
-/* $Id: $ */
+/* $Id: devBLDMCastReceiverPhaseCavity.c,v 1.1.2.1 2013/05/24 22:12:50 lpiccoli Exp $ */
 
 #include <string.h>
 #include <stdlib.h>
 
-#include <epicsMutex.h>
 #include <epicsExport.h>
 #include <dbScan.h>
 #include <dbAccess.h>
@@ -68,11 +67,21 @@ static long ai_ioint_info(int cmd,aiRecord *pai,IOSCANPVT *iopvt) {
 }
 
 static long read_ai(struct aiRecord *pai) {
-  /** Recursively acquire the lock until all PVs have been updated */
-  epicsMutexLock(bldPhaseCavityReceiver->mutex);
-
   BLDPhaseCavity *pcav = bldPhaseCavityReceiver->bld_payload_bsa;
   BLDHeader *header = bldPhaseCavityReceiver->bld_header_bsa;
+
+  /* Make sure BSA buffers receive data from the same PULSEID */
+  if (bldPhaseCavityReceiver->bsa_counter == 0) {
+    bldPhaseCavityReceiver->bsa_pulseid = __ld_le32(&(header->fiducialId));
+  }
+  else {
+    if (bldPhaseCavityReceiver->bsa_pulseid != __ld_le32(&(header->fiducialId))) {
+      bldPhaseCavityReceiver->bsa_pulseid_mismatch++;
+    }
+  }
+
+
+  bldPhaseCavityReceiver->bsa_counter++;
 
   switch ((int)pai->dpvt) {
   case PCAV_CHARGE1:
@@ -95,6 +104,7 @@ static long read_ai(struct aiRecord *pai) {
     break;
   default:
     pai->val = -1;
+    bldPhaseCavityReceiver->bsa_counter--;
     break;
   }
 
@@ -103,17 +113,12 @@ static long read_ai(struct aiRecord *pai) {
     pai->time.secPastEpoch = __ld_le32(&(header->tv_sec));
     pai->time.nsec         = __ld_le32(&(header->tv_nsec));
   }
-
-
-  /** Release mutex after all items have been copied to the appropriate record */
-  bldPhaseCavityReceiver->mutex_counter++;
-  if (bldPhaseCavityReceiver->mutex_counter >=
+  
+  if (bldPhaseCavityReceiver->bsa_counter >=
       bldPhaseCavityReceiver->payload_count + 2) {
-    int i = 0;
-    for (; i < bldPhaseCavityReceiver->mutex_counter; i++) {
-      epicsMutexUnlock(bldPhaseCavityReceiver->mutex);
-    }
+    bldPhaseCavityReceiver->bsa_counter++;
   }
+
 
   pai->udf = FALSE;
   

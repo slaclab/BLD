@@ -1,4 +1,4 @@
-/* $Id: $ */
+/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.1.2.1 2013/05/24 22:12:06 lpiccoli Exp $ */
 
 #include <stdio.h>
 #include <string.h>
@@ -24,10 +24,8 @@ int phase_cavity_create(BLDMCastReceiver **bld_receiver) {
 
 void phase_cavity_report(void *bld_receiver, int level) {
   BLDMCastReceiver *receiver = bld_receiver;
-  epicsMutexLock(receiver->mutex);
   printf("*** PhaseCavity BLD ***\n");
   bld_receiver_report(bld_receiver, level);
-  epicsMutexUnlock(receiver->mutex);
 }
 
 extern EBEAMINFO bldEbeamInfo;
@@ -38,8 +36,6 @@ extern EBEAMINFO bldEbeamInfo;
  *
  * Once received, the package is copied from the recv buffer into
  * the bsa buffer (accessed by the device support code).
- *
- * Copy to the bsa buffer is controlled by the bld_receiver->mutex
  */
 void phase_cavity_run(void *bld_receiver) {
   if (bld_receiver == NULL) {
@@ -49,22 +45,24 @@ void phase_cavity_run(void *bld_receiver) {
 
   BLDMCastReceiver *this = bld_receiver;
   while(1) {
-    bld_receiver_next(bld_receiver);
+    /** Get the next BLD from the message queue (saved to the bld_*_bsa */
+    if (bld_receiver_next(bld_receiver) == 0) {    
+      BLDPhaseCavity *pcav = this->bld_payload_bsa;
+      BLDHeader *header = this->bld_header_bsa;
     
-    BLDPhaseCavity *pcav = this->bld_payload_recv;
-    BLDHeader *header = this->bld_header_recv;
-
-    /** TEST_CODE --- begin */
-    __st_le64(&(pcav->charge1), (double)this->packets_received);
-    __st_le64(&(pcav->charge2), (double)this->packets_received + 1);
-    __st_le64(&(pcav->fitTime1), (double)this->packets_received + 2);
-    __st_le64(&(pcav->fitTime2), (double)this->packets_received + 3);
-    /** TEST_CODE --- end */
-
-    epicsMutexLock(this->mutex);
-    memcpy(this->bld_header_bsa, this->bld_header_recv, sizeof(BLDHeader) + sizeof(BLDPhaseCavity));
-    scanIoRequest(bldPhaseCavityIoscan);
-    epicsMutexUnlock(this->mutex);
+      epicsMutexLock(this->mutex);
+      this->packets_processed++;
+      
+      /** TEST_CODE --- begin */
+      __st_le64(&(pcav->charge1), (double)this->packets_received);
+      __st_le64(&(pcav->charge2), (double)this->packets_received + 1);
+      __st_le64(&(pcav->fitTime1), (double)this->packets_received + 2);
+      __st_le64(&(pcav->fitTime2), (double)this->packets_received + 3);
+      /** TEST_CODE --- end */
+      
+      scanIoRequest(bldPhaseCavityIoscan);
+      epicsMutexUnlock(this->mutex);
+    }
   }
 }
 

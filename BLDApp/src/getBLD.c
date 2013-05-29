@@ -187,7 +187,7 @@ int getBLD(char *interface) {
 
   unsigned int address = ntohl(inet_addr("239.255.24.1"));
   unsigned int port = 10148;
-  int recvBufSize = 512;
+  int recvBufSize = 5000;
 
   if (interface == NULL) {
     printf("Please specify an interface.\n");
