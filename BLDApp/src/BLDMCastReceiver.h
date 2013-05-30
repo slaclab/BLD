@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.h,v 1.1.2.1 2013/05/24 22:12:06 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiver.h,v 1.1.2.2 2013/05/29 21:35:03 lpiccoli Exp $ */
 
 #ifndef _BLDMCASTRECEIVER_H_
 #define _BLDMCASTRECEIVER_H_
@@ -19,6 +19,15 @@
  * the queue and invoking ioScanRequest to update the BSA PVs.
  */
 struct BLDMCastReceiver {
+  /** Socket for receiving multicast BLD packets */
+  int sock;
+
+  /** Multicast address (string) */
+  char *multicast_group;
+
+  /** Port number */
+  int port;
+
   /** Latest BLD header - passed to recvmsg */
   BLDHeader *bld_header_recv; 
 
@@ -56,6 +65,9 @@ struct BLDMCastReceiver {
   /** BSA PV counter - used to verify all BSA PVs were written */
   int bsa_counter;
 
+  /** Count missing BLDs based on differences between received PULSEIDs */
+  long missing_bld_counter;
+  
   /** Number of BLD packets received */
   long packets_received;
 
@@ -64,6 +76,9 @@ struct BLDMCastReceiver {
 
   /** Current BSA PULSEID - used to make sure BSA buffers get the same data */
   unsigned int bsa_pulseid;
+
+  /** Current BLD PULSEID - used to verify if there are missing BLD packets */
+  unsigned int bld_pulseid;
 
   /** Counts number of BSA PULSEID mismatches */
   long bsa_pulseid_mismatch;
@@ -77,7 +92,8 @@ struct BLDMCastReceiver {
 
 typedef struct BLDMCastReceiver BLDMCastReceiver;
 
-int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_count);
+int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_count,
+			char *multicast_group, int port);
 int bld_receiver_destroy(BLDMCastReceiver *this);
 int bld_receiver_next(BLDMCastReceiver *this);
 void bld_receiver_report(void *this, int level);

@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastReceiverPhaseCavity.c,v 1.1.2.1 2013/05/24 22:12:50 lpiccoli Exp $ */
+/* $Id: devBLDMCastReceiverPhaseCavity.c,v 1.1.2.2 2013/05/29 21:35:03 lpiccoli Exp $ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -18,7 +18,10 @@
 extern int BLD_MCAST_DEBUG;
 extern IOSCANPVT bldPhaseCavityIoscan;
 extern BLDMCastReceiver *bldPhaseCavityReceiver;
+
+#ifdef SIGNAL_TEST
 extern pcavPulseId;
+#endif
 
 /* define function flags */
 typedef enum {
@@ -97,7 +100,11 @@ static long read_ai(struct aiRecord *pai) {
     pai->val = __ld_le64(&(pcav->fitTime2));
     break;
   case PCAV_PULSEID:
-    pai->val = pcavPulseId;/*__ld_le32(&(header->fiducialId));*/
+#ifdef SIGNAL_TEST
+    pai->val = pcavPulseId;
+#else
+    pai->val = __ld_le32(&(header->fiducialId));
+#endif
     break;
   case PCAV_STATUS:
     pai->val = __ld_le32(&(header->damage));

@@ -1,9 +1,12 @@
-/* $Id: $ */
+/* $Id: BLDMCastReceiverPhaseCavity.h,v 1.1.2.1 2013/05/24 22:12:06 lpiccoli Exp $ */
 
 #ifndef _BLDMCASTRECEIVERPHASECAVITY_H_
 #define _BLDMCASTRECEIVERPHASECAVITY_H_
 
 #include "BLDMCast.h"
+
+#define BLD_PHASE_CAVITY_GROUP "239.255.24.1"
+#define BLD_PHASE_CAVITY_PORT 10148
 
 /**
  * Phase Cavity Data

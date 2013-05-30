@@ -8,6 +8,10 @@ include $(TOP)/configure/CONFIG
 #=============================
 # Build the IOC application
 
+# -DSIGNAL_TEST: do not receive BLD multicast data, generate fake data for testing!
+# -DFB05_TEST  : used when running tests on FB05
+USR_CPPFLAGS = -DSIGNAL_TEST -DFB05_TEST
+
 PROD_IOC_RTEMS = BLD
 PROD_IOC       = bldget bldrx
 

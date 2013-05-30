@@ -1,7 +1,21 @@
-/* $Id: BLDMCastReceiver.c,v 1.1.2.1 2013/05/24 22:12:06 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.1.2.2 2013/05/29 21:35:03 lpiccoli Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
+#include <getopt.h>
+#include <signal.h>
+#include <unistd.h>
+#include <time.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <netdb.h>
+#include <sys/uio.h>
+#include <net/if.h>
 
 #include "epicsThread.h"
 #include "epicsEvent.h"
@@ -10,7 +24,138 @@
 #include "BLDMCastReceiver.h"
 #include "BLDMCastReceiverPhaseCavity.h"
 
+#define BLD_FB05_ETH0 "172.27.10.185"
+#define BLD_IOC_ETH0 "172.27.10.185"
+
 extern epicsEventId EVRFireEventPCAV;
+
+static void address_to_string(unsigned int address, char *str) {
+  unsigned int networkAddr = htonl(address);
+  const unsigned char* pcAddr = (const unsigned char*) &networkAddr;
+
+  sprintf(str, "%u.%u.%u.%u", pcAddr[0], pcAddr[1], pcAddr[2], pcAddr[3]);
+}
+
+static int create_socket(unsigned int address, unsigned int port, int receive_buffer_size) {
+  int sock = -1;
+
+  sock = socket(AF_INET, SOCK_DGRAM, 0);
+  if (sock == -1) {
+    printf("ERROR: Failed to create socket (errno=%d)\n", errno);
+    return -1;
+  }
+
+  if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF,
+		 &receive_buffer_size, sizeof(receive_buffer_size)) == -1) {
+    printf("ERROR: Failed to set socket receiver buffer size (errno=%d)\n", errno);
+    return -1;
+  }
+
+  int reuse = 1;
+
+  if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+		 &reuse, sizeof(reuse)) == -1) {
+    printf("ERROR: Failed to set socket reuse address option (errno=%d)\n", errno);
+    return -1;
+  }
+
+  struct timeval timeout;
+  timeout.tv_sec = 20;
+  timeout.tv_usec = 0;
+
+  if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO,
+		 &timeout, sizeof(timeout)) == -1) {
+    printf("ERROR: Failed to set socket timeout option (errno=%d)\n", errno);
+    return -1;
+  }
+
+  struct sockaddr_in sockaddrSrc;
+  sockaddrSrc.sin_family = AF_INET;
+  sockaddrSrc.sin_addr.s_addr = htonl(address);
+  sockaddrSrc.sin_port = htons(port);
+  
+  if (bind(sock, (struct sockaddr*) &sockaddrSrc, sizeof(sockaddrSrc)) == -1) {
+    printf("ERROR: Failed to bind socket (errno=%d)\n", errno);
+  }
+
+  struct sockaddr_in sockaddrName;
+  socklen_t len = sizeof(sockaddrName);
+  if(getsockname(sock, (struct sockaddr *) &sockaddrName, &len) == 0) {
+    unsigned int sockAddress = ntohl(sockaddrName.sin_addr.s_addr);
+    unsigned int sockPort = (unsigned int )ntohs(sockaddrName.sin_port);
+    char str[100];
+    address_to_string(sockAddress, str);
+    printf( "Server addr: %s  Port %u  Buffer Size %u\n",
+	    str, sockPort, receive_buffer_size);
+  }
+  else {
+    printf("ERROR: Failed on getsockname() (errno=%d)\n", errno);
+    return -1;
+  }
+
+  return 0;
+}
+
+static int register_multicast(int sock, unsigned int address) {
+  unsigned int interface;
+
+#ifdef FB05_TEST
+  char *interface_string = BLD_FB05_ETH0;
+#else
+  char *interface_string = BLD_IOC_ETH0;
+#endif
+
+  struct in_addr inp;
+  if (inet_aton(interface_string, &inp) == 0) {
+    printf("ERROR: Failed on inet_aton() (errno=%d)\n", errno);
+    return -1;
+  }
+
+  interface = ntohl(inp.s_addr);
+
+  if (interface != 0) {
+    char str[100];
+    address_to_string(interface, str);
+    printf("Multicast interface IP: %s (interface %s)\n", str, interface_string);
+
+    struct ip_mreq ipMreq;
+    memset((char*)&ipMreq, 0, sizeof(ipMreq));
+    ipMreq.imr_multiaddr.s_addr = htonl(address);
+    ipMreq.imr_interface.s_addr = htonl(interface);
+    if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&ipMreq,
+		   sizeof(ipMreq)) < 0 ) {
+      printf("ERROR: Failed to set socket multicast option (errno=%d)\n", errno);
+      return -1;
+    }
+  }
+  else {
+    printf("ERROR: Failed on ntohl(inet_addr(...)) (errno=%d)\n", errno);
+    return -1;
+  }
+  
+  return 0;
+}
+
+static int bld_register_mulitcast(BLDMCastReceiver *this) {
+  int inet_address = inet_addr(this->multicast_group);
+  if (inet_address == -1) {
+    printf("ERROR: Failed on inet_addr(\"%s\")\n", this->multicast_group);
+    return -1;
+  }
+
+  this->sock = create_socket(ntohl(inet_address), this->port,
+			     sizeof(BLDHeader) + this->payload_size);
+  if (this->sock < 0) {
+    printf("ERROR: Failed to create socket for group \"%s\"\n", this->multicast_group);
+    return -1;
+  }
+
+  if (register_multicast(this->sock, inet_address) < 0) {
+    return -1;
+  }
+
+  return 0;
+}
 
 /**
  * Allocate and initialize an instance of BLDMCastReceiver. The payload
@@ -21,10 +166,13 @@ extern epicsEventId EVRFireEventPCAV;
  * for the phase cavity BLD)
  * @param payload_count number of parameters in the BLD payload (e.g. 4
  * parameters for the phase cavity BLD)
+ * @param multicast_group BLD multicast group address in dotted string form
+ * @param port socket port
  *
  * @return 0 on success, -1 on failure
  */
-int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_count) {
+int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_count,
+			char *multicast_group, int port) {
   *this = (BLDMCastReceiver *) malloc(sizeof(BLDMCastReceiver));
   if (*this == NULL) {
     fprintf(stderr, "ERROR: Failed to allocate memory for BLDMCastReceiver\n");
@@ -50,10 +198,21 @@ int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_c
   (*this)->payload_size = payload_size;
   (*this)->payload_count = payload_count;
   (*this)->bsa_counter = 0;
-  (*this)->bsa_pulseid = 0;
+  (*this)->missing_bld_counter = 0;
+  (*this)->bld_pulseid = 0x1FFFF;
+  (*this)->bsa_pulseid = 0x1FFFF;
   (*this)->bsa_pulseid_mismatch = 0;
   (*this)->queue_fail_send_count = 0;
   (*this)->queue_fail_receive_count = 0;
+  (*this)->multicast_group = multicast_group;
+  (*this)->port = port;
+
+#ifndef SIGNAL_TEST
+  /** Create socket and register to multicast group */
+  if (bld_register_mulitcast(this) < 0) {
+    return -1;
+  }
+#endif
 
   (*this)->queue = epicsMessageQueueCreate(10, sizeof(BLDHeader) + (*this)->payload_size);
   if ((*this)->queue == NULL) {
@@ -106,6 +265,7 @@ void bld_receiver_report(void *this, int level) {
   printf("Pending BLD packets  : %d\n", epicsMessageQueuePending(receiver->queue));
   printf("Queue (failed send)  : %ld\n", receiver->queue_fail_send_count);
   printf("Queue (failed recv)  : %ld\n", receiver->queue_fail_receive_count);
+  printf("Missing BLD packets  : %ld\n", receiver->missing_bld_counter);
   printf("BSA pulseId mismatch : %ld\n", receiver->bsa_pulseid_mismatch);
 
   if (level > 2) {
@@ -113,6 +273,50 @@ void bld_receiver_report(void *this, int level) {
   }
 
   epicsMutexUnlock(receiver->mutex);
+}
+
+static int bld_get_message(BLDMCastReceiver *this) {
+  size_t recvSize = 0;
+  struct msghdr msghdr;
+  int flags = 0;
+
+  struct iovec       iov; // Buffer description socket receive
+  struct sockaddr_in src; // Socket name source machine
+
+  iov.iov_base = this->bld_header_recv;
+  iov.iov_len  = sizeof(BLDHeader) + this->payload_size;
+
+  memset((void*)&msghdr, 0, sizeof(msghdr));
+  msghdr.msg_name = (caddr_t)&src;
+  msghdr.msg_namelen = sizeof(src);
+  msghdr.msg_iov = &iov;
+  msghdr.msg_iovlen = 1;
+
+  printf("Waiting for BLD package\n");
+  recvSize = recvmsg(this->sock, &msghdr, flags);
+
+  if (recvSize < 0) {
+    printf("ERROR: Failed on recvmsg(...)) (errno=%d)\n", errno);
+  }
+
+  if (recvSize == 0) {
+    printf("Message size: ZERO (errno=%d)\n", errno);
+  }
+  else {
+    if (recvSize == -1) {
+      if (errno == EAGAIN) {
+	printf("No messages received, timed out. (errno=%d)\n", errno);
+      }
+      else {
+	printf("ERROR: No messages received (errno=%d)\n", errno);
+      }
+    }
+    else {
+      printf("Message size: %d\n", recvSize);
+    }
+  }
+
+  return recvSize;
 }
 
 /**
@@ -123,18 +327,50 @@ void bld_receiver_report(void *this, int level) {
  */
 void bld_receiver_run(BLDMCastReceiver *this) {
   for (;;) {
+#ifdef SIGNAL_TEST
     /** TEST_CODE --- begin */
-    epicsEventWait(EVRFireEventPCAV); 
+    epicsEventWait(EVRFireEventPCAV); /** REPLACE BY recvmsg() */
+    /** TEST_CODE --- end */
+#else
+    /** Wait for BLD Multicast */
+    bld_get_message(this);
+#endif
   
     epicsMutexLock(this->mutex);
 
-    /** Saves timestamp in the received buffer - to be removed */
     BLDHeader *header = this->bld_header_recv;
+
+#ifdef SIGNAL_TEST
+    /** TEST_CODE --- begin */
+    /** Saves timestamp in the received buffer - to be removed */
     header->tv_sec = bldEbeamInfo.ts_sec;
     header->tv_nsec = bldEbeamInfo.ts_nsec;
     __st_le32(&(header->fiducialId), bldEbeamInfo.uFiducialId);
     __st_le32(&(header->damage), 0); 
     /** TEST_CODE --- end */
+#endif
+
+    /** Check if PULSEID received is expected */
+    /*
+    if (this->bld_pulseid == 0x1FFFF) {
+      this->bld_pulseid = __ld_le32(&header->fiducialId);
+    }
+    else {
+      unsigned int received_pulseid = __ld_le32(&bldEbeamInfo.uFiducialId);
+      /** The received pulseid must be 3 more than the previous one * /
+      unsigned int diff = 0;
+      if (this->bld_pulseid + 3 >= 0x1FFFF) {
+	this->bld_pulseid = 0;
+      }
+      diff = received_pulseid - this->bld_pulseid;
+      diff /= 3; 
+      if (diff > 1) {
+	this->missing_bld_counter += diff;
+      }
+
+      this->bld_pulseid = received_pulseid;
+    }
+    */
 
     if (epicsMessageQueueTrySend(this->queue, &header, sizeof(BLDHeader) + this->payload_size) != 0) {
       this->queue_fail_send_count++;

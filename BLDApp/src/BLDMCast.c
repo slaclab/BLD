@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.44.2.3 2013/05/22 18:15:10 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.44.2.4 2013/05/24 22:12:05 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +44,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.44.2.3 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.44.2.4 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -358,8 +358,10 @@ static in_addr_t mcastIntfIp = 0;
 
 static epicsEventId EVRFireEvent = NULL;
 
+#ifdef SIGNAL_TEST
 epicsEventId EVRFireEventPCAV = NULL;
 int pcavPulseId = 0;
+#endif
 
 /* EPICS time has pulse ID in lower bits of nanoseconds;
  * for measuring high-resolution delays we also need
@@ -481,7 +483,9 @@ void EVRFire(void *use_sets)
 				BSP_timer_start( BSPTIMER, timer_delay_clicks );
 			} else {
 				epicsEventSignal(EVRFireEvent);
+#ifdef SIGNAL_TEST
 				epicsEventSignal(EVRFireEventPCAV);
+#endif
 			}
 
 		}
@@ -496,7 +500,9 @@ static void evr_timer_isr(void *arg)
 {/* post event/release sema to wakeup worker task here */
   if(EVRFireEvent) { 
     epicsEventSignal(EVRFireEvent);
+#ifdef SIGNAL_TEST
     epicsEventSignal(EVRFireEventPCAV);
+#endif
   }
 
     /* This is 30Hz. So printk might screw timing */
@@ -1186,7 +1192,9 @@ passed:
 			__st_le32(&bldEbeamInfo.ts_sec,      p_refTime->secPastEpoch);
 			__st_le32(&bldEbeamInfo.ts_nsec,     p_refTime->nsec);
 			__st_le32(&bldEbeamInfo.uFiducialId, PULSEID((*p_refTime)));
+#ifdef SIGNAL_TEST
 			pcavPulseId = PULSEID(*p_refTime);
+#endif
 
 			/* Calculate beam charge */
 			if( (dataAvailable & AVAIL_BMCHARGE) ) {
@@ -1548,7 +1556,9 @@ int rtncode;
 	BLDMCastStart(1, getenv("IPADDR1"));
 
 	/** This starts the Multicast Receiver Tasks */
+#ifdef SIGNAL_TEST
 	EVRFireEventPCAV = epicsEventMustCreate(epicsEventEmpty);
+#endif
 	bld_receivers_start();
 
 	return 0;
