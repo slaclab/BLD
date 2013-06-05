@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.c,v 1.1.2.3 2013/05/30 18:45:39 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.1.2.4 2013/06/05 00:47:43 lpiccoli Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -75,9 +75,9 @@ static int create_socket(unsigned int address, unsigned int port, int receive_bu
     printf("ERROR: Failed to set socket reuse address option (errno=%d)\n", errno);
     return -1;
   }
-  /*
+
   struct timeval timeout;
-  timeout.tv_sec = 20;
+  timeout.tv_sec = 60;
   timeout.tv_usec = 0;
 
   if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO,
@@ -85,7 +85,7 @@ static int create_socket(unsigned int address, unsigned int port, int receive_bu
     printf("ERROR: Failed to set socket timeout option (errno=%d)\n", errno);
     return -1;
   }
-  */
+
   struct sockaddr_in sockaddrSrc;
   sockaddrSrc.sin_family = AF_INET;
   sockaddrSrc.sin_addr.s_addr = htonl(address);
@@ -113,6 +113,9 @@ static int create_socket(unsigned int address, unsigned int port, int receive_bu
   return sock;
 }
 
+/**
+ * @param address multicast group address
+ */
 static int register_multicast(int sock, unsigned int address) {
   unsigned int interface;
 
@@ -200,14 +203,14 @@ int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_c
     return -1;
   }
 
-  (*this)->bld_header_recv = (BLDHeader *) malloc(sizeof(BLDHeader) + payload_size);
+  (*this)->bld_header_recv = (BLDHeader *) malloc(sizeof(BLDHeader) + payload_size );
   if ((*this)->bld_header_recv == NULL) {
     fprintf(stderr, "ERROR: Failed to allocate memory for BLDMCastReceiver\n");
     return -1;
   }
   (*this)->bld_payload_recv = ((*this)->bld_header_recv) + 1;
 
-  (*this)->bld_header_bsa = (BLDHeader *) malloc(sizeof(BLDHeader) + payload_size);
+  (*this)->bld_header_bsa = (BLDHeader *) malloc(sizeof(BLDHeader) + payload_size );
   if ((*this)->bld_header_bsa == NULL) {
     fprintf(stderr, "ERROR: Failed to allocate memory for BLDMCastReceiver\n");
     return -1;
@@ -305,7 +308,7 @@ static int bld_get_message(BLDMCastReceiver *this) {
   struct sockaddr_in src; // Socket name source machine
 
   iov.iov_base = this->bld_header_recv;
-  iov.iov_len  = sizeof(BLDHeader) + this->payload_size;
+  iov.iov_len  = sizeof(BLDHeader) + this->payload_size ;
 
   memset((void*)&msghdr, 0, sizeof(msghdr));
   msghdr.msg_name = (caddr_t)&src;
@@ -313,6 +316,7 @@ static int bld_get_message(BLDMCastReceiver *this) {
   msghdr.msg_iov = &iov;
   msghdr.msg_iovlen = 1;
 
+/*   printf("INFO: Waiting for message of size %d, sock %d\n", iov.iov_len, this->sock); */
   recvSize = recvmsg(this->sock, &msghdr, flags);
 
   if (recvSize < 0) {
@@ -325,14 +329,15 @@ static int bld_get_message(BLDMCastReceiver *this) {
   else {
     if (recvSize == -1) {
       if (errno == EAGAIN) {
-	printf("No messages received, timed out. (errno=%d)\n", errno);
+	printf("No messages received for group %s, timed out. (errno=%d)\n",
+	       this->multicast_group, errno);
       }
       else {
 	printf("ERROR: No messages received (errno=%d)\n", errno);
       }
     }
     else {
-      printf("Message size: %d\n", recvSize);
+/*       printf("Message size: %d\n", recvSize); */
     }
   }
 
@@ -353,7 +358,7 @@ void bld_receiver_run(BLDMCastReceiver *this) {
     /** TEST_CODE --- end */
 #else
     /** Wait for BLD Multicast */
-    bld_get_message(this);
+    if (bld_get_message(this) > 0) {
 #endif
   
     epicsMutexLock(this->mutex);
@@ -377,7 +382,7 @@ void bld_receiver_run(BLDMCastReceiver *this) {
     }
     else {
       unsigned int received_pulseid = __ld_le32(&bldEbeamInfo.uFiducialId);
-      /** The received pulseid must be 3 more than the previous one * /
+      / ** The received pulseid must be 3 more than the previous one * /
       unsigned int diff = 0;
       if (this->bld_pulseid + 3 >= 0x1FFFF) {
 	this->bld_pulseid = 0;
@@ -392,7 +397,7 @@ void bld_receiver_run(BLDMCastReceiver *this) {
     }
     */
 
-    if (epicsMessageQueueTrySend(this->queue, &header,
+    if (epicsMessageQueueTrySend(this->queue, header,
 				 sizeof(BLDHeader) + this->payload_size) != 0) {
       this->queue_fail_send_count++;
     }
@@ -400,6 +405,9 @@ void bld_receiver_run(BLDMCastReceiver *this) {
     this->packets_received++;
 
     epicsMutexUnlock(this->mutex);
+#ifndef SIGNAL_TEST
+    }
+#endif
   }
 }
 

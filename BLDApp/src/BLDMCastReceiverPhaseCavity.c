@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.1.2.3 2013/05/30 18:45:39 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.1.2.4 2013/06/05 00:47:43 lpiccoli Exp $ */
 
 #include <stdio.h>
 #include <string.h>
@@ -9,7 +9,7 @@
 IOSCANPVT bldPhaseCavityIoscan;
 
 int phase_cavity_create(BLDMCastReceiver **bld_receiver) {
-  int status = bld_receiver_create(bld_receiver, sizeof(BLDPhaseCavity),
+  int status = bld_receiver_create(bld_receiver, sizeof(BLDPhaseCavity) * 10,
 				   BLD_PHASE_CAVITY_PARAMS, BLD_PHASE_CAVITY_GROUP,
 				   BLD_PHASE_CAVITY_PORT);
   if (status < 0) {
@@ -29,6 +29,15 @@ void phase_cavity_report(void *bld_receiver, int level) {
   BLDMCastReceiver *receiver = bld_receiver;
   printf("*** PhaseCavity BLD ***\n");
   bld_receiver_report(bld_receiver, level);
+
+  BLDPhaseCavity *pcav = receiver->bld_payload_bsa;
+  BLDHeader *header = receiver->bld_header_bsa;
+
+  printf("PCAV PULSEID         : %d\n", __ld_le32(&(header->fiducialId)));
+  printf("PCAV CHARGE1         : %f\n", __ld_le64(&(pcav->charge1)));
+  printf("PCAV CHARGE2         : %f\n", __ld_le64(&(pcav->charge2)));
+  printf("PCAV FITTIME1        : %f\n", __ld_le64(&(pcav->fitTime1)));
+  printf("PCAV FITTIME2        : %f\n", __ld_le64(&(pcav->fitTime2)));
 }
 
 extern EBEAMINFO bldEbeamInfo;
@@ -62,8 +71,9 @@ void phase_cavity_run(void *bld_receiver) {
       __st_le64(&(pcav->charge2), (double)this->packets_received + 1);
       __st_le64(&(pcav->fitTime1), (double)this->packets_received + 2);
       __st_le64(&(pcav->fitTime2), (double)this->packets_received + 3);
-#endif
       /** TEST_CODE --- end */
+#else
+#endif
       
       scanIoRequest(bldPhaseCavityIoscan);
       epicsMutexUnlock(this->mutex);

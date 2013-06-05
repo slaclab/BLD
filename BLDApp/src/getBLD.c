@@ -15,7 +15,12 @@
 #include <sys/uio.h>
 #include <net/if.h>
 
-/* USAGE: getBLD("172.27.10.185") on ioc-sys0-fb05 */
+#include "epicsThread.h"
+#include "epicsEvent.h"
+#include "epicsMessageQueue.h"
+
+/* USAGE: getBLD("172.27.10.185")
+    on ioc-sys0-fb05 */
 
 static int _sock = 0;
 
@@ -182,6 +187,42 @@ static int getMessage(int recvBufSize) {
   return recvSize;
 }
 
+int getBLD2() {
+  char *interface = "172.27.10.185";
+  printf("Waiting for BLD packets...\n");
+
+  unsigned int address = ntohl(inet_addr("239.255.24.1"));
+  unsigned int port = 10148;
+  int recvBufSize = 5000;
+
+  if (interface == NULL) {
+    printf("Please specify an interface.\n");
+    return -1;
+  }
+
+  if (createSocket(address, port, recvBufSize) != 0) {
+    return -1;
+  }
+
+  if (registerMulticast(address, interface) != 0) {
+    return -1;
+  }
+
+  int i = 0;
+  for (; i < 100; i++) {
+    int size = getMessage(recvBufSize);
+    if (size < 0) {
+      return -1;
+    }
+    epicsThreadSleep(10);
+  }
+
+  deleteSocket();
+
+  printf("BLD done.\n");
+  return 0;
+}
+
 int getBLD(char *interface) {
   printf("Waiting for BLD packets...\n");
 
@@ -207,8 +248,15 @@ int getBLD(char *interface) {
     return -1;
   }
 
+  rtems_bsdnet_show_socket_stats(4);
+
   deleteSocket();
 
   printf("done.\n");
   return 0;
+}
+
+void goBLD() {
+  epicsThreadMustCreate("getBLD2", epicsThreadPriorityMedium, 20480,
+			(EPICSTHREADFUNC)getBLD2, 0);
 }
