@@ -141,7 +141,7 @@ static int getMessage(int recvBufSize) {
   size_t recvSize = 0;
   struct msghdr msghdr;
   int flags = 0;
-  char buffer[recvSize];
+  char buffer[recvBufSize];
 
   struct iovec       iov; // Buffer description socket receive
   struct sockaddr_in src; // Socket name source machine

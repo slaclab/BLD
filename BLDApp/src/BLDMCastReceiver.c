@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.c,v 1.1.2.2 2013/05/29 21:35:03 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.1.2.3 2013/05/30 18:45:39 lpiccoli Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -20,6 +20,7 @@
 #include "epicsThread.h"
 #include "epicsEvent.h"
 #include "epicsMessageQueue.h"
+#include "initHooks.h"
 
 #include "BLDMCastReceiver.h"
 #include "BLDMCastReceiverPhaseCavity.h"
@@ -27,7 +28,23 @@
 #define BLD_FB05_ETH0 "172.27.10.185"
 #define BLD_IOC_ETH0 "172.27.10.185"
 
+#ifdef SIGNAL_TEST
 extern epicsEventId EVRFireEventPCAV;
+#endif
+
+static void bld_hook_function(initHookState state) {
+  switch (state) {
+  case initHookAtBeginning:
+    bld_receivers_start();
+    break;
+  default:
+    break;
+  }
+}
+
+int bld_hook_init() {
+  return (initHookRegister(bld_hook_function));
+}
 
 static void address_to_string(unsigned int address, char *str) {
   unsigned int networkAddr = htonl(address);
@@ -58,7 +75,7 @@ static int create_socket(unsigned int address, unsigned int port, int receive_bu
     printf("ERROR: Failed to set socket reuse address option (errno=%d)\n", errno);
     return -1;
   }
-
+  /*
   struct timeval timeout;
   timeout.tv_sec = 20;
   timeout.tv_usec = 0;
@@ -68,7 +85,7 @@ static int create_socket(unsigned int address, unsigned int port, int receive_bu
     printf("ERROR: Failed to set socket timeout option (errno=%d)\n", errno);
     return -1;
   }
-
+  */
   struct sockaddr_in sockaddrSrc;
   sockaddrSrc.sin_family = AF_INET;
   sockaddrSrc.sin_addr.s_addr = htonl(address);
@@ -93,7 +110,7 @@ static int create_socket(unsigned int address, unsigned int port, int receive_bu
     return -1;
   }
 
-  return 0;
+  return sock;
 }
 
 static int register_multicast(int sock, unsigned int address) {
@@ -116,7 +133,8 @@ static int register_multicast(int sock, unsigned int address) {
   if (interface != 0) {
     char str[100];
     address_to_string(interface, str);
-    printf("Multicast interface IP: %s (interface %s)\n", str, interface_string);
+    printf("Multicast interface IP: %s (interface %s) %u\n",
+	   str, interface_string, interface);
 
     struct ip_mreq ipMreq;
     memset((char*)&ipMreq, 0, sizeof(ipMreq));
@@ -150,9 +168,12 @@ static int bld_register_mulitcast(BLDMCastReceiver *this) {
     return -1;
   }
 
-  if (register_multicast(this->sock, inet_address) < 0) {
+  printf("INFO: Registering to get BLD for group %s\n", this->multicast_group);
+
+  if (register_multicast(this->sock, ntohl(inet_address)) < 0) {
     return -1;
   }
+
 
   return 0;
 }
@@ -209,7 +230,7 @@ int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_c
 
 #ifndef SIGNAL_TEST
   /** Create socket and register to multicast group */
-  if (bld_register_mulitcast(this) < 0) {
+  if (bld_register_mulitcast(*this) < 0) {
     return -1;
   }
 #endif
@@ -292,7 +313,6 @@ static int bld_get_message(BLDMCastReceiver *this) {
   msghdr.msg_iov = &iov;
   msghdr.msg_iovlen = 1;
 
-  printf("Waiting for BLD package\n");
   recvSize = recvmsg(this->sock, &msghdr, flags);
 
   if (recvSize < 0) {
@@ -372,7 +392,8 @@ void bld_receiver_run(BLDMCastReceiver *this) {
     }
     */
 
-    if (epicsMessageQueueTrySend(this->queue, &header, sizeof(BLDHeader) + this->payload_size) != 0) {
+    if (epicsMessageQueueTrySend(this->queue, &header,
+				 sizeof(BLDHeader) + this->payload_size) != 0) {
       this->queue_fail_send_count++;
     }
 
@@ -382,19 +403,25 @@ void bld_receiver_run(BLDMCastReceiver *this) {
   }
 }
 
-BLDMCastReceiver *bldPhaseCavityReceiver;
+BLDMCastReceiver *bldPhaseCavityReceiver = NULL;
 
 void bld_receivers_report(int level) {
-  phase_cavity_report(bldPhaseCavityReceiver, level);
+  if (bldPhaseCavityReceiver != NULL) {
+    phase_cavity_report(bldPhaseCavityReceiver, level);
+  }
 }
 
 /**
  * Create all BLD Multicast receivers and start the tasks.
  */
 void bld_receivers_start() {
+  printf("INFO: Creating PhaseCavity Receiver... ");
   phase_cavity_create(&bldPhaseCavityReceiver);
+
+  printf("INFO: Starting PhaseCavity Receiver... ");
   epicsThreadMustCreate("BLDPhaseCavity", epicsThreadPriorityMedium, 20480,
 			(EPICSTHREADFUNC)bldPhaseCavityReceiver->run, bldPhaseCavityReceiver);
   epicsThreadMustCreate("BLDPhaseCavityProd", epicsThreadPriorityMedium, 20480,
 			(EPICSTHREADFUNC)bld_receiver_run, bldPhaseCavityReceiver);
+  printf(" done.\n ");
 }

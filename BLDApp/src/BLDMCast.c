@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.44.2.4 2013/05/24 22:12:05 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.44.2.5 2013/05/30 18:45:39 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +44,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.44.2.4 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.44.2.5 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -1559,7 +1559,7 @@ int rtncode;
 #ifdef SIGNAL_TEST
 	EVRFireEventPCAV = epicsEventMustCreate(epicsEventEmpty);
 #endif
-	bld_receivers_start();
+/*     	bld_receivers_start();  */
 
 	return 0;
 }

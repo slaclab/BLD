@@ -29,17 +29,17 @@ record(ai, "BLD:SYS0:$(LOCA):CHARGE") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "nC")
-  field(FLNK, "BLD:SYS0:$(LOCA):CHARGETS")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFCHARGE")
   field(PRIO, "HIGH")
 }
 
-record(sub, "BLD:SYS0:$(LOCA):CHARGETS") {
-    field(INAM, "subInit")
-    field(SNAM, "subProcess")
-    field(TSEL, "BLD:SYS0:$(LOCA):CHARGE.TIME")
-  field(FLNK, "BLD:SYS0:$(LOCA):EFCHARGE")
-#    field(SCAN, "PASSIVE")
-}
+#record(sub, "BLD:SYS0:$(LOCA):CHARGETS") {
+#    field(INAM, "subInit")
+#    field(SNAM, "subProcess")
+#    field(TSEL, "BLD:SYS0:$(LOCA):CHARGE.TIME")
+#    field(FLNK, "BLD:SYS0:$(LOCA):EFCHARGE")
+##    field(SCAN, "PASSIVE")
+#}
 
 record(ai, "BLD:SYS0:$(LOCA):ENERGY") {
   field(DESC, "Beam ENERGY")

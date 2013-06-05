@@ -60,7 +60,7 @@ dbLoadRecords("db/IOC-SYS0-FB05.db")
 # Set the BLD data records (which are now deprecated,
 # the BLDMcastWfRecv waveform should be used instead)
 # to 'Passive' to effectively disable them.
-#dbLoadRecords("db/BLDMCast.db","DIAG_SCAN=Passive, STAT_SCAN=5")
+#dbLoadRecords("db/BLDMCast.db","LOCA=501, DIAG_SCAN=Passive, STAT_SCAN=5")
 dbLoadRecords("db/BLDMCast.db","LOCA=501, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 dbLoadRecords("db/BLDMCastReceiverPhaseCavity.db","LOCA=501, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 
@@ -111,6 +111,7 @@ set_pass1_restoreFile("bldParams.sav")
 #BLD_MCAST_DEBUG=2
 #DELAY_FOR_CA=30
 
+bld_hook_init()
 iocInit()
 
 ## ===========================================================
@@ -130,3 +131,5 @@ create_monitor_set("bldParams.req",30,0)
 #BLDMCastStart(0, 0)
 #BLDMCastStart(1, "172.27.225.21")
 
+# One more sleep to allow mutex to be created before crashing on dbior()
+epicsThreadSleep(5)

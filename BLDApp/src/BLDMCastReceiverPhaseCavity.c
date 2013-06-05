@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.1.2.2 2013/05/29 21:35:03 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.1.2.3 2013/05/30 18:45:39 lpiccoli Exp $ */
 
 #include <stdio.h>
 #include <string.h>
@@ -13,6 +13,7 @@ int phase_cavity_create(BLDMCastReceiver **bld_receiver) {
 				   BLD_PHASE_CAVITY_PARAMS, BLD_PHASE_CAVITY_GROUP,
 				   BLD_PHASE_CAVITY_PORT);
   if (status < 0) {
+    printf("ERROR: Failed on bld_receiver_create (status=%d)\n", status);
     return status;
   }
 
