@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.22 2010/04/20 16:44:09 strauman Exp $ */
+/* $Id: BLDMCast.h,v 1.22.2.1 2012/03/19 22:32:23 lpiccoli Exp $ */
 #ifndef _BLD_MCAST_H_
 #define _BLD_MCAST_H_
 
@@ -111,7 +111,7 @@ Endianness endian = {test:1};
 #define EBEAMINFO_VERSION_0 0x1000f
 
 /* Addition of BC2ENERGY, BC1CHARGE and BC1ENERGY */
-#define EBEAMINFO_VERSION_1 0x2000f
+#define EBEAMINFO_VERSION_1 0x3000f
 
 /* Size of original data packet */
 #define EBEAMINFO_VERSION_0_SIZE 80
