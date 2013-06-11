@@ -10,7 +10,10 @@ include $(TOP)/configure/CONFIG
 
 # -DSIGNAL_TEST: do not receive BLD multicast data, generate fake data for testing!
 # -DFB05_TEST  : used when running tests on FB05
-USR_CPPFLAGS = -DxxxSIGNAL_TEST -DFB05_TEST
+#USR_CPPFLAGS = -DxxxSIGNAL_TEST -DFB05_TEST
+
+# Production flags
+USR_CPPFLAGS =
 
 PROD_IOC_RTEMS = BLD
 PROD_IOC       = bldget bldrx

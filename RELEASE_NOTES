@@ -1,6 +1,27 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-2-0: (BLD-R2-0-0-BR branch)
+  o Addition of BLD receiver - phase cavity
+
+  o Phase cavity data are available via BSA:
+
+	BLD:SYS0:500:CHARGE1
+	BLD:SYS0:500:CHARGE2
+	BLD:SYS0:500:FITTIME1
+	BLD:SYS0:500:FITTIME2
+
+    There are also a couple of BSA PVs to provide
+    PULSEID and STATUS information:
+
+	BLD:SYS0:500:PULSEID
+	BLD:SYS0:500:STATUS
+
+    The Phase Cavity BLD is always *at least* one
+    PULSEID behind. The PULSEID BSA PV must be
+    checked to make sure data from other devices line
+    up correctly.
+
 BLD-R2-1-1: (BLD-R2-0-0-BR branch)
   o Addition of Db file with BSA records 
 

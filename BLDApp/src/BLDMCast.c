@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.44.2.5 2013/05/30 18:45:39 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.44.2.6 2013/06/05 00:47:43 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +44,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.44.2.5 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.44.2.6 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -63,11 +63,10 @@
  * ca_add_masked_array_event() wrapper which calls
  * ca_create_subscription with the DBE_VALUE | DBE_ALARM mask ...
  */
-#define xxxMULTICAST           /* Use multicast interface */
-#define xxxMULTICAST_UDPCOMM   /* Use UDPCOMM for data output; BSD sockets otherwise */
+#define MULTICAST           /* Use multicast interface */
+#define MULTICAST_UDPCOMM   /* Use UDPCOMM for data output; BSD sockets otherwise */
 
-#define FB05TEST
-#ifdef FB05TEST
+#ifdef FB05_TEST /* If running of FB05, disable multicast - this is already done by the BLD IOC */
 #undef MULTICAST
 #undef MULTICAST_UDFCOMM
 #endif

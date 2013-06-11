@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.c,v 1.1.2.4 2013/06/05 00:47:43 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.1.2.5 2013/06/05 23:07:52 lpiccoli Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,11 +26,17 @@
 #include "BLDMCastReceiverPhaseCavity.h"
 
 #define BLD_FB05_ETH0 "172.27.10.185"
-#define BLD_IOC_ETH0 "172.27.10.185"
+#define BLD_IOC_ETH0 "172.27.10.162"
 
 #ifdef SIGNAL_TEST
 extern epicsEventId EVRFireEventPCAV;
 #endif
+
+static void check(char *nm, void *ptr) {
+  if (devBusMappedRegister(nm, ptr) == 0) {
+    errlogPrintf("WARNING: Unable to register '%s'; related statistics may not work\n", nm);
+  }
+}
 
 static void bld_hook_function(initHookState state) {
   switch (state) {
@@ -230,6 +236,16 @@ int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_c
   (*this)->queue_fail_receive_count = 0;
   (*this)->multicast_group = multicast_group;
   (*this)->port = port;
+  (*this)->bld_max_received_delay_us = 0;
+  (*this)->bld_min_received_delay_us = 0xFFFFFFF;
+  (*this)->bld_avg_received_delay_us = 0;
+  (*this)->bld_received_delay_above_avg_counter = 0;
+
+  check("pcav_latmax_f", &(*this)->bld_max_received_delay_us);
+  check("pcav_latmin_f", &(*this)->bld_min_received_delay_us);
+  check("pcav_latavg_f", &(*this)->bld_avg_received_delay_us);
+  check("pcav_latavgcnt_f", &(*this)->bld_received_delay_above_avg_counter);
+
 
 #ifndef SIGNAL_TEST
   /** Create socket and register to multicast group */
@@ -289,14 +305,33 @@ void bld_receiver_report(void *this, int level) {
   printf("Pending BLD packets  : %d\n", epicsMessageQueuePending(receiver->queue));
   printf("Queue (failed send)  : %ld\n", receiver->queue_fail_send_count);
   printf("Queue (failed recv)  : %ld\n", receiver->queue_fail_receive_count);
-  printf("Missing BLD packets  : %ld\n", receiver->missing_bld_counter);
-  printf("BSA pulseId mismatch : %ld\n", receiver->bsa_pulseid_mismatch);
+  printf("BSA pulseId mismatch : %ld (indicates that BSA buffers got data from different pulseIds)\n",
+	 receiver->bsa_pulseid_mismatch);
+  printf("Avg delay between BLD: %ld usec\n", receiver->bld_avg_received_delay_us);
+  printf("Max delay between BLD: %ld usec\n", receiver->bld_max_received_delay_us);
+  printf("Min delay between BLD: %ld usec\n", receiver->bld_min_received_delay_us);
+  printf("Delay 1.5x above avg : %ld packets\n", receiver->bld_received_delay_above_avg_counter);
 
   if (level > 2) {
     epicsMessageQueueShow(receiver->queue, 4);
   }
 
   epicsMutexUnlock(receiver->mutex);
+}
+
+static epicsUInt32 us_since_last_bld(BLDMCastReceiver *this) {
+  struct timeval now;
+
+  gettimeofday(&now, 0);
+	
+  if (now.tv_usec < this->bld_received_time.tv_usec) {
+    now.tv_usec += 1000000;
+    now.tv_sec--;	
+  }
+  now.tv_usec  = now.tv_usec - this->bld_received_time.tv_usec;
+  now.tv_usec += now.tv_sec  - this->bld_received_time.tv_sec;
+
+  return (epicsUInt32) now.tv_usec;
 }
 
 static int bld_get_message(BLDMCastReceiver *this) {
@@ -318,6 +353,31 @@ static int bld_get_message(BLDMCastReceiver *this) {
 
 /*   printf("INFO: Waiting for message of size %d, sock %d\n", iov.iov_len, this->sock); */
   recvSize = recvmsg(this->sock, &msghdr, flags);
+
+  epicsUInt32 this_time = us_since_last_bld(this);
+
+  if (this->bld_max_received_delay_us > 0) {
+    if (this_time > this->bld_max_received_delay_us) {
+      this->bld_max_received_delay_us = this_time;
+    }
+    if (this_time < this->bld_min_received_delay_us) {
+      this->bld_min_received_delay_us = this_time;
+    }
+
+    /* Running average: fn+1 = 127/128 * fn + 1/128 * x = fn - 1/128 fn + 1/128 x */
+    this->bld_avg_received_delay_us += ((int)(- this->bld_avg_received_delay_us + this_time)) >> 8;
+
+    /** Skip first packets to count above 1.5x the average */
+    if (this->packets_received > 100 &&
+	this_time > this->bld_avg_received_delay_us * 1.5) {
+      this->bld_received_delay_above_avg_counter++;
+    }
+  }
+  else {
+    this->bld_max_received_delay_us = 1; /* this is to skip the first measurement */
+  }
+
+  gettimeofday(&this->bld_received_time, 0);
 
   if (recvSize < 0) {
     printf("ERROR: Failed on recvmsg(...)) (errno=%d)\n", errno);
@@ -351,6 +411,8 @@ static int bld_get_message(BLDMCastReceiver *this) {
  * by another task (e.g. BLDPhaseCavity task).
  */
 void bld_receiver_run(BLDMCastReceiver *this) {
+  epicsThreadSleep(20);
+  printf("INFO: Waiting for BLD packets from group %s\n", this->multicast_group);
   for (;;) {
 #ifdef SIGNAL_TEST
     /** TEST_CODE --- begin */
@@ -374,28 +436,6 @@ void bld_receiver_run(BLDMCastReceiver *this) {
     __st_le32(&(header->damage), 0); 
     /** TEST_CODE --- end */
 #endif
-
-    /** Check if PULSEID received is expected */
-    /*
-    if (this->bld_pulseid == 0x1FFFF) {
-      this->bld_pulseid = __ld_le32(&header->fiducialId);
-    }
-    else {
-      unsigned int received_pulseid = __ld_le32(&bldEbeamInfo.uFiducialId);
-      / ** The received pulseid must be 3 more than the previous one * /
-      unsigned int diff = 0;
-      if (this->bld_pulseid + 3 >= 0x1FFFF) {
-	this->bld_pulseid = 0;
-      }
-      diff = received_pulseid - this->bld_pulseid;
-      diff /= 3; 
-      if (diff > 1) {
-	this->missing_bld_counter += diff;
-      }
-
-      this->bld_pulseid = received_pulseid;
-    }
-    */
 
     if (epicsMessageQueueTrySend(this->queue, header,
 				 sizeof(BLDHeader) + this->payload_size) != 0) {

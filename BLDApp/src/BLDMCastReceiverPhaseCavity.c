@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.1.2.4 2013/06/05 00:47:43 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.1.2.5 2013/06/05 23:07:52 lpiccoli Exp $ */
 
 #include <stdio.h>
 #include <string.h>
@@ -72,7 +72,6 @@ void phase_cavity_run(void *bld_receiver) {
       __st_le64(&(pcav->fitTime1), (double)this->packets_received + 2);
       __st_le64(&(pcav->fitTime2), (double)this->packets_received + 3);
       /** TEST_CODE --- end */
-#else
 #endif
       
       scanIoRequest(bldPhaseCavityIoscan);

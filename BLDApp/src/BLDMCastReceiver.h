@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.h,v 1.1.2.2 2013/05/29 21:35:03 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiver.h,v 1.1.2.3 2013/05/30 18:45:39 lpiccoli Exp $ */
 
 #ifndef _BLDMCASTRECEIVER_H_
 #define _BLDMCASTRECEIVER_H_
@@ -82,6 +82,21 @@ struct BLDMCastReceiver {
 
   /** Counts number of BSA PULSEID mismatches */
   long bsa_pulseid_mismatch;
+
+  /** Time when the last BLD packet was received */
+  struct timeval bld_received_time;
+
+  /** Max time elapsed (in usec) between BLD packets */
+  epicsUInt32 bld_max_received_delay_us;
+
+  /** Min time elapsed (in usec) between BLD packets */
+  epicsUInt32 bld_min_received_delay_us;
+
+  /** Average time elapsed (in usec) between BLD packets */
+  epicsUInt32 bld_avg_received_delay_us;
+
+  /** Count number of time elapsed 3x greater than the average */
+  epicsUInt32 bld_received_delay_above_avg_counter;
 
   /** Print status information (dbior command) */
   void (*report)(void *bld_receiver, int level); 

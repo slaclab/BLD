@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastReceiverPhaseCavity.c,v 1.1.2.2 2013/05/29 21:35:03 lpiccoli Exp $ */
+/* $Id: devBLDMCastReceiverPhaseCavity.c,v 1.1.2.3 2013/05/30 18:45:39 lpiccoli Exp $ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -123,9 +123,8 @@ static long read_ai(struct aiRecord *pai) {
   
   if (bldPhaseCavityReceiver->bsa_counter >=
       bldPhaseCavityReceiver->payload_count + 2) {
-    bldPhaseCavityReceiver->bsa_counter++;
+    bldPhaseCavityReceiver->bsa_counter = 0;
   }
-
 
   pai->udf = FALSE;
   
