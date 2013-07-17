@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastStatus.c,v 1.10.2.2 2013/04/22 20:27:46 lpiccoli Exp $ */
+/* $Id: devBLDMCastStatus.c,v 1.10.2.3 2013/05/24 22:12:06 lpiccoli Exp $ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -60,8 +60,8 @@ static long init_ai( struct aiRecord * pai)
     CHECK_AIPARM("ANG_Y",      BLD_AI_ANG_Y)
     CHECK_AIPARM("BC2CHARGE",  BLD_AI_BC2CHARGE)
     CHECK_AIPARM("BC2ENERGY",  BLD_AI_BC2ENERGY)
-    CHECK_AIPARM("BC1CHARGE",  BLD_AI_BC2CHARGE)
-    CHECK_AIPARM("BC1ENERGY",  BLD_AI_BC2ENERGY)
+    CHECK_AIPARM("BC1CHARGE",  BLD_AI_BC1CHARGE)
+    CHECK_AIPARM("BC1ENERGY",  BLD_AI_BC1ENERGY)
 
     recGblRecordError(S_db_badField, (void *) pai, "devAiBLD Init_record, bad parm");
     pai->pact = TRUE;
