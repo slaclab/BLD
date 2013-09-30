@@ -159,6 +159,55 @@ record(ai, "BLD:SYS0:$(LOCA):BC1ENERGY") {
   field(PRIO, "HIGH")
 }
 
+record(ai, "BLD:SYS0:$(LOCA):UND_POS_X") {
+  field(DESC, "Beam Position X")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD")
+  field(INP,  "@POS_X")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "mm")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFUND_POS_X")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):UND_POS_Y") {
+  field(DESC, "Beam Position Y")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD")
+  field(INP,  "@POS_Y")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "mm")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFUND_POS_Y")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):UND_ANG_X") {
+  field(DESC, "Beam Angle X")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD")
+  field(INP,  "@ANG_X")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "mrad")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFUND_ANG_X")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):UND_ANG_Y") {
+  field(DESC, "Beam Angle Y")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD")
+  field(INP,  "@ANG_Y")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "mrad")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFUND_ANG_Y")
+  field(PRIO, "HIGH")
+}
+
+
 record(longin, "BLD:SYS0:$(LOCA):TMITLATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")

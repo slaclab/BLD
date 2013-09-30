@@ -1,6 +1,14 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-3-0: (BLD-R2-0-0-BR branch)
+  o Addition of Fast Undulator Launch feedback states
+
+  o Change in outgoing data packet
+    Version from 0x3000f to 0x4000f
+    Addition of 4 extra words (for the Fast Und. Launch feedback)
+
+
 BLD-R2-2-0: (BLD-R2-0-0-BR branch)
   o Addition of BLD receiver - phase cavity
 

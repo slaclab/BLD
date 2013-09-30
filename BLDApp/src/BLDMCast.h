@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.22.2.1 2012/03/19 22:32:23 lpiccoli Exp $ */
+/* $Id: BLDMCast.h,v 1.22.2.2 2013/06/11 16:27:26 lpiccoli Exp $ */
 #ifndef _BLD_MCAST_H_
 #define _BLD_MCAST_H_
 
@@ -113,20 +113,25 @@ Endianness endian = {test:1};
 /* Addition of BC2ENERGY, BC1CHARGE and BC1ENERGY */
 #define EBEAMINFO_VERSION_1 0x3000f
 
+/* Addition of X, X', Y, Y' calculaded by the Undulator Launch 120Hz feedback */
+#define EBEAMINFO_VERSION_2 0x4000f
+
 /* Size of original data packet */
 #define EBEAMINFO_VERSION_0_SIZE 80
 
 /* Addition of 3 more floats */
 #define EBEAMINFO_VERSION_1_SIZE (EBEAMINFO_VERSION_0_SIZE + sizeof(Flt64_LE) * 3)
 
+/* Addition of 4 more floats */
+#define EBEAMINFO_VERSION_2_SIZE (EBEAMINFO_VERSION_1_SIZE + sizeof(Flt64_LE) * 4)
+
 /**
  * Structure defined in this document:
  * https://confluence.slac.stanford.edu/download/attachments/10256639/bldicd.pdf
  */
-typedef struct EBEAMINFO
-{
-	Uint32_LE     ts_sec;
-	Uint32_LE     ts_nsec;
+  typedef struct EBEAMINFO {
+    Uint32_LE     ts_sec;
+    Uint32_LE     ts_nsec;
     Uint32_LE     uMBZ1;
     Uint32_LE     uFiducialId;
     Uint32_LE     uMBZ2;
@@ -161,6 +166,12 @@ typedef struct EBEAMINFO
     Flt64_LE      ebeamBC2Energy; /* in mm */
     Flt64_LE      ebeamBC1Current; /* in Amps */
     Flt64_LE      ebeamBC1Energy; /* in mm */
+
+    /* Added in VERSION_1 */
+    Flt64_LE      ebeamUndPosX; /* in mm */
+    Flt64_LE      ebeamUndPosY; /* in mm */
+    Flt64_LE      ebeamUndAngX; /* in mrad */
+    Flt64_LE      ebeamUndAngY; /* in mrad */
 } EBEAMINFO;
 
 #define EBEAM_INFO_ERROR 0x4000

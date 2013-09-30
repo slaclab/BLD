@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.44.2.6 2013/06/05 00:47:43 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.44.2.7 2013/06/11 16:02:05 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +44,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.44.2.6 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.44.2.7 $/$Name: BLD-R2-0-0-BR $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -68,7 +68,7 @@
 
 #ifdef FB05_TEST /* If running of FB05, disable multicast - this is already done by the BLD IOC */
 #undef MULTICAST
-#undef MULTICAST_UDFCOMM
+#undef MULTICAST_UDPCOMM
 #endif
 
 #define BSPTIMER    0       /* Timer instance -- use first timer */
@@ -97,6 +97,7 @@ enum PULSEPVSINDEX
     BC2ENERGY,
     BC1CHARGE,
     BC1ENERGY,
+    UNDSTATE, /* For X, X', Y and Y' */
 	/* Define Y after everything else so that fcom array doesn't have to use them */
     BMPOSITION1Y,
     BMPOSITION2Y,
@@ -104,29 +105,8 @@ enum PULSEPVSINDEX
     BMPOSITION4Y
 };/* the definition here must match the PV definition below, the order is critical as well */
 
-/*
-enum PVAVAILMASK
-{
-    AVAIL_DSPR1         = 1<< 0,
-    AVAIL_DSPR2         = 1<< 1,
-    AVAIL_E0BDES        = 1<< 2,
-    AVAIL_FMTRX         = 1<< 3,
-    AVAIL_BMCHARGE      = 1<< 4,
-    AVAIL_BMENERGY1X    = 1<< 5,
-    AVAIL_BMENERGY2X    = 1<< 6,
-    AVAIL_BMPOSITION1X  = 1<< 7,
-    AVAIL_BMPOSITION2X  = 1<< 8,
-    AVAIL_BMPOSITION3X  = 1<< 9,
-    AVAIL_BMPOSITION4X  = 1<<10,
-    AVAIL_BMPOSITION1Y  = 1<<11,
-    AVAIL_BMPOSITION2Y  = 1<<12,
-    AVAIL_BMPOSITION3Y  = 1<<13,
-    AVAIL_BMPOSITION4Y  = 1<<14,
-    AVAIL_BC2CHARGE    = 1<<15,
-};
-*/
 
- /** Former PVAVAILMASK enum */
+/** Former PVAVAILMASK enum */
 #define AVAIL_DSPR1         0x0001
 #define AVAIL_DSPR2         0x0002
 #define AVAIL_E0BDES        0x0004
@@ -146,22 +126,22 @@ enum PVAVAILMASK
 #define AVAIL_BC2ENERGY    0x10000
 #define AVAIL_BC1CHARGE    0x20000
 #define AVAIL_BC1ENERGY    0x40000
+#define AVAIL_UNDSTATE     0x80000
 
 
 /* Structure representing one PV (= channel) */
-typedef struct BLDPV
-{
-    const char *	         name;
-    unsigned long	         nElems; /* type is always DOUBLE */
+typedef struct BLDPV {
+  const char *	         name;
+  unsigned long	         nElems; /* type is always DOUBLE */
+  
+  long         availMask;
 
-	long         availMask;
+  chid		             pvChId;
 
-    chid		             pvChId;
-
-    struct dbr_time_double * pTD;
+  struct dbr_time_double * pTD;
 
 /* No need for eventId, never cancel subscription *\
-    evid  pvEvId;
+   evid  pvEvId;
 \* No need for eventId, never cancel subscription */
 
 /* No need to hold type, always double *\
@@ -194,119 +174,62 @@ BLDPV bldStaticPVs[]=
 #define N_STATIC_PVS (sizeof(bldStaticPVs)/sizeof(bldStaticPVs[0]))
 
 #ifdef USE_PULSE_CA
-
-BLDPV bldPulsePVs[]=
-{
-#if 0
-    Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
-#endif
-    [BMCHARGE] = {"BPMS:IN20:221:TMIT", 1, AVAIL_BMCHARGE   , NULL, NULL},	/* Charge in Nel, 1.602e-10 nC per Nel*/
-
-#if 0
-    Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
-    where E0 is the final desired energy at the LTU (the magnet setting BEND:LTU0:125:BDES*1000)
-    dspr1,2  = Dx for the chosen dispersion BPMs (from design model database twiss parameters) (we can store these in BLD IOC PVs)
-    BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
-    BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
-#endif
-    [BMENERGY1X] = {"BPMS:LTU1:250:X", 1, AVAIL_BMENERGY1X  , NULL, NULL},	/* Energy in MeV */
-    [BMENERGY2X] = {"BPMS:LTU1:450:X", 1, AVAIL_BMENERGY2X  , NULL, NULL},	/* Energy in MeV */
-
-#if 0
-    Position X, Y, Angle X, Y at LTU:
-    Using the LTU Feedback BPMs: BPMS:LTU1:720,730,740,750
-    The best estimate calculation is a matrix multiply for the result vector p:
-
-        [xpos(mm)             [bpm1x         //= BPMS:LTU1:720:X (mm)
-    p=   ypos(mm)      = [F]*  bpm2x         //= BPMS:LTU1:730:X
-         xang(mrad)            bpm3x         //= BPMS:LTU1:740:X
-         yang(mrad)]           bpm4x         //= BPMS:LTU1:750:X
-                               bpm1y         //= BPMS:LTU1:720:Y
-                               bpm2y         //= BPMS:LTU1:730:Y
-                               bpm3y         //= BPMS:LTU1:740:Y
-                               bpm4y]        //= BPMS:LTU1:750:Y
-
-    Where F is the 4x8 precalculated fit matrix.  F is approx. pinv(A), for Least Squares fit p = pinv(A)*x
-
-    A = [R11 R12 R13 R14;     //rmat elements for bpm1x
-         R11 R12 R13 R14;     //rmat elements for bpm2x
-         R11 R12 R13 R14;     //rmat elements for bpm3x
-         R11 R12 R13 R14;     //rmat elements for bpm4x
-         R31 R32 R33 R34;     //rmat elements for bpm1y
-         R31 R32 R33 R34;     //rmat elements for bpm2y
-         R31 R32 R33 R34;     //rmat elements for bpm3y
-         R31 R32 R33 R34]     //rmat elements for bpm4y
-#endif
-
-    [BMPOSITION1X] = {"BPMS:LTU1:720:X"    , 1, AVAIL_BMPOSITION1X, NULL, NULL},	/* Position in mm/mrad */
-    [BMPOSITION2X] = {"BPMS:LTU1:730:X"    , 1, AVAIL_BMPOSITION2X, NULL, NULL},	/* Position in mm/mrad */
-    [BMPOSITION3X] = {"BPMS:LTU1:740:X"    , 1, AVAIL_BMPOSITION3X, NULL, NULL},	/* Position in mm/mrad */
-    [BMPOSITION4X] = {"BPMS:LTU1:750:X"    , 1, AVAIL_BMPOSITION4X, NULL, NULL},	/* Position in mm/mrad */
-    [BC2CHARGE]    = {"BLEN:LI24:886:BIMAX", 1, AVAIL_BC2CHARGE, NULL, NULL},	/* BC2 Charge in Amps */
-    [BC2ENERGY]    = {"BPMS:LI24:801:X"    , 1, AVAIL_BC2ENERGY, NULL, NULL},	/* BC2 Energy in mm */
-    [BC1CHARGE]    = {"BLEN:LI21:265:AIMAX", 1, AVAIL_BC1CHARGE, NULL, NULL};   /* BC1 Charge in Amps */
-    [BC1ENERGY]    = {"BPMS:LI21:233:X"    , 1, AVAIL_BC1ENERGY, NULL, NULL};       /* BC1 Energy in mm */
-    [BMPOSITION1Y] = {"BPMS:LTU1:720:Y"    , 1, AVAIL_BMPOSITION1Y, NULL, NULL},	/* Position in mm/mrad */
-    [BMPOSITION2Y] = {"BPMS:LTU1:730:Y"    , 1, AVAIL_BMPOSITION2Y, NULL, NULL},	/* Position in mm/mrad */
-    [BMPOSITION3Y] = {"BPMS:LTU1:740:Y"    , 1, AVAIL_BMPOSITION3Y, NULL, NULL},	/* Position in mm/mrad */
-    [BMPOSITION4Y] = {"BPMS:LTU1:750:Y"    , 1, AVAIL_BMPOSITION4Y, NULL, NULL},	/* Position in mm/mrad */
-
-};
-#define N_PULSE_PVS (sizeof(bldPulsePVs)/sizeof(bldPulsePVs[0]))
-
 #else
 
-BLDBLOB bldPulseBlobs[] =
-{
-#if 0
-    Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
-#endif
-    [BMCHARGE] = { name: "BPMS:IN20:221:TMIT", blob: 0, aMsk: AVAIL_BMCHARGE},	/* Charge in Nel, 1.602e-10 nC per Nel*/
+BLDBLOB bldPulseBlobs[] = {
+  /**
+   * Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
+   */
+  [BMCHARGE] = { name: "BPMS:IN20:221:TMIT", blob: 0, aMsk: AVAIL_BMCHARGE},	/* Charge in Nel, 1.602e-10 nC per Nel*/
 
-#if 0
-    Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
-    where E0 is the final desired energy at the LTU (the magnet setting BEND:LTU0:125:BDES*1000)
-    dspr1,2  = Dx for the chosen dispersion BPMs (from design model database twiss parameters) (we can store these in BLD IOC PVs)
-    BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
-    BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
-#endif
+  /**
+   * Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
+   * where E0 is the final desired energy at the LTU (the magnet setting BEND:LTU0:125:BDES*1000)
+   * dspr1,2  = Dx for the chosen dispersion BPMs (from design model database twiss parameters) (we can store these in BLD IOC PVs)
+   * BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
+   * BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
+   */
     [BMENERGY1X] = { name: "BPMS:LTU1:250:X", blob: 0, aMsk: AVAIL_BMENERGY1X},	/* Energy in MeV */
     [BMENERGY2X] = { name: "BPMS:LTU1:450:X", blob: 0, aMsk: AVAIL_BMENERGY2X},	/* Energy in MeV */
 
-#if 0
-    Position X, Y, Angle X, Y at LTU:
-    Using the LTU Feedback BPMs: BPMS:LTU1:720,730,740,750
-    The best estimate calculation is a matrix multiply for the result vector p:
-
-        [xpos(mm)             [bpm1x         //= BPMS:LTU1:720:X (mm)
-    p=   ypos(mm)      = [F]*  bpm2x         //= BPMS:LTU1:730:X
-         xang(mrad)            bpm3x         //= BPMS:LTU1:740:X
-         yang(mrad)]           bpm4x         //= BPMS:LTU1:750:X
-                               bpm1y         //= BPMS:LTU1:720:Y
-                               bpm2y         //= BPMS:LTU1:730:Y
-                               bpm3y         //= BPMS:LTU1:740:Y
-                               bpm4y]        //= BPMS:LTU1:750:Y
-
-    Where F is the 4x8 precalculated fit matrix.  F is approx. pinv(A), for Least Squares fit p = pinv(A)*x
-
-    A = [R11 R12 R13 R14;     //rmat elements for bpm1x
-         R11 R12 R13 R14;     //rmat elements for bpm2x
-         R11 R12 R13 R14;     //rmat elements for bpm3x
-         R11 R12 R13 R14;     //rmat elements for bpm4x
-         R31 R32 R33 R34;     //rmat elements for bpm1y
-         R31 R32 R33 R34;     //rmat elements for bpm2y
-         R31 R32 R33 R34;     //rmat elements for bpm3y
-         R31 R32 R33 R34]     //rmat elements for bpm4y
-#endif
-
-    [BMPOSITION1X] = { name: "BPMS:LTU1:720:X"    , blob: 0, aMsk: AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y },	/* Position in mm/mrad */
-    [BMPOSITION2X] = { name: "BPMS:LTU1:730:X"    , blob: 0, aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
-    [BMPOSITION3X] = { name: "BPMS:LTU1:740:X"    , blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
-    [BMPOSITION4X] = { name: "BPMS:LTU1:750:X"    , blob: 0, aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
-    [BC2CHARGE]    = { name: "BLEN:LI24:886:BIMAX", blob: 0, aMsk: AVAIL_BC2CHARGE },	/* BC2 Charge in Amps */
-    [BC2ENERGY]    = { name: "BPMS:LI24:801:X"    , blob: 0, aMsk: AVAIL_BC2ENERGY },	/* BC2 Energy in mm */
-    [BC1CHARGE]    = { name: "BLEN:LI21:265:AIMAX", blob: 0, aMsk: AVAIL_BC1CHARGE },	/* BC1 Charge in Amps */
-    [BC1ENERGY]    = { name: "BPMS:LI21:233:X"    , blob: 0, aMsk: AVAIL_BC1ENERGY },	/* BC1 Energy in mm */
+  /**
+   * Position X, Y, Angle X, Y at LTU:
+   * Using the LTU Feedback BPMs: BPMS:LTU1:720,730,740,750
+   * The best estimate calculation is a matrix multiply for the result vector p:
+   *
+   *        [xpos(mm)             [bpm1x         //= BPMS:LTU1:720:X (mm)
+   *    p=   ypos(mm)      = [F]*  bpm2x         //= BPMS:LTU1:730:X
+   *         xang(mrad)            bpm3x         //= BPMS:LTU1:740:X
+   *         yang(mrad)]           bpm4x         //= BPMS:LTU1:750:X
+   *                               bpm1y         //= BPMS:LTU1:720:Y
+   *                               bpm2y         //= BPMS:LTU1:730:Y
+   *                               bpm3y         //= BPMS:LTU1:740:Y
+   *                               bpm4y]        //= BPMS:LTU1:750:Y
+   *
+   *    Where F is the 4x8 precalculated fit matrix.  F is approx. pinv(A), for Least Squares fit p = pinv(A)*x
+   *
+   *    A = [R11 R12 R13 R14;     //rmat elements for bpm1x
+   *         R11 R12 R13 R14;     //rmat elements for bpm2x
+   *         R11 R12 R13 R14;     //rmat elements for bpm3x
+   *         R11 R12 R13 R14;     //rmat elements for bpm4x
+   *         R31 R32 R33 R34;     //rmat elements for bpm1y
+   *         R31 R32 R33 R34;     //rmat elements for bpm2y
+   *         R31 R32 R33 R34;     //rmat elements for bpm3y
+   *         R31 R32 R33 R34]     //rmat elements for bpm4y
+   */
+  [BMPOSITION1X] = { name: "BPMS:LTU1:720:X"    , blob: 0, aMsk: AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y },	/* Position in mm/mrad */
+  [BMPOSITION2X] = { name: "BPMS:LTU1:730:X"    , blob: 0, aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
+  [BMPOSITION3X] = { name: "BPMS:LTU1:740:X"    , blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
+  [BMPOSITION4X] = { name: "BPMS:LTU1:750:X"    , blob: 0, aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
+  [BC2CHARGE]    = { name: "BLEN:LI24:886:BIMAX", blob: 0, aMsk: AVAIL_BC2CHARGE },	/* BC2 Charge in Amps */
+  [BC2ENERGY]    = { name: "BPMS:LI24:801:X"    , blob: 0, aMsk: AVAIL_BC2ENERGY },	/* BC2 Energy in mm */
+  [BC1CHARGE]    = { name: "BLEN:LI21:265:AIMAX", blob: 0, aMsk: AVAIL_BC1CHARGE },	/* BC1 Charge in Amps */
+  [BC1ENERGY]    = { name: "BPMS:LI21:233:X"    , blob: 0, aMsk: AVAIL_BC1ENERGY },	/* BC1 Energy in mm */
+  
+  /**
+   * Undulator Launch 120Hz Feedback States X, X', Y, Y' (running on FB03:TR05)
+   */
+  [UNDSTATE]     = { name: "FBCK:FB03:TR05:STATES", blob: 0, aMsk: AVAIL_UNDSTATE}, 
 };
 
 
@@ -419,7 +342,6 @@ static int
 pvTimePulseIdMatches(
 	epicsTimeStamp *p_ref,
 #ifdef USE_PULSE_CA
-epicsTimeStamp *p_cmp
 #else
 	FcomBlobRef p_cmp
 #endif
@@ -429,7 +351,6 @@ epicsUInt32 idref, idcmp, diff;
 
 	idref = PULSEID((*p_ref));
 #ifdef USE_PULSE_CA
-	idcmp = PULSEID((*p_cmp));
 #else
 	idcmp = p_cmp->fc_tsLo & LOWER_17_BIT_MASK;
 #endif
@@ -438,7 +359,6 @@ epicsUInt32 idref, idcmp, diff;
 		/* Verify that seconds match to less that a few minutes */
 		diff = abs(p_ref->secPastEpoch -
 #ifdef USE_PULSE_CA
-		           p_cmp->secPastEpoch
 #else
 		           p_cmp->fc_tsHi
 #endif
@@ -453,7 +373,6 @@ epicsUInt32 idref, idcmp, diff;
 void EVRFire(void *use_sets)
 {/* This function will be registered with EVR callback */
 #ifdef USE_PULSE_CA
-	epicsUInt32 rate_mask = MOD5_30HZ_MASK|MOD5_10HZ_MASK|MOD5_5HZ_MASK|MOD5_1HZ_MASK|MOD5_HALFHZ_MASK;  /* can be 30HZ,10HZ,5HZ,1HZ,HALFHZ */
 #endif
 	epicsTimeStamp time_s;
 
@@ -467,7 +386,6 @@ void EVRFire(void *use_sets)
 	{/* check for LCLS beam and rate-limiting */
 		if (    (modifier_a[4] & MOD5_BEAMFULL_MASK)
 #ifdef USE_PULSE_CA
-		     && (modifier_a[4] & rate_mask)
 #endif
 		   )
 		{/* ... do beam-sync rate-limited processing here ... */
@@ -529,22 +447,6 @@ static void exceptionCallback(struct exception_handler_args args)
     if(pvChId) printChIdInfo(pvChId,"exceptionCallback");
     errlogPrintf("exceptionCallback stat %s channel %s\n", ca_message(stat),channel);
 }
-
-#if 0
-static void accessRightsCallback(struct access_rights_handler_args args)
-{
-    chid	pvChId = args.chid;
-
-    if(BLD_MCAST_DEBUG >= 2) printChIdInfo(pvChId,"accessRightsCallback");
-}
-
-static void connectionCallback(struct connection_handler_args args)
-{
-    chid	pvChId = args.chid;
-
-    if(BLD_MCAST_DEBUG >= 2) printChIdInfo(pvChId,"connectionCallback");
-}
-#endif
 
 static void eventCallback(struct event_handler_args args)
 {
@@ -695,19 +597,6 @@ static void BLDMCastTaskEnd(void * parg)
     }
 
 #ifdef USE_PULSE_CA
-    for(loop=0; loop<N_PULSE_PVS; loop++)
-    {
-        if(bldPulsePVs[loop].pvChId)
-        {
-            ca_clear_channel(bldPulsePVs[loop].pvChId);
-            bldPulsePVs[loop].pvChId = NULL;
-        }
-        if(bldPulsePVs[loop].pTD)
-        {
-            free(bldPulsePVs[loop].pTD);
-            bldPulsePVs[loop].pTD = NULL;
-        }
-    }
 #endif
     epicsMutexUnlock(bldMutex);
     printf("BLDMCastTaskEnd\n");
@@ -856,25 +745,12 @@ epicsUInt32     this_time;
 	/* ca_pend_event(2.0); */
 
 #ifdef USE_PULSE_CA
-	/* We only fetch pulse PVs */
-
-	if ( init_pvarray( bldPulsePVs, N_PULSE_PVS,
-#ifdef FETCH_PULSE_PVS
-	                   0 /* don't subscribe */
-#else
-	                   1 /* subscribe       */
-#endif
-	     ) ) {
-		return -1; /* error message already printed */
-	}
-	ca_flush_io();
 #endif
 
 	/* All ready to go, create event and register with EVR */
 	EVRFireEvent = epicsEventMustCreate(epicsEventEmpty);
 	/* Register EVRFire */
 #ifdef USE_PULSE_CA
-#define bldBlobSet 0
 #endif
 	evrTimeRegister(EVRFire, bldBlobSet);
 #undef  bldBlobSet
@@ -922,174 +798,6 @@ epicsUInt32     this_time;
 		if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Do work!\n");
 
 #ifdef USE_PULSE_CA
-#ifdef FETCH_PULSE_PVS
-		/* Timer fires ok, let's then get pulse PVs */
-		rtncode = ECA_NORMAL;
-		for(loop=0; loop<N_PULSE_PVS; loop++)
-		{
-			rtncode = ca_array_get(DBR_TIME_DOUBLE, bldPulsePVs[loop].nElems, bldPulsePVs[loop].pvChId, (void *)(bldPulsePVs[loop].pTD));
-		}
-		rtncode = ca_pend_io(DEFAULT_CA_TIMEOUT);
-		if (rtncode != ECA_NORMAL)
-		{
-			if(BLD_MCAST_DEBUG) errlogPrintf("Something wrong when fetch pulse-by-pulse PVs.\n");
-			epicsMutexLock(bldMutex);
-			bldEbeamInfo.uDamageMask = __le32(0xffffffff); /* no information available */
-			bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-			epicsMutexUnlock(bldMutex);
-		}
-		else
-#endif
-		{/* Got all PVs, do calculation including checking severity and timestamp */
-
-			/* Assume the first timestamp is right */
-			p_refTime = & bldPulsePVs[BMCHARGE].pTD->stamp;
-
-			epicsMutexLock(bldMutex);
-
-			__st_le32(&bldEbeamInfo.ts_sec,      p_refTime->secPastEpoch);
-			__st_le32(&bldEbeamInfo.ts_nsec,     p_refTime->nsec);
-			__st_le32(&bldEbeamInfo.uFiducialId, PULSEID((*p_refTime)));
-
-
-			for(loop=0; loop<N_PULSE_PVS; loop++)
-			{
-				dataAvailable |= bldPulsePVs[loop].availMask;
-
-				if(bldPulsePVs[loop].pTD->severity >= INVALID_ALARM )
-				{
-					dataAvailable &= ~ bldPulsePVs[loop].availMask;
-					bldInvalidAlarmCount[0]++;
-					if(BLD_MCAST_DEBUG) errlogPrintf("%s has severity %d\n", bldPulsePVs[loop].name, bldPulsePVs[loop].pTD->severity);
-				}
-
-				if( 0 != pvTimePulseIdMatches(p_refTime, &(bldPulsePVs[loop].pTD->stamp)) )
-				{
-					dataAvailable &= ~ bldPulsePVs[loop].availMask;
-					bldUnmatchedTSCount[0]++;
-					if(BLD_MCAST_DEBUG) errlogPrintf("%s has unmatched timestamp.nsec [0x%08X,0x%08X]\n",
-							bldPulsePVs[loop].name, p_refTime->nsec, bldPulsePVs[loop].pTD->stamp.nsec);
-				}
-			}
-
-			bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(0);
-			bldEbeamInfo.uDamageMask = __le32(0);
-
-			/* Calculate beam charge */
-			if( (dataAvailable & AVAIL_BMCHARGE) )
-			{
-				__st_le64(&bldEbeamInfo.ebeamCharge, bldPulsePVs[BMCHARGE].pTD->value * 1.602e-10);
-			}
-			else
-			{
-				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x1);
-			}
-
-#define AVAIL_L3ENERGY (AVAIL_BMENERGY1X | AVAIL_BMENERGY2X | AVAIL_DSPR1 | AVAIL_DSPR2 | AVAIL_E0BDES)
-
-			/* Calculate beam energy */
-			if( AVAIL_L3ENERGY == (AVAIL_L3ENERGY & dataAvailable ) )
-			{
-				double tempD;
-				tempD = bldPulsePVs[BMENERGY1X].pTD->value/(1000.0 * bldStaticPVs[DSPR1].pTD->value);
-				tempD += bldPulsePVs[BMENERGY2X].pTD->value/(1000.0 * bldStaticPVs[DSPR2].pTD->value);
-				tempD = tempD/2.0 + 1.0;
-				tempD *= bldStaticPVs[E0BDES].pTD->value * 1000.0;
-				__st_le64(&bldEbeamInfo.ebeamL3Energy, tempD);
-			}
-			else
-			{
-				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x2);
-			}
-
-#define AVAIL_LTUPOS ( AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y | \
-		AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y | \
-		AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y | \
-		AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y | \
-		AVAIL_FMTRX )
-
-			/* Calculate beam position */
-			if( AVAIL_LTUPOS == (AVAIL_LTUPOS & dataAvailable) )
-			{
-				dbr_double_t *pMatrixValue;
-				double tempDA[4];
-				int i,j;
-
-				pMatrixValue = &(bldStaticPVs[FMTRX].pTD->value);
-				for(i=0;i<4;i++)
-				{
-					tempDA[i] = 0.0;
-					for(j=0;j<8;j++)
-						tempDA[i] += pMatrixValue[i*8+j] * bldPulsePVs[BMPOSITION1X+j].pTD->value;
-				}
-				__st_le64(&bldEbeamInfo.ebeamLTUPosX, tempDA[0]);
-				__st_le64(&bldEbeamInfo.ebeamLTUPosY, tempDA[1]);
-				__st_le64(&bldEbeamInfo.ebeamLTUAngX, tempDA[2]);
-				__st_le64(&bldEbeamInfo.ebeamLTUAngY, tempDA[3]);
-			}
-			else
-			{
-				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x3C);
-			}
-
-			/* Copy BC2 Charge */
-			/*
-			if( AVAIL_BC2CHARGE == (AVAIL_BC2CHARGE & dataAvailable) )
-			{
-			  bldPulsePVs[BC2CHARGE].pTD->value = 0xAAAA;
-			  __st_le64(&bldEbeamInfo.ebeamBC2Current, bldPulsePVs[BC2CHARGE].pTD->value);
-			}
-			else
-			{
-				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x40);
-			}
-			*/
-			/* Copy BC2 Energy */
-			/*
-			if( AVAIL_BC2ENERGY == (AVAIL_BC2ENERGY & dataAvailable) )
-			{
-			  bldPulsePVs[BC2ENERGY].pTD->value=0xBBBB;
-			  __st_le64(&bldEbeamInfo.ebeamBC2Energy, bldPulsePVs[BC2ENERGY].pTD->value);
-			}
-			else
-			{
-				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x80);
-			}
-			*/
-			/* BC1 Charge */
-			/*
-			if(AVAIL_BC1CHARGE == (AVAIL_BC1CHARGE & dataAvailable))
-			{
-			  bldPulsePVs[BC1CHARGE].pTD->value = 0xCCCC;
-			  __st_le64(&bldEbeamInfo.ebeamBC1Current, bldPulsePVs[BC1CHARGE].pTD->value);
-			}
-			else
-			{
-				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x100);
-			}
-			*/
-			/* BC1 Energy */
-			/*
-			if(AVAIL_BC1ENERGY == (AVAIL_BC1ENERGY & dataAvailable))
-			{
-			  bldPulsePVs[BC1ENERGY].pTD->value = 0xDDDD;
-			  __st_le64(&bldEbeamInfo.ebeamBC1Energy, bldPulsePVs[BC1ENERGY].pTD->value);
-			}
-			else
-			{
-				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x200);
-			}
-			*/
-			epicsMutexUnlock(bldMutex);
-
-		}
 #else /* USE_PULSE_CA */
 		/* Use FCOM to obtaine pulse-by-pulse data */
 		if ( bldBlobSet ) {
@@ -1257,16 +965,6 @@ passed:
 				bldEbeamInfo.uDamageMask |= __le32(0x3C);
 			}
 
-			/* Copy bunch length */
-			/*
-			if( (AVAIL_BC2CHARGE & dataAvailable) ) {
-			  __st_le64(&bldEbeamInfo.ebeamBC2Current, (double)bldPulseBlobs[BC2CHARGE].blob->fcbl_blen_bimax);
-			} else {
-				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x40);
-			}
-			*/
-
 			/* Copy BC2 Charge */
 			if( AVAIL_BC2CHARGE & dataAvailable )
 			{
@@ -1318,6 +1016,19 @@ passed:
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(0);
 			}
 
+			/* Undulator Launch 120Hz feedback states, X, X', Y and Y' */
+			if( AVAIL_UNDSTATE & dataAvailable ) {
+			  __st_le64(&bldEbeamInfo.ebeamUndPosX, (double)bldPulseBlobs[UNDSTATE].blob->fc_flt[0]);
+			  __st_le64(&bldEbeamInfo.ebeamUndAngX, (double)bldPulseBlobs[UNDSTATE].blob->fc_flt[1]);
+			  __st_le64(&bldEbeamInfo.ebeamUndPosY, (double)bldPulseBlobs[UNDSTATE].blob->fc_flt[2]);
+			  __st_le64(&bldEbeamInfo.ebeamUndAngY, (double)bldPulseBlobs[UNDSTATE].blob->fc_flt[3]);
+			  /*__st_le64(&bldEbeamInfo.ebeamCharge, (double)PULSEID((*p_refTime)));*/
+			}
+			else
+			{
+				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+				bldEbeamInfo.uDamageMask |= __le32(0x3C00);
+			}
 			epicsMutexUnlock(bldMutex);
 		}
 #endif /* USE_PULSE_CA */
@@ -1655,6 +1366,11 @@ static long BLD_report_EBEAMINFO() {
   printf("ebeamBC1Energy: %f mm\n", __ld_le64(&bldEbeamInfo.ebeamBC1Energy));
   printf("ebeamBC2Current: %f Amps\n", __ld_le64(&bldEbeamInfo.ebeamBC2Current));
   printf("ebeamBC2Energy: %f mm\n", __ld_le64(&bldEbeamInfo.ebeamBC2Energy));
+
+  printf("ebeamUndPosX: %f mm\n", __ld_le64(&bldEbeamInfo.ebeamUndPosX));
+  printf("ebeamUndAngX: %f mrad\n", __ld_le64(&bldEbeamInfo.ebeamUndAngX));
+  printf("ebeamUndPosY: %f mm\n", __ld_le64(&bldEbeamInfo.ebeamUndPosY));
+  printf("ebeamUndAngY: %f mrad\n", __ld_le64(&bldEbeamInfo.ebeamUndAngY));
 
   printf("Data Available Mask: %x\n", dataAvailable);
 
