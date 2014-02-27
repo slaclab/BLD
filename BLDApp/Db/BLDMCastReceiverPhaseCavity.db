@@ -1,0 +1,133 @@
+record(ai, "BLD:SYS0:$(LOCA):PCAV_CHARGE1") {
+  field(DESC, "Phase Cavity Charge1")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_PCAV")
+  field(INP,  "@PCAV_CHARGE1")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "nC")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFPCAV_CHARGE1")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):PCAV_CHARGE2") {
+  field(DESC, "Phase Cavity Charge2")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_PCAV")
+  field(INP,  "@PCAV_CHARGE2")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "nC")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFPCAV_CHARGE2")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):PCAV_FITTIME1") {
+  field(DESC, "Phase Cavity FitTime1")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_PCAV")
+  field(INP,  "@PCAV_FITTIME1")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "nC")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFPCAV_FITTIME1")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):PCAV_FITTIME2") {
+  field(DESC, "Phase Cavity FitTime2")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_PCAV")
+  field(INP,  "@PCAV_FITTIME2")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "nC")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFPCAV_FITTIME2")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):PCAV_PULSEID") {
+  field(DESC, "Phase Cavity PULSEID")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_PCAV")
+  field(INP,  "@PCAV_PULSEID")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "nC")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFPCAV_PULSEID")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):PCAV_STATUS") {
+  field(DESC, "Phase Cavity STATUS")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_PCAV")
+  field(INP,  "@PCAV_STATUS")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "nC")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFPCAV_STATUS")
+  field(PRIO, "HIGH")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):PCAV_LATMAX") {
+	field(DESC, "Max. PCAV BLD Latency")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@pcav_latmax_f,m32")
+}
+
+# just write .PROC
+record(longout, "BLD:SYS0:$(LOCA):PCAV_LATMAXRST") {
+	field(DESC, "Rst. Max. PCAV BLD Latency")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@pcav_latmax_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):PCAV_LATMIN") {
+	field(DESC, "Min. PCAV BLD Latency")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@pcav_latmin_f,m32")
+}
+
+# just write .PROC
+record(longout, "BLD:SYS0:$(LOCA):PCAV_LATMINRST") {
+	field(DESC, "Rst. Min. PCAV BLD Latency")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@pcav_latmin_f,m32")
+	field(VAL,  "-1")
+	field(PINI, "YES")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):PCAV_LATAVG") {
+	field(DESC, "Num. PCAV BLD Lat above avg")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@pcav_latavg_f,m32")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):PCAV_LATAVGCNT") {
+	field(DESC, "Num. PCAV BLD Lat above avg")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@pcav_latavgcnt_f,m32")
+}
+
+# just write .PROC
+record(longout, "BLD:SYS0:$(LOCA):PCAV_LATAVGCNTRST") {
+	field(DESC, "Rst. Num. PCAV BLD Lat above avg")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@pcav_latavgcnt_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}

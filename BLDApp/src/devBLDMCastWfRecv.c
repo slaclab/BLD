@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastWfRecv.c,v 1.4 2010/04/27 00:46:27 strauman Exp $ */
+/* $Id: devBLDMCastWfRecv.c,v 1.5.2.2 2012/03/20 20:48:30 lpiccoli Exp $ */
 
 /* Device support for a waveform record to receive
  * BLD multicast data and store all items in a waveform
@@ -34,7 +34,7 @@
 #include <time.h>
 
 #define QUEUE_DEPTH 20
-#define N_INFO_VALS 7
+#define N_INFO_VALS 10 /* 3 more vals -> changed from 7 to 10 */
 #define __STR__(arg) #arg
 
 
@@ -254,7 +254,10 @@ uint32_t   dmg;
 			p_dbl[3] = (dmg & (1<<3) ) ? thisIsNan : __ld_le64( &p_info->ebeamLTUPosY  );
 			p_dbl[4] = (dmg & (1<<4) ) ? thisIsNan : __ld_le64( &p_info->ebeamLTUAngX  );
 			p_dbl[5] = (dmg & (1<<5) ) ? thisIsNan : __ld_le64( &p_info->ebeamLTUAngY  );
-			p_dbl[6] = (dmg & (1<<6) ) ? thisIsNan : __ld_le64( &p_info->ebeamBunchLen );
+			p_dbl[6] = (dmg & (1<<6) ) ? thisIsNan : __ld_le64( &p_info->ebeamBC2Current );
+			p_dbl[7] = (dmg & (1<<7) ) ? thisIsNan : __ld_le64( &p_info->ebeamBC2Energy );
+			p_dbl[8] = (dmg & (1<<8) ) ? thisIsNan : __ld_le64( &p_info->ebeamBC1Current );
+			p_dbl[9] = (dmg & (1<<9) ) ? thisIsNan : __ld_le64( &p_info->ebeamBC1Energy );
 		} else {
 			/* Nothing received */
 			p_info = 0;

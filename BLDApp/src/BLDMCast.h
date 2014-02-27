@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.23 2011/05/17 20:39:26 lpiccoli Exp $ */
+/* $Id: BLDMCast.h,v 1.22.2.4 2014/02/27 23:31:56 lpiccoli Exp $ */
 #ifndef _BLD_MCAST_H_
 #define _BLD_MCAST_H_
 
@@ -107,21 +107,37 @@ Endianness endian = {test:1};
 	return p->d;
 }
 
-/** Damage mask bits */
-#define BAD_CHARGE     0x01
-#define BAD_ENERGY     0x02
-#define BAD_POS_X      0x04
-#define BAD_POS_Y      0X08
-#define BAD_ANG_X      0x10
-#define BAD_ANG_Y      0x20
-#define BAD_BLEN       0x40
-#define BAD_BC2_ENERGY 0x80
+/* Original version */
+#define EBEAMINFO_VERSION_0 0x1000f
 
+/* Addition of BC2ENERGY, BC1CHARGE and BC1ENERGY */
+#define EBEAMINFO_VERSION_1 0x3000f
 
-typedef struct EBEAMINFO
-{
-	Uint32_LE     ts_sec;
-	Uint32_LE     ts_nsec;
+/* Addition of X, X', Y, Y' calculaded by the Undulator Launch 120Hz feedback */
+#define EBEAMINFO_VERSION_2 0x4000f
+
+/* Addition of BPMS:LTU1:[250/450]:X and BPMS:DMP1:502:TMIT */
+#define EBEAMINFO_VERSION_3 0x5000f
+
+/* Size of original data packet */
+#define EBEAMINFO_VERSION_0_SIZE 80
+
+/* Addition of 3 more floats */
+#define EBEAMINFO_VERSION_1_SIZE (EBEAMINFO_VERSION_0_SIZE + sizeof(Flt64_LE) * 3)
+
+/* Addition of 4 more floats */
+#define EBEAMINFO_VERSION_2_SIZE (EBEAMINFO_VERSION_1_SIZE + sizeof(Flt64_LE) * 4)
+
+/* Addition of 3 more floats */
+#define EBEAMINFO_VERSION_3_SIZE (EBEAMINFO_VERSION_2_SIZE + sizeof(Flt64_LE) * 3)
+
+/**
+ * Structure defined in this document:
+ * https://confluence.slac.stanford.edu/download/attachments/10256639/bldicd.pdf
+ */
+  typedef struct EBEAMINFO {
+    Uint32_LE     ts_sec;
+    Uint32_LE     ts_nsec;
     Uint32_LE     uMBZ1;
     Uint32_LE     uFiducialId;
     Uint32_LE     uMBZ2;
@@ -131,15 +147,16 @@ typedef struct EBEAMINFO
     Uint32_LE     uLogicalId;   /* source 1 */
     Uint32_LE     uPhysicalId;  /* source 2 */
     Uint32_LE     uDataType;    /* Contains - this is the version field */
-    Uint32_LE     uExtentSize;  /* Extent */
+    Uint32_LE     uExtentSize;  /* Extent - size of data following Xtc Section 2*/
 
     /* Xtc Section 2 */
     Uint32_LE     uDamage2;
     Uint32_LE     uLogicalId2;
     Uint32_LE     uPhysicalId2;
     Uint32_LE     uDataType2;
-    Uint32_LE     uExtentSize2;
+    Uint32_LE     uExtentSize2; /* Extent - size of data following Xtc Section 2*/
 
+    /* Data */
     Uint32_LE     uDamageMask;
 
     Flt64_LE      ebeamCharge;   /* in nC */
@@ -149,8 +166,23 @@ typedef struct EBEAMINFO
     Flt64_LE      ebeamLTUAngX;  /* in mrad */
     Flt64_LE      ebeamLTUAngY;  /* in mrad */
 
-    Flt64_LE      ebeamBunchLen; /* in Amps */
-    Flt64_LE      ebeamBC2Energy; /* in MeV */
+    Flt64_LE      ebeamBC2Current; /* in Amps */
+
+    /* Added in VERSION_1 */
+    Flt64_LE      ebeamBC2Energy; /* in mm */
+    Flt64_LE      ebeamBC1Current; /* in Amps */
+    Flt64_LE      ebeamBC1Energy; /* in mm */
+
+    /* Added in VERSION_2 */
+    Flt64_LE      ebeamUndPosX; /* in mm */
+    Flt64_LE      ebeamUndPosY; /* in mm */
+    Flt64_LE      ebeamUndAngX; /* in mrad */
+    Flt64_LE      ebeamUndAngY; /* in mrad */
+
+    /* Added in VERSION_3 */
+    Flt64_LE      ebeamLTU250PosX; /* in mm */
+    Flt64_LE      ebeamLTU450PosX; /* in mm */
+    Flt64_LE      ebeamDMP502Charge; /* in Nel */
 } EBEAMINFO;
 
 #define EBEAM_INFO_ERROR 0x4000

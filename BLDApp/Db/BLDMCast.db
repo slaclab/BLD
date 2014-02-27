@@ -1,18 +1,18 @@
-record (ai, "BLD:SYS0:500:DSPR1") {
+record (ai, "BLD:SYS0:$(LOCA):DSPR1") {
   field(DESC, "BPM dispersion")
   field(EGU, "m/MeV")
   field(PREC,"4")
   field(PINI,"YES")
 }
 
-record (ai, "BLD:SYS0:500:DSPR2") {
+record (ai, "BLD:SYS0:$(LOCA):DSPR2") {
   field(DESC, "BPM dispersion")
   field(EGU, "m/MeV")
   field(PREC,"4")
   field(PINI,"YES")
 }
 
-record (waveform, "BLD:SYS0:500:FMTRX") {
+record (waveform, "BLD:SYS0:$(LOCA):FMTRX") {
   field(DESC,"position fir matrix")
   field(FTVL,"DOUBLE")
   field(NELM,"32")
@@ -21,7 +21,7 @@ record (waveform, "BLD:SYS0:500:FMTRX") {
   field(PINI,"YES")
 }
 
-record(ai, "BLD:SYS0:500:CHARGE") {
+record(ai, "BLD:SYS0:$(LOCA):CHARGE") {
   field(DESC, "Beam Charge")
   field(SCAN, "$(DIAG_SCAN)")
   field(DTYP, "BLD")
@@ -29,11 +29,19 @@ record(ai, "BLD:SYS0:500:CHARGE") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "nC")
-  field(FLNK, "BLD:SYS0:500:EFCHARGE")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFCHARGE")
   field(PRIO, "HIGH")
 }
 
-record(ai, "BLD:SYS0:500:ENERGY") {
+#record(sub, "BLD:SYS0:$(LOCA):CHARGETS") {
+#    field(INAM, "subInit")
+#    field(SNAM, "subProcess")
+#    field(TSEL, "BLD:SYS0:$(LOCA):CHARGE.TIME")
+#    field(FLNK, "BLD:SYS0:$(LOCA):EFCHARGE")
+##    field(SCAN, "PASSIVE")
+#}
+
+record(ai, "BLD:SYS0:$(LOCA):ENERGY") {
   field(DESC, "Beam ENERGY")
   field(SCAN, "$(DIAG_SCAN)")
   field(DTYP, "BLD")
@@ -41,11 +49,11 @@ record(ai, "BLD:SYS0:500:ENERGY") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "MeV")
-  field(FLNK, "BLD:SYS0:500:EFENERGY")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFENERGY")
   field(PRIO, "HIGH")
 }
 
-record(ai, "BLD:SYS0:500:POS_X") {
+record(ai, "BLD:SYS0:$(LOCA):POS_X") {
   field(DESC, "Beam Position X")
   field(SCAN, "$(DIAG_SCAN)")
   field(DTYP, "BLD")
@@ -53,11 +61,11 @@ record(ai, "BLD:SYS0:500:POS_X") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "mm")
-  field(FLNK, "BLD:SYS0:500:EFPOS_X")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFPOS_X")
   field(PRIO, "HIGH")
 }
 
-record(ai, "BLD:SYS0:500:POS_Y") {
+record(ai, "BLD:SYS0:$(LOCA):POS_Y") {
   field(DESC, "Beam Position Y")
   field(SCAN, "$(DIAG_SCAN)")
   field(DTYP, "BLD")
@@ -65,11 +73,11 @@ record(ai, "BLD:SYS0:500:POS_Y") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "mm")
-  field(FLNK, "BLD:SYS0:500:EFPOS_Y")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFPOS_Y")
   field(PRIO, "HIGH")
 }
 
-record(ai, "BLD:SYS0:500:ANG_X") {
+record(ai, "BLD:SYS0:$(LOCA):ANG_X") {
   field(DESC, "Beam Angle X")
   field(SCAN, "$(DIAG_SCAN)")
   field(DTYP, "BLD")
@@ -77,11 +85,11 @@ record(ai, "BLD:SYS0:500:ANG_X") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "mrad")
-  field(FLNK, "BLD:SYS0:500:EFANG_X")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFANG_X")
   field(PRIO, "HIGH")
 }
 
-record(ai, "BLD:SYS0:500:ANG_Y") {
+record(ai, "BLD:SYS0:$(LOCA):ANG_Y") {
   field(DESC, "Beam Angle Y")
   field(SCAN, "$(DIAG_SCAN)")
   field(DTYP, "BLD")
@@ -89,210 +97,377 @@ record(ai, "BLD:SYS0:500:ANG_Y") {
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "mrad")
-  field(FLNK, "BLD:SYS0:500:EFANG_Y")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFANG_Y")
   field(PRIO, "HIGH")
 }
 
-record(ai, "BLD:SYS0:500:BLEN") {
-  field(DESC, "Beam Bunch Length")
+record(ai, "BLD:SYS0:$(LOCA):BLEN") {
+  field(DESC, "BC2 Charge")
   field(SCAN, "$(DIAG_SCAN)")
   field(DTYP, "BLD")
-  field(INP,  "@BLEN")
+  field(INP,  "@BC2CHARGE")
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "Amps")
-  field(FLNK, "BLD:SYS0:500:EFBLEN")
-  field(PRIO, "HIGH")
 }
 
-record(ai, "BLD:SYS0:500:BC2_ENERGY") {
-  field(DESC, "BC2 Beam Energy")
+record(ai, "BLD:SYS0:$(LOCA):BC2CHARGE") {
+  field(DESC, "BC2 Charge")
   field(SCAN, "$(DIAG_SCAN)")
   field(DTYP, "BLD")
-  field(INP,  "@BC2_ENERGY")
+  field(INP,  "@BC2CHARGE")
   field(PREC, "5")
   field(TSE,  "-2")
-  field(EGU,  "MeV")
-  field(FLNK, "BLD:SYS0:500:EFBC2_ENERGY")
+  field(EGU,  "Amps")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFBC2CHARGE")
   field(PRIO, "HIGH")
 }
 
-record(longin, "BLD:SYS0:500:TMITLATEERRS") {
+record(ai, "BLD:SYS0:$(LOCA):BC2ENERGY") {
+  field(DESC, "BC2 Energy")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD")
+  field(INP,  "@BC2ENERGY")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "mm")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFBC2ENERGY")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):BC1CHARGE") {
+  field(DESC, "BC1 Charge")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD")
+  field(INP,  "@BC1CHARGE")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "Amps")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFBC1CHARGE")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):BC1ENERGY") {
+  field(DESC, "BC2 Energy")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD")
+  field(INP,  "@BC1ENERGY")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "mm")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFBC1ENERGY")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):UND_POS_X") {
+  field(DESC, "Beam Position X")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD")
+  field(INP,  "@POS_X")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "mm")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFUND_POS_X")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):UND_POS_Y") {
+  field(DESC, "Beam Position Y")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD")
+  field(INP,  "@POS_Y")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "mm")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFUND_POS_Y")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):UND_ANG_X") {
+  field(DESC, "Beam Angle X")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD")
+  field(INP,  "@ANG_X")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "mrad")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFUND_ANG_X")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):UND_ANG_Y") {
+  field(DESC, "Beam Angle Y")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD")
+  field(INP,  "@ANG_Y")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "mrad")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFUND_ANG_Y")
+  field(PRIO, "HIGH")
+}
+
+
+record(longin, "BLD:SYS0:$(LOCA):TMITLATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C0S2@bld_stat_bad_t,m32")
 }
 
-record(longin, "BLD:SYS0:500:ENG1LATEERRS") {
+record(longin, "BLD:SYS0:$(LOCA):ENG1LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C1S2@bld_stat_bad_t,m32")
 }
 
-record(longin, "BLD:SYS0:500:ENG2LATEERRS") {
+record(longin, "BLD:SYS0:$(LOCA):ENG2LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C2S2@bld_stat_bad_t,m32")
 }
 
-record(longin, "BLD:SYS0:500:POS1LATEERRS") {
+record(longin, "BLD:SYS0:$(LOCA):POS1LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C3S2@bld_stat_bad_t,m32")
 }
 
-record(longin, "BLD:SYS0:500:POS2LATEERRS") {
+record(longin, "BLD:SYS0:$(LOCA):POS2LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C4S2@bld_stat_bad_t,m32")
 }
 
-record(longin, "BLD:SYS0:500:POS3LATEERRS") {
+record(longin, "BLD:SYS0:$(LOCA):POS3LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C5S2@bld_stat_bad_t,m32")
 }
 
-record(longin, "BLD:SYS0:500:POS4LATEERRS") {
+record(longin, "BLD:SYS0:$(LOCA):POS4LATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C6S2@bld_stat_bad_t,m32")
 }
 
-record(longin, "BLD:SYS0:500:BLENLATEERRS") {
+record(longin, "BLD:SYS0:$(LOCA):BLENLATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C7S2@bld_stat_bad_t,m32")
 }
 
-record(longin, "BLD:SYS0:500:TMITBADERRS") {
+record(longin, "BLD:SYS0:$(LOCA):BC2ENLATEERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C8S2@bld_stat_bad_t,m32")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):BC1CHLATEERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C9S2@bld_stat_bad_t,m32")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):BC1ENLATEERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C10S2@bld_stat_bad_t,m32")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):UNDLATEERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C11S2@bld_stat_bad_t,m32")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):TMITBADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C0S2@bld_stat_bad_d,m32")
 }
 
-record(longin, "BLD:SYS0:500:ENG1BADERRS") {
+record(longin, "BLD:SYS0:$(LOCA):ENG1BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C1S2@bld_stat_bad_d,m32")
 }
 
-record(longin, "BLD:SYS0:500:ENG2BADERRS") {
+record(longin, "BLD:SYS0:$(LOCA):ENG2BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C2S2@bld_stat_bad_d,m32")
 }
 
-record(longin, "BLD:SYS0:500:POS1BADERRS") {
+record(longin, "BLD:SYS0:$(LOCA):POS1BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C3S2@bld_stat_bad_d,m32")
 }
 
-record(longin, "BLD:SYS0:500:POS2BADERRS") {
+record(longin, "BLD:SYS0:$(LOCA):POS2BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C4S2@bld_stat_bad_d,m32")
 }
 
-record(longin, "BLD:SYS0:500:POS3BADERRS") {
+record(longin, "BLD:SYS0:$(LOCA):POS3BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C5S2@bld_stat_bad_d,m32")
 }
 
-record(longin, "BLD:SYS0:500:POS4BADERRS") {
+record(longin, "BLD:SYS0:$(LOCA):POS4BADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C6S2@bld_stat_bad_d,m32")
 }
 
-record(longin, "BLD:SYS0:500:BLENBADERRS") {
+record(longin, "BLD:SYS0:$(LOCA):BLENBADERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C7S2@bld_stat_bad_d,m32")
 }
 
-record(longin, "BLD:SYS0:500:TMITFCOMERRS") {
+record(longin, "BLD:SYS0:$(LOCA):BC2ENBADERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C8S2@bld_stat_bad_d,m32")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):BC1CHBADERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C9S2@bld_stat_bad_d,m32")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):BC1ENBADERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C10S2@bld_stat_bad_d,m32")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):UNDBADERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C11S2@bld_stat_bad_d,m32")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):TMITFCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C0S2@bld_stat_bad_f,m32")
 }
 
-record(longin, "BLD:SYS0:500:ENG1FCOMERRS") {
+record(longin, "BLD:SYS0:$(LOCA):ENG1FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C1S2@bld_stat_bad_f,m32")
 }
 
-record(longin, "BLD:SYS0:500:ENG2FCOMERRS") {
+record(longin, "BLD:SYS0:$(LOCA):ENG2FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C2S2@bld_stat_bad_f,m32")
 }
 
-record(longin, "BLD:SYS0:500:POS1FCOMERRS") {
+record(longin, "BLD:SYS0:$(LOCA):POS1FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C3S2@bld_stat_bad_f,m32")
 }
 
-record(longin, "BLD:SYS0:500:POS2FCOMERRS") {
+record(longin, "BLD:SYS0:$(LOCA):POS2FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C4S2@bld_stat_bad_f,m32")
 }
 
-record(longin, "BLD:SYS0:500:POS3FCOMERRS") {
+record(longin, "BLD:SYS0:$(LOCA):POS3FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C5S2@bld_stat_bad_f,m32")
 }
 
-record(longin, "BLD:SYS0:500:POS4FCOMERRS") {
+record(longin, "BLD:SYS0:$(LOCA):POS4FCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C6S2@bld_stat_bad_f,m32")
 }
 
-record(longin, "BLD:SYS0:500:BLENFCOMERRS") {
+record(longin, "BLD:SYS0:$(LOCA):BLENFCOMERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C7S2@bld_stat_bad_f,m32")
 }
 
-record(longin, "BLD:SYS0:500:MCASTSENT") {
+record(longin, "BLD:SYS0:$(LOCA):BC2ENFCOMERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C8S2@bld_stat_bad_f,m32")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):BC1CHFCOMERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C9S2@bld_stat_bad_f,m32")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):BC1ENFCOMERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C10S2@bld_stat_bad_f,m32")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):UNDFCOMERRS") {
+	field(DESC, "Timestamp Mismatch Cnt")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C11S2@bld_stat_bad_f,m32")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):MCASTSENT") {
 	field(DESC, "MC Messages Sent")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C0S2@bld_stat_msg_s,m32")
 }
 
-record(longin, "BLD:SYS0:500:FCOMLATMIN") {
+record(longin, "BLD:SYS0:$(LOCA):FCOMLATMIN") {
 	field(DESC, "Min. FCOM Latency")
 	field(EGU,  "uS")
 	field(SCAN, "$(STAT_SCAN)")
@@ -301,7 +476,7 @@ record(longin, "BLD:SYS0:500:FCOMLATMIN") {
 }
 
 # just write .PROC
-record(longout, "BLD:SYS0:500:FCOMLATMINRST") {
+record(longout, "BLD:SYS0:$(LOCA):FCOMLATMINRST") {
 	field(DESC, "Rst. Min. FCOM Latency")
 	field(SCAN, "Passive")
 	field(DTYP, "BusAddress")
@@ -310,7 +485,7 @@ record(longout, "BLD:SYS0:500:FCOMLATMINRST") {
 	field(PINI, "YES")
 }
 
-record(longin, "BLD:SYS0:500:FCOMLATMAX") {
+record(longin, "BLD:SYS0:$(LOCA):FCOMLATMAX") {
 	field(DESC, "Max. FCOM Latency")
 	field(EGU,  "uS")
 	field(SCAN, "$(STAT_SCAN)")
@@ -319,7 +494,7 @@ record(longin, "BLD:SYS0:500:FCOMLATMAX") {
 }
 
 # just write .PROC
-record(longout, "BLD:SYS0:500:FCOMLATMAXRST") {
+record(longout, "BLD:SYS0:$(LOCA):FCOMLATMAXRST") {
 	field(DESC, "Rst. Max. FCOM Latency")
 	field(SCAN, "Passive")
 	field(DTYP, "BusAddress")
@@ -328,7 +503,7 @@ record(longout, "BLD:SYS0:500:FCOMLATMAXRST") {
 	field(PINI, "YES")
 }
 
-record(longin, "BLD:SYS0:500:FCOMLATAVG") {
+record(longin, "BLD:SYS0:$(LOCA):FCOMLATAVG") {
 	field(DESC, "Avg. FCOM Latency")
 	field(EGU,  "uS")
 	field(SCAN, "$(STAT_SCAN)")
@@ -336,7 +511,7 @@ record(longin, "BLD:SYS0:500:FCOMLATAVG") {
 	field(INP,  "#C0S2@bld_stat_avg_f,m32")
 }
 
-record(longin, "BLD:SYS0:500:BLDLATMAX") {
+record(longin, "BLD:SYS0:$(LOCA):BLDLATMAX") {
 	field(DESC, "Max. BLD Post Latency")
 	field(EGU,  "uS")
 	field(SCAN, "$(STAT_SCAN)")
@@ -345,7 +520,7 @@ record(longin, "BLD:SYS0:500:BLDLATMAX") {
 }
 
 # just write .PROC
-record(longout, "BLD:SYS0:500:BLDLATMAXRST") {
+record(longout, "BLD:SYS0:$(LOCA):BLDLATMAXRST") {
 	field(DESC, "Rst. Max. BLD Post Latency")
 	field(SCAN, "Passive")
 	field(DTYP, "BusAddress")
@@ -354,7 +529,7 @@ record(longout, "BLD:SYS0:500:BLDLATMAXRST") {
 	field(PINI, "YES")
 }
 
-record(longin, "BLD:SYS0:500:BLDLATAVG") {
+record(longin, "BLD:SYS0:$(LOCA):BLDLATAVG") {
 	field(DESC, "Avg. BLD Latency")
 	field(EGU,  "uS")
 	field(SCAN, "$(STAT_SCAN)")
@@ -362,7 +537,7 @@ record(longin, "BLD:SYS0:500:BLDLATAVG") {
 	field(INP,  "#C0S2@bld_stat_avg_p,m32")
 }
 
-record(bi,     "BLD:SYS0:500:FC_MODE") {
+record(bi,     "BLD:SYS0:$(LOCA):FC_MODE") {
 	field(DESC, "Flag: FCOM sync/async mode")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C0S2@bld_fcom_use_s,m32")
@@ -371,7 +546,7 @@ record(bi,     "BLD:SYS0:500:FC_MODE") {
 	field(ONAM, "SYNC")
 }
 
-record(ao,     "BLD:SYS0:500:FC_POLL_DELAY") {
+record(ao,     "BLD:SYS0:$(LOCA):FC_POLL_DELAY") {
 	field(DESC, "FID to FCOM Sampling Dly")
 	field(SCAN, "Passive")
 	field(DTYP, "BusAddress")

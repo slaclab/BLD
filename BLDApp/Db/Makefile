@@ -10,9 +10,16 @@ include $(TOP)/configure/CONFIG
 #----------------------------------------------------
 # Create and install (or just install) into <top>/db
 # databases, templates, substitutions like this
+DB += bsaBLDEdef.db
+DB += bsaBLDReceiverPhaseCavityEdef.db
+
 DB += BLDMCast.db
 DB += BLDMCastWfRecv.db
+DB += BLDMCastReceiverPhaseCavity.db
 DB += IOC-SYS0-BD01.db
+DB += IOC-SYS0-FB05.db
+
+DB_INSTALLS += $(EVENT)/db/eventCodeSequenceAll.db
 
 #DB_INSTALLS += $(EVENT)/db/eventCodeSequenceAll.db
 

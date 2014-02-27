@@ -1,4 +1,4 @@
-/* $Id: bldget.c,v 1.4 2010/04/27 00:21:02 strauman Exp $ */
+/* $Id: bldget.c,v 1.4.2.1 2012/03/19 22:32:24 lpiccoli Exp $ */
 
 /* Test Program for dumping the contents of the BLD packet */
 #include <stdio.h>
@@ -10,14 +10,6 @@
 #include <epicsTime.h>
 #include <inttypes.h>
 
-#define BLD_VERSION_1 0x1000f
-#define BLD_VERSION_2 0x2000f
-
-#define BLD_VERSION_1_SIZE 80
-#define BLD_VERSION_2_SIZE 88
-
-static uint32_t BLD_VERSION = 0;
-static uint32_t BLD_SIZE = 0;
 
 static int
 mc_setup(const char *mcaddr, unsigned port, const char *mcifaddr)
@@ -66,7 +58,8 @@ static const char *lbls[] = {
 	"  LTUAngX:  ", "[mrad]",
 	"  LTUAngY:  ", "[mrad]",
 	"  BunchLen: ", "[A]",
-	"  BC2Enrgy: ", "[MeV]",
+	"  BC1Change:", "[A]",
+	"  BC1Energy:", "[MeV]",
 };
 
 static void
@@ -142,28 +135,15 @@ struct sockaddr_in sin;
 		printf("\n");
 
 		utmp = __ld_le32(&info->uDataType);
-		BLD_VERSION = utmp;
 		printf("    Data Type:   0x%08"PRIx32, utmp);
-		if ( BLD_VERSION_1 != utmp && BLD_VERSION_2 != utmp)
-			printf(" (ERROR: should be 0x%08 or 0x%08)", BLD_VERSION_1, BLD_VERSION_2);
+		if ( 0x0001000f != utmp )
+			printf(" (ERROR: should be 0x0001000f)");
 		printf("\n");
 
 		utmp = __ld_le32(&info->uExtentSize);
-		BLD_SIZE = utmp;
 		printf("    Extent Size: 0x%08"PRIx32"\n", utmp);
-		if (BLD_VERSION == BLD_VERSION_1) {
-		  if ( BLD_VERSION_1_SIZE != utmp ) {
-		    printf(" (ERROR: should be 0x%08x)", BLD_VERSION_1_SIZE);
-		  }
-		}
-		else if (BLD_VERSION == BLD_VERSION_2) {
-		  if ( BLD_VERSION_2_SIZE != utmp ) {
-		    printf(" (ERROR: should be 0x%08x)", BLD_VERSION_2_SIZE);
-		  }
-		}
-		else {
-		  printf(" (ERROR: invalid version)");
-		}
+		if ( 80 != utmp )
+			printf(" (ERROR: should be 0x%08x)",80);
 		printf("\n");
 
 		printf("  Xtc Section 2\n"); 
@@ -185,33 +165,20 @@ struct sockaddr_in sin;
 
 		utmp = __ld_le32(&info->uDataType2);
 		printf("    Data Type:   0x%08"PRIx32, utmp);
-		if ( BLD_VERSION_1 != utmp && BLD_VERSION_2 != utmp)
-			printf(" (ERROR: should be 0x%08 or 0x%08)", BLD_VERSION_1, BLD_VERSION_2);
+		if ( 0x0001000f != utmp )
+			printf(" (ERROR: should be 0x0001000f)");
 		printf("\n");
 
 		utmp = __ld_le32(&info->uExtentSize2);
-		BLD_SIZE = utmp;
 		printf("    Extent Size: 0x%08"PRIx32"\n", utmp);
-		if (BLD_VERSION == BLD_VERSION_1) {
-		  if ( BLD_VERSION_1_SIZE != utmp ) {
-		    printf(" (ERROR: should be 0x%08x)", BLD_VERSION_1_SIZE);
-		  }
-		}
-		else if (BLD_VERSION == BLD_VERSION_2) {
-		  if ( BLD_VERSION_2_SIZE != utmp ) {
-		    printf(" (ERROR: should be 0x%08x)", BLD_VERSION_2_SIZE);
-		  }
-		}
-		else {
-		  printf(" (ERROR: invalid version)");
-		}
+		if ( 80 != utmp )
+			printf(" (ERROR: should be 0x%08x)",80);
 		printf("\n");
 
 		utmp = __ld_le32(&info->uDamageMask);
 		printf("  Damage Mask:   0x%08"PRIx32"\n", utmp);
 
-		/*for ( p_f = &info->ebeamCharge, mask=1, i=0; p_f <= &info->ebeamBunchLen; p_f++, mask<<=1, i++ ) {*/
-		for ( p_f = &info->ebeamCharge, mask=1, i=0; p_f <= &info->ebeamBC2Energy; p_f++, mask<<=1, i++ ) {
+		for ( p_f = &info->ebeamCharge, mask=1, i=0; p_f <= &info->ebeamBC1Energy; p_f++, mask<<=1, i++ ) {
 			printf("%s",lbls[2*i]);
 			if ( (utmp & mask) ) {
 				printf("      (INVALID)");

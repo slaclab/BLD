@@ -1,9 +1,82 @@
 # Put your release notes or change log information
 # in here.
 
-BLD-R2-1-0:
-  o Addition of BSA records
-  o Addition of BC2 energy to outgoing data
+BLD-R2-4-0: (BLD-R2-0-0-BR branch - merged back to MAIN_TRUNK)
+  o Addition of these PVs to eBeam BLD:
+
+	BPMS:LTU1:250:X
+	BPMS:LTU1:450:X
+	BPMS:DMP1:502:TMIT
+
+  o Change in outgoing data packet
+    Version from 0x4000f to 0x5000f
+    Addition of 3 extra words (for the above information)
+
+BLD-R2-3-0: (BLD-R2-0-0-BR branch)
+  o Addition of Fast Undulator Launch feedback states
+
+  o Change in outgoing data packet
+    Version from 0x3000f to 0x4000f
+    Addition of 4 extra words (for the Fast Und. Launch feedback)
+
+
+BLD-R2-2-0: (BLD-R2-0-0-BR branch)
+  o Addition of BLD receiver - phase cavity
+
+  o Phase cavity data are available via BSA:
+
+	BLD:SYS0:500:CHARGE1
+	BLD:SYS0:500:CHARGE2
+	BLD:SYS0:500:FITTIME1
+	BLD:SYS0:500:FITTIME2
+
+    There are also a couple of BSA PVs to provide
+    PULSEID and STATUS information:
+
+	BLD:SYS0:500:PULSEID
+	BLD:SYS0:500:STATUS
+
+    The Phase Cavity BLD is always *at least* one
+    PULSEID behind. The PULSEID BSA PV must be
+    checked to make sure data from other devices line
+    up correctly.
+
+BLD-R2-1-1: (BLD-R2-0-0-BR branch)
+  o Addition of Db file with BSA records 
+
+  o Change in startup script to allow individual PVs
+    (e.g. BLD:SYS0:500:CHARGE) to be updated on
+    "I/O Intr". This is required in order to have
+    BSA records working.
+
+  o FLNK fields were added to individual PVs, pointing
+    to the BSA records.
+
+BLD-R2-1-0: (BLD-R2-0-0-BR branch)
+  o Addition of extra fields:
+    BC2Energy - BPMS:LI24:801:X (in mm)
+    BC1Charge - BLEN:LI21:265:AIMAX (in amps)
+    BC1Energy - BPMS:LI21:233:X (in mm)
+
+  o Change EBEAMINFO.ebeamBunchLen to EBEAMINFO.ebeamBC2Current
+
+  o Change in outgoing data packet
+    Version from 0x1000f to 0x2000f
+    Addition of 3 extra words (for the energy/charge above)
+
+  o Modification of bldgen helper code (not tested)
+
+  o Addition of PVs (used only if code runs with CA only):
+    BLD:SYS0:500:BC1CHARGE
+    BLD:SYS0:500:BC1ENERGY
+    BLD:SYS0:500:BC2CHARGE
+    BLD:SYS0:500:BC2ENERGY
+
+  o Extension of waveform containing new values
+
+  o Updated BLD Diagnostics panel
+
+  o Addition os PVs to count errors for the new values
 
 BLD-R2-0-0:
   o Read fast data from FCOM.

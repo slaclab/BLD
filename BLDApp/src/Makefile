@@ -8,6 +8,15 @@ include $(TOP)/configure/CONFIG
 #=============================
 # Build the IOC application
 
+#=============================
+# These are for testing PCAV data coming from PCDS
+# -DSIGNAL_TEST: do not receive BLD multicast data, generate fake data for testing!
+# -DFB05_TEST  : used when running tests on FB05
+#USR_CPPFLAGS = -DxxxSIGNAL_TEST -DFB05_TEST
+
+# Production flags
+USR_CPPFLAGS =
+
 PROD_IOC_RTEMS = BLD
 PROD_IOC       = bldget bldrx
 
@@ -34,10 +43,10 @@ BLD_DBD += devBLDMCastWfRecv.dbd
 
 # Add all the support libraries needed by this IOC
 BLD_LIBS += evrSupport
-BLD_LIBS += sSubRecord
-BLD_LIBS += generalTime
+#BLD_LIBS += generalTime
 BLD_LIBS += devMrfEr
 BLD_LIBS += mrfVme64x
+#BLD_LIBS += sSubRecord
 #BLD_LIBS += restore
 BLD_LIBS += autosave
 BLD_LIBS += devIocStats
@@ -52,7 +61,13 @@ BLD_SRCS += BLDMCast.c
 BLD_SRCS += devBLDMCastStatus.c
 BLD_SRCS += catest.c
 BLD_SRCS += camon.c
+BLD_SRCS += getBLD.c
 BLD_SRCS += BLD_registerRecordDeviceDriver.cpp
+
+BLD_SRCS += BLDMCastReceiver.c
+BLD_SRCS += BLDMCastReceiverPhaseCavity.c
+BLD_SRCS += devBLDMCastReceiverPhaseCavity.c
+
 
 # Build the main IOC entry point on workstation OSs.
 BLD_SRCS_DEFAULT += BLDMain.cpp
