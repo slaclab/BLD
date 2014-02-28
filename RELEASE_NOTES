@@ -1,11 +1,11 @@
 # Put your release notes or change log information
 # in here.
 
-BLD-R2-4-0: (BLD-R2-0-0-BR branch - merged back to MAIN_TRUNK)
+BLD-R2-4-0: (Started at the BLD-R2-0-0-BR branch -> got merged back to MAIN_TRUNK)
   o Addition of these PVs to eBeam BLD:
 
-	BPMS:LTU1:250:X
-	BPMS:LTU1:450:X
+	TCAV:DMP1:360:AV
+	TCAV:DMP1:360:PV
 	BPMS:DMP1:502:TMIT
 
   o Change in outgoing data packet

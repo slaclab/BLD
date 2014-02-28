@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.44.2.9 2014/02/27 23:31:56 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.52 2014/02/27 23:53:00 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -37,6 +37,7 @@
 #include "udpComm.h"
 #include "fcomLclsBpm.h"
 #include "fcomLclsBlen.h"
+#include "fcomLclsLlrf.h"
 
 #include <devBusMapped.h>
 
@@ -44,7 +45,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.44.2.9 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.52 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -245,10 +246,8 @@ BLDBLOB bldPulseBlobs[] = {
   /**
    * XTCAV Voltage and Phase
    */
-  /*
-  [XTCAVAMPL] = { name: "TCAV:DMP1:360:ABR", blob: 0, aMsk: AVAIL_XTCAVAMPL},
-  [XTCAVPHASE]   = { name: "TCAV:DMP1:360:PBR", blob: 0, aMsk: AVAIL_XTCAVPHASE},
-  */
+  [XTCAVAMPL]  = { name: "TCAV:DMP1:360:AV", blob: 0, aMsk: AVAIL_XTCAVAMPL},
+  [XTCAVPHASE] = { name: "TCAV:DMP1:360:PV", blob: 0, aMsk: AVAIL_XTCAVPHASE},
 };
 
 
@@ -1051,8 +1050,8 @@ passed:
 
 			/* XTCAV Amplitude */ 
 			if( AVAIL_XTCAVAMPL & dataAvailable )
-			  { /* HERE - FIX THIS */
-			  __st_le64(&bldEbeamInfo.ebeamLTU250PosX, (double)bldPulseBlobs[BMENERGY1X].blob->fcbl_bpm_X);
+			{
+			  __st_le64(&bldEbeamInfo.ebeamXTCAVAmpl, (double)bldPulseBlobs[XTCAVAMPL].blob->fcbl_llrf_aavg);
 			}
 			else
 			{
@@ -1069,8 +1068,8 @@ passed:
 
 			/* XTCAV Phase */ 
 			if( AVAIL_XTCAVPHASE & dataAvailable )
-			  {/* HERE - FIX THIS */
-			  __st_le64(&bldEbeamInfo.ebeamLTU450PosX, (double)bldPulseBlobs[BMENERGY2X].blob->fcbl_bpm_X);
+			{
+			  __st_le64(&bldEbeamInfo.ebeamXTCAVPhase, (double)bldPulseBlobs[XTCAVPHASE].blob->fcbl_llrf_pavg);
 			}
 			else
 			{

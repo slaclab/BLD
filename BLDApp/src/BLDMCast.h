@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.22.2.4 2014/02/27 23:31:56 lpiccoli Exp $ */
+/* $Id: BLDMCast.h,v 1.25 2014/02/27 23:53:01 lpiccoli Exp $ */
 #ifndef _BLD_MCAST_H_
 #define _BLD_MCAST_H_
 
@@ -180,8 +180,8 @@ Endianness endian = {test:1};
     Flt64_LE      ebeamUndAngY; /* in mrad */
 
     /* Added in VERSION_3 */
-    Flt64_LE      ebeamLTU250PosX; /* in mm */
-    Flt64_LE      ebeamLTU450PosX; /* in mm */
+    Flt64_LE      ebeamXTCAVAmpl; /* in MeV */
+    Flt64_LE      ebeamXTCAVPhase; /* in deg */
     Flt64_LE      ebeamDMP502Charge; /* in Nel */
 } EBEAMINFO;
 
