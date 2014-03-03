@@ -22,5 +22,9 @@ file bsaATTREdef.db
 	  { $(DEVICE), BC2ENERGY, $(DEVICE):BC2ENERGY, mm, 3, -3, 3, .001, "" }
 	  { $(DEVICE), BC1CHARGE, $(DEVICE):BC1CHARGE, Amps, 3, -3, 3, .001, "" }
 	  { $(DEVICE), BC1ENERGY, $(DEVICE):BC1ENERGY, mm, 3, -3, 3, .001, "" }
+          { $(DEVICE), UND_POS_X, $(DEVICE):UND_POS_X, mm, 3, -3, 3, .001, "" }
+          { $(DEVICE), UND_POS_Y, $(DEVICE):UND_POS_Y, mm, 3, -3, 3, .001, "" }
+          { $(DEVICE), UND_ANG_X, $(DEVICE):UND_ANG_X, mrad, 3, -3, 3, .001, "" }
+          { $(DEVICE), UND_ANG_Y, $(DEVICE):UND_ANG_Y, mrad, 3, -3, 3, .001, "" }
 }
 
