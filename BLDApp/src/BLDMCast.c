@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.52 2014/02/27 23:53:00 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.53 2014/02/28 19:00:53 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -45,7 +45,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.52 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.53 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -1445,6 +1445,10 @@ static long BLD_report_EBEAMINFO() {
   printf("ebeamUndAngX: %f mrad\n", __ld_le64(&bldEbeamInfo.ebeamUndAngX));
   printf("ebeamUndPosY: %f mm\n", __ld_le64(&bldEbeamInfo.ebeamUndPosY));
   printf("ebeamUndAngY: %f mrad\n", __ld_le64(&bldEbeamInfo.ebeamUndAngY));
+
+  printf("ebeamXTCAVAmpl: %f MeV\n", __ld_le64(&bldEbeamInfo.ebeamXTCAVAmpl));
+  printf("ebeamXTCAVPhase: %f deg\n", __ld_le64(&bldEbeamInfo.ebeamXTCAVPhase));
+  printf("ebeamDMP502Charge: %f Nel\n", __ld_le64(&bldEbeamInfo.ebeamDMP502Charge));
 
   printf("Data Available Mask: %x\n", dataAvailable);
 
