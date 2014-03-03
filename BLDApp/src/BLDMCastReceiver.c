@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.c,v 1.1.2.6 2013/06/11 16:02:05 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.2 2014/02/27 23:53:01 lpiccoli Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -25,8 +25,8 @@
 #include "BLDMCastReceiver.h"
 #include "BLDMCastReceiverPhaseCavity.h"
 
-#define BLD_FB05_ETH0 "172.27.10.185"
-#define BLD_IOC_ETH0 "172.27.10.162"
+#define BLD_FB05_ETH0 "172.27.2.185"
+#define BLD_IOC_ETH0 "172.27.2.162"
 
 #ifdef SIGNAL_TEST
 extern epicsEventId EVRFireEventPCAV;
@@ -297,26 +297,27 @@ int bld_receiver_next(BLDMCastReceiver *this) {
 
 void bld_receiver_report(void *this, int level) {
   BLDMCastReceiver *receiver = this;
+  if (receiver != NULL) {
+    epicsMutexLock(receiver->mutex);
 
-  epicsMutexLock(receiver->mutex);
-
-  printf("Received BLD packets : %ld\n", receiver->packets_received);
-  printf("Processed BLD packets: %ld\n", receiver->packets_processed);
-  printf("Pending BLD packets  : %d\n", epicsMessageQueuePending(receiver->queue));
-  printf("Queue (failed send)  : %ld\n", receiver->queue_fail_send_count);
-  printf("Queue (failed recv)  : %ld\n", receiver->queue_fail_receive_count);
-  printf("BSA pulseId mismatch : %ld (indicates that BSA buffers got data from different pulseIds)\n",
-	 receiver->bsa_pulseid_mismatch);
-  printf("Avg delay between BLD: %ld usec\n", receiver->bld_avg_received_delay_us);
-  printf("Max delay between BLD: %ld usec\n", receiver->bld_max_received_delay_us);
-  printf("Min delay between BLD: %ld usec\n", receiver->bld_min_received_delay_us);
-  printf("Delay 1.5x above avg : %ld packets\n", receiver->bld_received_delay_above_avg_counter);
-
-  if (level > 2) {
-    epicsMessageQueueShow(receiver->queue, 4);
+    printf("Received BLD packets : %ld\n", receiver->packets_received);
+    printf("Processed BLD packets: %ld\n", receiver->packets_processed);
+    printf("Pending BLD packets  : %d\n", epicsMessageQueuePending(receiver->queue));
+    printf("Queue (failed send)  : %ld\n", receiver->queue_fail_send_count);
+    printf("Queue (failed recv)  : %ld\n", receiver->queue_fail_receive_count);
+    printf("BSA pulseId mismatch : %ld (indicates that BSA buffers got data from different pulseIds)\n",
+	   receiver->bsa_pulseid_mismatch);
+    printf("Avg delay between BLD: %ld usec\n", receiver->bld_avg_received_delay_us);
+    printf("Max delay between BLD: %ld usec\n", receiver->bld_max_received_delay_us);
+    printf("Min delay between BLD: %ld usec\n", receiver->bld_min_received_delay_us);
+    printf("Delay 1.5x above avg : %ld packets\n", receiver->bld_received_delay_above_avg_counter);
+    
+    if (level > 2) {
+      epicsMessageQueueShow(receiver->queue, 4);
+    }
+    
+    epicsMutexUnlock(receiver->mutex);
   }
-
-  epicsMutexUnlock(receiver->mutex);
 }
 
 static epicsUInt32 us_since_last_bld(BLDMCastReceiver *this) {
