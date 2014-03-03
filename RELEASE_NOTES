@@ -1,6 +1,8 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-4-1: Minor diagnostics change
+
 BLD-R2-4-0: (Started at the BLD-R2-0-0-BR branch -> got merged back to MAIN_TRUNK)
   o Addition of these PVs to eBeam BLD:
 
