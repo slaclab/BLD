@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.1.2.6 2013/06/11 16:02:05 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.2 2014/02/27 23:53:01 lpiccoli Exp $ */
 
 #include <stdio.h>
 #include <string.h>
@@ -26,18 +26,22 @@ int phase_cavity_create(BLDMCastReceiver **bld_receiver) {
 }
 
 void phase_cavity_report(void *bld_receiver, int level) {
-  BLDMCastReceiver *receiver = bld_receiver;
-  printf("*** PhaseCavity BLD ***\n");
-  bld_receiver_report(bld_receiver, level);
+  if (bld_receiver != NULL) {
+    BLDMCastReceiver *receiver = bld_receiver;
+    printf("*** PhaseCavity BLD ***\n");
+    bld_receiver_report(bld_receiver, level);
 
-  BLDPhaseCavity *pcav = receiver->bld_payload_bsa;
-  BLDHeader *header = receiver->bld_header_bsa;
-
-  printf("PCAV PULSEID         : %d\n", __ld_le32(&(header->fiducialId)));
-  printf("PCAV CHARGE1         : %f\n", __ld_le64(&(pcav->charge1)));
-  printf("PCAV CHARGE2         : %f\n", __ld_le64(&(pcav->charge2)));
-  printf("PCAV FITTIME1        : %f\n", __ld_le64(&(pcav->fitTime1)));
-  printf("PCAV FITTIME2        : %f\n", __ld_le64(&(pcav->fitTime2)));
+    BLDPhaseCavity *pcav = receiver->bld_payload_bsa;
+    BLDHeader *header = receiver->bld_header_bsa;
+    
+    if (pcav != NULL && header != NULL) {
+      printf("PCAV PULSEID         : %d\n", __ld_le32(&(header->fiducialId)));
+      printf("PCAV CHARGE1         : %f\n", __ld_le64(&(pcav->charge1)));
+      printf("PCAV CHARGE2         : %f\n", __ld_le64(&(pcav->charge2)));
+      printf("PCAV FITTIME1        : %f\n", __ld_le64(&(pcav->fitTime1)));
+      printf("PAV FITTIME2        : %f\n", __ld_le64(&(pcav->fitTime2)));
+    }
+  }
 }
 
 extern EBEAMINFO bldEbeamInfo;
