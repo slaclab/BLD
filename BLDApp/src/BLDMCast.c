@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.53 2014/02/28 19:00:53 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.54 2014/03/03 19:39:23 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -45,7 +45,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.53 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.54 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -782,13 +782,13 @@ epicsUInt32     this_time;
 
 	bldEbeamInfo.uLogicalId  = __le32(0x06000000);
 	bldEbeamInfo.uPhysicalId = __le32(0);
-	bldEbeamInfo.uDataType   = __le32(EBEAMINFO_VERSION_1);
-	bldEbeamInfo.uExtentSize = __le32(EBEAMINFO_VERSION_1_SIZE);
+	bldEbeamInfo.uDataType   = __le32(EBEAMINFO_VERSION_3);
+	bldEbeamInfo.uExtentSize = __le32(EBEAMINFO_VERSION_3_SIZE);
 
 	bldEbeamInfo.uLogicalId2 = __le32(0x06000000);
 	bldEbeamInfo.uPhysicalId2= __le32(0);
-	bldEbeamInfo.uDataType2  = __le32(EBEAMINFO_VERSION_1);
-	bldEbeamInfo.uExtentSize2= __le32(EBEAMINFO_VERSION_1_SIZE);
+	bldEbeamInfo.uDataType2  = __le32(EBEAMINFO_VERSION_3);
+	bldEbeamInfo.uExtentSize2= __le32(EBEAMINFO_VERSION_3_SIZE);
 
 	while(bldAllPVsConnected)
 	{
