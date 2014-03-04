@@ -54,16 +54,16 @@ BASE_MODULE_VERSION=$(EPICS_BASE_VER)
 # http://www-group.slac.stanford.edu/cdsoft/epics/swModules3.htm
 # ===============================================================
 SEQ_MODULE_VERSION=seq-R2.1.4
-EVENT_MODULE_VERSION=event-R4-0-0
+EVENT_MODULE_VERSION=event-R4-1-0
 GENERALTIME_MODULE_VERSION=generalTime-R2-2-0
 SSUBRECORD_MODULE_VERSION=sSubRecord-R2-2-1
 AUTOSAVE_MODULE_VERSION=autosave-R4-8-lcls2
 #RESTORE_MODULE_VERSION=restore-R2-0-0
 IOCADMIN_MODULE_VERSION=iocAdmin-R3-3-1
 MISCUTILS_MODULE_VERSION=miscUtils-R2-2-2
-FCOM_MODULE_VERSION=fcom-R1-3-23
-FCOMUTIL_MODULE_VERSION=fcomUtil-R1-1-25
-UDPCOMM_MODULE_VERSION=udpComm-R2-5-4
+FCOM_MODULE_VERSION=fcom-R1-3-24
+FCOMUTIL_MODULE_VERSION=fcomUtil-R1-1-26
+UDPCOMM_MODULE_VERSION=udpComm-R2-5-5
 DEVBUSMAPPED_MODULE_VERSION=devBusMapped-R3-1-0
 
 # ============================================================
