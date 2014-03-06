@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.54 2014/03/03 19:39:23 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.55 2014/03/04 01:32:05 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -45,7 +45,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.54 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.55 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -268,6 +268,9 @@ epicsExportAddress(int, BLD_MCAST_ENABLE);
 
 int BLD_MCAST_DEBUG = 0;
 epicsExportAddress(int, BLD_MCAST_DEBUG);
+
+int BLD_XTCAV_DEBUG = 0;
+epicsExportAddress(int, BLD_XTCAV_DEBUG);
 
 static uint32_t timer_delay_clicks = 10 /* just some value; true thing is written by EPICS record */;
 static uint32_t timer_delay_ms     =  4 /* just some value; true thing is written by EPICS record */;
@@ -659,7 +662,6 @@ epicsUInt32     this_time;
 		udpCommClose( sFd );
 		return -1;
 	}
-
 	if ( mcastIntfIp && ( rtncode = udpCommSetIfMcastOut( sFd, mcastIntfIp ) ) ) {
 		errlogPrintf("Failed to choose outgoing interface for multicast: %s\n", strerror(-rtncode));
 		epicsMutexDestroy( bldMutex );
@@ -1051,6 +1053,11 @@ passed:
 			/* XTCAV Amplitude */ 
 			if( AVAIL_XTCAVAMPL & dataAvailable )
 			{
+			  if(BLD_XTCAV_DEBUG >= 1) {
+			    errlogPrintf("Got XTCAV blob %f %f\n", (double)bldPulseBlobs[XTCAVAMPL].blob->fcbl_llrf_aavg,
+					 (double)bldPulseBlobs[XTCAVAMPL].blob->fcbl_llrf_pavg);
+			  }
+
 			  __st_le64(&bldEbeamInfo.ebeamXTCAVAmpl, (double)bldPulseBlobs[XTCAVAMPL].blob->fcbl_llrf_aavg);
 			}
 			else
@@ -1128,7 +1135,6 @@ passed:
 			bldMcastMsgSent++;
 		}
 #endif
-
 		this_time = usSinceFiducial();
 
 		if ( this_time > bldMaxPostDelayUs )
@@ -1337,7 +1343,11 @@ int rtncode;
 
 	bldMutex = epicsMutexMustCreate();
 
+#ifdef FB05_TEST
+	BLDMCastStart(0, getenv("IPADDR1"));
+#else
 	BLDMCastStart(1, getenv("IPADDR1"));
+#endif
 
 	/** This starts the Multicast Receiver Tasks */
 #ifdef SIGNAL_TEST

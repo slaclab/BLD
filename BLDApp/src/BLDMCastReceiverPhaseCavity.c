@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.2 2014/02/27 23:53:01 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.3 2014/03/03 19:51:03 lpiccoli Exp $ */
 
 #include <stdio.h>
 #include <string.h>
@@ -12,6 +12,7 @@ int phase_cavity_create(BLDMCastReceiver **bld_receiver) {
   int status = bld_receiver_create(bld_receiver, sizeof(BLDPhaseCavity) * 10,
 				   BLD_PHASE_CAVITY_PARAMS, BLD_PHASE_CAVITY_GROUP,
 				   BLD_PHASE_CAVITY_PORT);
+
   if (status < 0) {
     printf("ERROR: Failed on bld_receiver_create (status=%d)\n", status);
     return status;
@@ -19,14 +20,17 @@ int phase_cavity_create(BLDMCastReceiver **bld_receiver) {
 
   (*bld_receiver)->run = phase_cavity_run;
   (*bld_receiver)->report = phase_cavity_report;
-
+  printf("INFO: PhaseCavity receiver at 0x%x (run 0x%x, report 0x%x)",
+	 (int) bld_receiver, 0, 0); /*(*bld_receiver)->run,
+	 (*bld_receiver)->report);
+  */
   scanIoInit(&bldPhaseCavityIoscan);
 
   return 0;
 }
 
 void phase_cavity_report(void *bld_receiver, int level) {
-  if (bld_receiver != NULL) {
+  if (bld_receiver != NULL & level > 2) {
     BLDMCastReceiver *receiver = bld_receiver;
     printf("*** PhaseCavity BLD ***\n");
     bld_receiver_report(bld_receiver, level);

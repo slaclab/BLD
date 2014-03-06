@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.c,v 1.2 2014/02/27 23:53:01 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.3 2014/03/03 21:15:14 lpiccoli Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -128,6 +128,7 @@ static int register_multicast(int sock, unsigned int address) {
 #ifdef FB05_TEST
   char *interface_string = BLD_FB05_ETH0;
 #else
+#error Are you really compiling for production? If so remove me!
   char *interface_string = BLD_IOC_ETH0;
 #endif
 
@@ -250,6 +251,11 @@ int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_c
 #ifndef SIGNAL_TEST
   /** Create socket and register to multicast group */
   if (bld_register_mulitcast(*this) < 0) {
+    free((*this)->bld_header_bsa);
+    free((*this)->bld_header_recv);
+    
+    free(*this);
+    *this = NULL;
     return -1;
   }
 #endif
