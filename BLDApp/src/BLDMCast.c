@@ -1,9 +1,10 @@
-/* $Id: BLDMCast.c,v 1.55 2014/03/04 01:32:05 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.56 2014/03/06 19:12:47 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
+#include <errno.h>
 
 #include <sys/time.h>
 
@@ -45,7 +46,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.55 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.56 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -67,10 +68,12 @@
 #define MULTICAST           /* Use multicast interface */
 #define MULTICAST_UDPCOMM   /* Use UDPCOMM for data output; BSD sockets otherwise */
 
-#ifdef FB05_TEST /* If running of FB05, disable multicast - this is already done by the BLD IOC */
+/*
+#ifdef FB05_TEST / * If running of FB05, disable multicast - this is already done by the BLD IOC * /
 #undef MULTICAST
 #undef MULTICAST_UDPCOMM
 #endif
+*/
 
 #define BSPTIMER    0       /* Timer instance -- use first timer */
 
@@ -166,17 +169,10 @@ typedef struct BLDBLOB {
 
 BLDPV bldStaticPVs[]=
 {
-#ifdef FB05TEST
-    [DSPR1]  = {"BLD:SYS0:501:DSPR1",  1, AVAIL_DSPR1,  NULL, NULL},	/* For Energy */
-    [DSPR2]  = {"BLD:SYS0:501:DSPR2",  1, AVAIL_DSPR2,  NULL, NULL},	/* For Energy */
-    [E0BDES] = {"BEND:LTU0:125:BDES",  1, AVAIL_E0BDES, NULL, NULL},	/* Energy in MeV */
-    [FMTRX]  = {"BLD:SYS0:501:FMTRX", 32, AVAIL_FMTRX,  NULL, NULL}	/* For Position */
-#else
     [DSPR1]  = {"BLD:SYS0:500:DSPR1",  1, AVAIL_DSPR1,  NULL, NULL},	/* For Energy */
     [DSPR2]  = {"BLD:SYS0:500:DSPR2",  1, AVAIL_DSPR2,  NULL, NULL},	/* For Energy */
     [E0BDES] = {"BEND:LTU0:125:BDES",  1, AVAIL_E0BDES, NULL, NULL},	/* Energy in MeV */
     [FMTRX]  = {"BLD:SYS0:500:FMTRX", 32, AVAIL_FMTRX,  NULL, NULL}	/* For Position */
-#endif
 };
 #define N_STATIC_PVS (sizeof(bldStaticPVs)/sizeof(bldStaticPVs[0]))
 
@@ -1288,7 +1284,27 @@ check(char *nm, void *ptr)
 /* implementation */
 static long BLD_EPICS_Init()
 {
-int rtncode;
+  int rtncode;
+  int enable_broadcast = 0;
+  int name_len = 100;
+  char name[name_len];
+
+  rtncode = gethostname(name, name_len);
+  if (rtncode == 0) {
+    printf("INFO: BLD hostname is %s\n", name);
+    if (strcmp("ioc-sys0-bd01", name) == 0) {
+      enable_broadcast = 1;
+      printf("INFO: *** Enabling Multicast ***\n");
+    }
+    else {
+      enable_broadcast = 0;
+      printf("WARN: *** Multicast disabled - hostname must be ioc-sys0-bd01 ***\n");
+    }
+  }
+  else {
+    printf("ERROR: Unable to get hostname (errno=%d, rtncode=%d)\n", errno, rtncode);
+  }
+
 
 #ifndef USE_PULSE_CA
 	{
@@ -1343,11 +1359,7 @@ int rtncode;
 
 	bldMutex = epicsMutexMustCreate();
 
-#ifdef FB05_TEST
-	BLDMCastStart(0, getenv("IPADDR1"));
-#else
-	BLDMCastStart(1, getenv("IPADDR1"));
-#endif
+	BLDMCastStart(enable_broadcast, getenv("IPADDR1"));
 
 	/** This starts the Multicast Receiver Tasks */
 #ifdef SIGNAL_TEST

@@ -1,6 +1,10 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-4-3:
+  o Added check that enables BLD broadcast only if the hostname is
+    ioc-sys0-bd01 in production
+
 BLD-R2-4-2:
   o Fixed wrong BLD IP address in multicast BLD receiver - dbior bug fix
 

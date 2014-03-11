@@ -48,6 +48,8 @@ BLD_registerRecordDeviceDriver(pdbbase)
 # Init PMC EVR
 ErConfigure(0, 0, 0, 0, 1)
 
+dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:BD01:BLDWAV, scan=Event, evnt=146, rarm=2")
+
 ###########################
 ## Load record instances ##
 ###########################
@@ -58,8 +60,9 @@ dbLoadRecords("db/IOC-SYS0-BD01.db")
 # the BLDMcastWfRecv waveform should be used instead)
 # to 'Passive' to effectively disable them.
 #dbLoadRecords("db/BLDMCast.db","DIAG_SCAN=Passive, STAT_SCAN=5")
-dbLoadRecords("db/BLDMCast.db","DIAG_SCAN=I/O Intr, STAT_SCAN=5")
-
+#dbLoadRecords("db/BLDMCast.db","DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+dbLoadRecords("db/BLDMCast.db","LOCA=500, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+#dbLoadRecords("db/BLDMCastReceiverPhaseCavity.db","LOCA=500, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.
@@ -81,8 +84,6 @@ dbLoadRecords("db/BLDMCast.db","DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 # (Well, the VME ISR firing 'event' could IMHO directly post_event(event)
 # which would be faster, simpler and more flexible)
 # 
-
-dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:BD01:BLDWAV, scan=Event, evnt=146, rarm=2")
 
 dbLoadRecords("db/caClientTest.db", "user=CA:Client")
 # ======================================================================
