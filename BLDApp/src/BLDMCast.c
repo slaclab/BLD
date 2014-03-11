@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.56 2014/03/06 19:12:47 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.57 2014/03/11 16:50:55 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -46,7 +46,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.56 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.57 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -108,8 +108,7 @@ enum PULSEPVSINDEX
     BMPOSITION3Y,
     BMPOSITION4Y,
     BMDMPCHARGE,
-    XTCAVAMPL,
-    XTCAVPHASE
+    XTCAVRF
 };/* the definition here must match the PV definition below, the order is critical as well */
 
 
@@ -135,8 +134,7 @@ enum PULSEPVSINDEX
 #define AVAIL_BC1ENERGY     0x40000
 #define AVAIL_UNDSTATE      0x80000
 #define AVAIL_DMPCHARGE    0x100000
-#define AVAIL_XTCAVAMPL    0x200000
-#define AVAIL_XTCAVPHASE   0x400000
+#define AVAIL_XTCAVRF      0x200000
 
 
 /* Structure representing one PV (= channel) */
@@ -242,8 +240,7 @@ BLDBLOB bldPulseBlobs[] = {
   /**
    * XTCAV Voltage and Phase
    */
-  [XTCAVAMPL]  = { name: "TCAV:DMP1:360:AV", blob: 0, aMsk: AVAIL_XTCAVAMPL},
-  [XTCAVPHASE] = { name: "TCAV:DMP1:360:PV", blob: 0, aMsk: AVAIL_XTCAVPHASE},
+  [XTCAVRF]  = { name: "TCAV:DMP1:360:AV", blob: 0, aMsk: AVAIL_XTCAVRF},
 };
 
 
@@ -1046,37 +1043,21 @@ passed:
 				bldEbeamInfo.uDamageMask |= __le32(0x3C00);
 			}
 
-			/* XTCAV Amplitude */ 
-			if( AVAIL_XTCAVAMPL & dataAvailable )
+			/* XTCAV Phase & Amplitude */ 
+			if( AVAIL_XTCAVRF & dataAvailable )
 			{
 			  if(BLD_XTCAV_DEBUG >= 1) {
-			    errlogPrintf("Got XTCAV blob %f %f\n", (double)bldPulseBlobs[XTCAVAMPL].blob->fcbl_llrf_aavg,
-					 (double)bldPulseBlobs[XTCAVAMPL].blob->fcbl_llrf_pavg);
+			    errlogPrintf("Got XTCAV blob %f %f\n", (double)bldPulseBlobs[XTCAVRF].blob->fcbl_llrf_aavg,
+					 (double)bldPulseBlobs[XTCAVRF].blob->fcbl_llrf_pavg);
 			  }
 
-			  __st_le64(&bldEbeamInfo.ebeamXTCAVAmpl, (double)bldPulseBlobs[XTCAVAMPL].blob->fcbl_llrf_aavg);
+			  __st_le64(&bldEbeamInfo.ebeamXTCAVAmpl, (double)bldPulseBlobs[XTCAVRF].blob->fcbl_llrf_aavg);
+			  __st_le64(&bldEbeamInfo.ebeamXTCAVPhase, (double)bldPulseBlobs[XTCAVRF].blob->fcbl_llrf_pavg);
 			}
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
 				bldEbeamInfo.uDamageMask |= __le32(0x4000);
-			}
-
-
-			if ( __ld_le32( &bldEbeamInfo.uDamageMask ) ) {
-				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-			} else {
-				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(0);
-			}
-
-			/* XTCAV Phase */ 
-			if( AVAIL_XTCAVPHASE & dataAvailable )
-			{
-			  __st_le64(&bldEbeamInfo.ebeamXTCAVPhase, (double)bldPulseBlobs[XTCAVPHASE].blob->fcbl_llrf_pavg);
-			}
-			else
-			{
-				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
 				bldEbeamInfo.uDamageMask |= __le32(0x8000);
 			}
 
@@ -1086,6 +1067,7 @@ passed:
 			} else {
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(0);
 			}
+
 
 			/* DMP Charge */ 
 			if( AVAIL_DMPCHARGE & dataAvailable )

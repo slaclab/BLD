@@ -1,6 +1,10 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-4-4:
+  o Fix for XTCAV Phase/Ampl - previous code requested one blob for
+    each, but both properties arrive in the same blob
+
 BLD-R2-4-3:
   o Added check that enables BLD broadcast only if the hostname is
     ioc-sys0-bd01 in production
