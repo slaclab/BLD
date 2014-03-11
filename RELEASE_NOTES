@@ -1,9 +1,14 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-4-5:
+  o Found bug created by adding more FCOM PVs/Blobs. Code is missing
+    checks to make sure arrays are not overrun -> Must review/refactor the
+    BLDMCast code.
+
 BLD-R2-4-4:
   o Fix for XTCAV Phase/Ampl - previous code requested one blob for
-    each, but both properties arrive in the same blob
+    each, but both properties arrive in the same blob	
 
 BLD-R2-4-3:
   o Added check that enables BLD broadcast only if the hostname is

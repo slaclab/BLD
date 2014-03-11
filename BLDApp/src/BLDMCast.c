@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.57 2014/03/11 16:50:55 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.58 2014/03/11 17:32:58 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -46,7 +46,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.57 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.58 $/$Name: BLD-R2-4-4 $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -102,15 +102,31 @@ enum PULSEPVSINDEX
     BC1CHARGE,
     BC1ENERGY,
     UNDSTATE, /* For X, X', Y and Y' */
+    BMDMPCHARGE,
+    XTCAVRF,
 	/* Define Y after everything else so that fcom array doesn't have to use them */
     BMPOSITION1Y,
     BMPOSITION2Y,
     BMPOSITION3Y,
-    BMPOSITION4Y,
-    BMDMPCHARGE,
-    XTCAVRF
+    BMPOSITION4Y
 };/* the definition here must match the PV definition below, the order is critical as well */
 
+/*
+  [BMCHARGE] 
+  [BMENERGY1X]
+  [BMENERGY2X]
+  [BMPOSITION1X]
+  [BMPOSITION2X]
+  [BMPOSITION3X]
+  [BMPOSITION4X]
+  [BC2CHARGE]   
+  [BC2ENERGY]   
+  [BC1CHARGE]   
+  [BC1ENERGY]   
+  [UNDSTATE]    
+  [BMDMPCHARGE] 
+  [XTCAVRF]  
+*/
 
 /** Former PVAVAILMASK enum */
 #define AVAIL_DSPR1          0x0001
@@ -1292,8 +1308,11 @@ static long BLD_EPICS_Init()
 	{
 	int loop;
 	for ( loop=0; loop < N_PULSE_BLOBS; loop++) {
+		errlogPrintf("INFO: Subscribing to %s (%d)\n",
+			     bldPulseBlobs[loop].name, loop);
 		if ( FCOM_ID_NONE == (bldPulseID[loop] = fcomLCLSPV2FcomID(bldPulseBlobs[loop].name)) ) {
-			errlogPrintf("FATAL ERROR: Unable to determine FCOM ID for PV %s\n", bldPulseBlobs[loop].name);
+			errlogPrintf("FATAL ERROR: Unable to determine FCOM ID for PV %s (%d)\n",
+				     bldPulseBlobs[loop].name,loop);
 			return -1;
 		}
 		rtncode = fcomSubscribe( bldPulseID[loop], FCOM_ASYNC_GET );
@@ -1304,8 +1323,11 @@ static long BLD_EPICS_Init()
 					fcomStrerror(rtncode));
 			return -1;
 		}
+		errlogPrintf("INFO: Subscribed to %s (0x%x)\n",
+			     bldPulseBlobs[loop].name, bldPulseID[loop]);
 	}
 	}
+
 	/* Allocate blob set here so that the flag that is read
 	 * into a record already contains the final value, ready
 	 * for being picked up by PINI
