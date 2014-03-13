@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.58 2014/03/11 17:32:58 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.59 2014/03/11 18:32:28 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -46,7 +46,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.58 $/$Name: BLD-R2-4-4 $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.59 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -1363,13 +1363,17 @@ static long BLD_EPICS_Init()
 
 	bldMutex = epicsMutexMustCreate();
 
-	BLDMCastStart(enable_broadcast, getenv("IPADDR1"));
+	if (enable_broadcast) {
+	  BLDMCastStart(enable_broadcast, getenv("IPADDR1"));
+	}
+	else {
+	  errlogPrintf("WARN: *** Not starting BLDMCast task ***\n");
+	}
 
 	/** This starts the Multicast Receiver Tasks */
 #ifdef SIGNAL_TEST
 	EVRFireEventPCAV = epicsEventMustCreate(epicsEventEmpty);
 #endif
-/*     	bld_receivers_start();  */
 
 	return 0;
 }

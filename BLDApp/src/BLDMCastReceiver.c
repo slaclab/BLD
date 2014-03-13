@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.c,v 1.3 2014/03/03 21:15:14 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.4 2014/03/06 19:12:47 lpiccoli Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -27,6 +27,7 @@
 
 #define BLD_FB05_ETH0 "172.27.2.185"
 #define BLD_IOC_ETH0 "172.27.2.162"
+#define BLD_B34_IOC_ETH0 "134.79.219.145"
 
 #ifdef SIGNAL_TEST
 extern epicsEventId EVRFireEventPCAV;
@@ -125,12 +126,37 @@ static int create_socket(unsigned int address, unsigned int port, int receive_bu
 static int register_multicast(int sock, unsigned int address) {
   unsigned int interface;
 
-#ifdef FB05_TEST
-  char *interface_string = BLD_FB05_ETH0;
-#else
-#error Are you really compiling for production? If so remove me!
-  char *interface_string = BLD_IOC_ETH0;
-#endif
+  int name_len = 100;
+  char name[name_len];
+
+  char *interface_string;
+  
+  int rtncode = gethostname(name, name_len);
+  if (rtncode == 0) {
+    if (strcmp("ioc-sys0-bd01", name) == 0) {
+      interface_string = BLD_IOC_ETH0;
+    }
+    else {
+      if (strcmp("ioc-b34-bd01", name) == 0) {
+	interface_string = BLD_B34_IOC_ETH0;
+      }
+      else {
+	if (strcmp("ioc-sys0-fb05", name) == 0) {
+	  interface_string = BLD_FB05_ETH0;
+	}
+	else {
+	  printf("ERROR: BLD code running on unknown IOC\n");
+	  return -1;
+	}
+      }
+    }
+  }
+  else {
+    printf("ERROR: Unable to get hostname (errno=%d, rtncode=%d)\n", errno, rtncode);
+    return -1;
+  }
+
+  printf("INFO: ETH0 address is %s\n", interface_string);
 
   struct in_addr inp;
   if (inet_aton(interface_string, &inp) == 0) {
@@ -143,7 +169,7 @@ static int register_multicast(int sock, unsigned int address) {
   if (interface != 0) {
     char str[100];
     address_to_string(interface, str);
-    printf("Multicast interface IP: %s (interface %s) %u\n",
+    printf("Multicast interface IP: %s (interface %s) %u (RECEIVER)\n",
 	   str, interface_string, interface);
 
     struct ip_mreq ipMreq;

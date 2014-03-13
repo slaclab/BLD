@@ -111,6 +111,7 @@ BLD_MCAST_DEBUG=2
 #DELAY_FOR_CA=30
 #bldConnectAbort=9
 
+bld_hook_init()
 iocInit()
 
 ## ===========================================================

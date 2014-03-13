@@ -1,6 +1,10 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-4-6:
+  o Addition of code that prevents BLDCast task from being spawned
+    if the code is not running on ioc-sys0-bd01
+
 BLD-R2-4-5:
   o Found bug created by adding more FCOM PVs/Blobs. Code is missing
     checks to make sure arrays are not overrun -> Must review/refactor the
