@@ -12,10 +12,12 @@ include $(TOP)/configure/CONFIG
 # databases, templates, substitutions like this
 DB += bsaBLDEdef.db
 DB += bsaBLDReceiverPhaseCavityEdef.db
+DB += bsaBLDReceiverImbEdef.db
 
 DB += BLDMCast.db
 DB += BLDMCastWfRecv.db
 DB += BLDMCastReceiverPhaseCavity.db
+DB += BLDMCastReceiverImb.db
 DB += IOC-SYS0-BD01.db
 DB += IOC-SYS0-FB05.db
 

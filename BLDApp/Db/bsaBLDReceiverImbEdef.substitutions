@@ -1,0 +1,25 @@
+#==============================================================================
+#
+# Abs:  Beam Synchronous Acquisition records for the BLD - Imb
+#
+# Name: bsaBLDReceiverImbEdef.substitutions
+#
+# Note: Must follow the LCLS naming conventions.  
+#
+#==============================================================================
+#
+file bsaATTREdef.db
+{
+#           Device   Attribute  Input          EGU   HOPR  LOPR PREC ADEL  Link
+  pattern { D, ATTR, I, EG, HO, LO, PR, AD, LNK }
+	  { $(DEVICE), IMB_SUM, $(DEVICE):IMB_SUM, count, 0, 0, 0, .001, "" }
+	  { $(DEVICE), IMB_XPOS, $(DEVICE):IMB_XPOS, count, 0, 0, 0, .001, "" }
+	  { $(DEVICE), IMB_YPOS, $(DEVICE):IMB_YPOS, count, 0, 0, 0, .001, "" }
+	  { $(DEVICE), IMB_CHANNEL10, $(DEVICE):IMB_CHANNEL10, count, 0, 0, 0, .001, "" }
+	  { $(DEVICE), IMB_CHANNEL11, $(DEVICE):IMB_CHANNEL11, count, 0, 0, 0, .001, "" }
+	  { $(DEVICE), IMB_CHANNEL12, $(DEVICE):IMB_CHANNEL12, status, 0, 0, 0, .001, "" }
+	  { $(DEVICE), IMB_CHANNEL13, $(DEVICE):IMB_CHANNEL13, status, 0, 0, 0, .001, "" }	  
+	  { $(DEVICE), IMB_PULSEID, $(DEVICE):IMB_PULSEID, count, 0, 0, 0, .001, "" }
+	  { $(DEVICE), IMB_STATUS, $(DEVICE):IMB_STATUS, status, 0, 0, 0, .001, "" }    
+}
+

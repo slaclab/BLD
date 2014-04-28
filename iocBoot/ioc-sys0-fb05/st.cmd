@@ -63,6 +63,7 @@ dbLoadRecords("db/IOC-SYS0-FB05.db")
 #dbLoadRecords("db/BLDMCast.db","LOCA=501, DIAG_SCAN=Passive, STAT_SCAN=5")
 dbLoadRecords("db/BLDMCast.db","LOCA=501, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 dbLoadRecords("db/BLDMCastReceiverPhaseCavity.db","LOCA=501, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+dbLoadRecords("db/BLDMCastReceiverImb.db","LOCA=501, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.

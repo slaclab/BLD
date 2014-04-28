@@ -1,5 +1,6 @@
 device(ai, INST_IO, devAiBLD, "BLD")
 device(ai, INST_IO, devAiBldPhaseCavity, "BLD_PCAV")
+device(ai, INST_IO, devAiBldImb, "BLD_IMB")
 driver(drvBLD)
 
 variable(BLD_MCAST_DEBUG)

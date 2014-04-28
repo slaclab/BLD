@@ -85,3 +85,9 @@ file bsaBLDReceiverPhaseCavityEdef.db {
     { DEVICE, LOC, UN, SLCLNK }
     { BLD:SYS0:501, SYS0, 501, "" }
 }
+
+file bsaBLDReceiverImbEdef.db {
+    pattern
+    { DEVICE, LOC, UN, SLCLNK }
+    { BLD:SYS0:501, SYS0, 501, "" }
+}

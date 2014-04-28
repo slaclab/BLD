@@ -1,6 +1,9 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-5-0: Shantha Condamoor: 28-Apr-2014
+	Added IMB BLD Packet receiver support
+
 BLD-R2-4-6:
   o Addition of code that prevents BLDCast task from being spawned
     if the code is not running on ioc-sys0-bd01

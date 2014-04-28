@@ -1,0 +1,169 @@
+record(ai, "BLD:SYS0:$(LOCA):IMB_SUM") {
+  field(DESC, "Imb Sum")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_IMB")
+  field(INP,  "@IMB_SUM")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_SUM")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):IMB_XPOS") {
+  field(DESC, "Imb XPos")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_IMB")
+  field(INP,  "@IMB_XPOS")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_XPOS")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):IMB_YPOS") {
+  field(DESC, "Imb YPos")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_IMB")
+  field(INP,  "@IMB_YPOS")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_YPOS")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):IMB_CHANNEL10") {
+  field(DESC, "Imb Channel10")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_IMB")
+  field(INP,  "@IMB_CHANNEL10")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_CHANNEL10")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):IMB_CHANNEL11") {
+  field(DESC, "Imb Channel11")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_IMB")
+  field(INP,  "@IMB_CHANNEL11")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_CHANNEL11")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):IMB_CHANNEL12") {
+  field(DESC, "Imb Channel12")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_IMB")
+  field(INP,  "@IMB_CHANNEL12")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_CHANNEL12")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):IMB_CHANNEL13") {
+  field(DESC, "Imb Channel13")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_IMB")
+  field(INP,  "@IMB_CHANNEL13")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_CHANNEL13")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):IMB_PULSEID") {
+  field(DESC, "Imb PULSEID")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_IMB")
+  field(INP,  "@IMB_PULSEID")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "Count")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_PULSEID")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):IMB_STATUS") {
+  field(DESC, "Imb STATUS")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_IMB")
+  field(INP,  "@IMB_STATUS")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "Raw")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_STATUS")
+  field(PRIO, "HIGH")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):IMB_LATMAX") {
+	field(DESC, "Max. IMB BLD Latency")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@imb_latmax_f,m32")
+}
+
+# just write .PROC
+record(longout, "BLD:SYS0:$(LOCA):IMB_LATMAXRST") {
+	field(DESC, "Rst. Max. IMB BLD Latency")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@imb_latmax_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):IMB_LATMIN") {
+	field(DESC, "Min. IMB BLD Latency")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@imb_latmin_f,m32")
+}
+
+# just write .PROC
+record(longout, "BLD:SYS0:$(LOCA):IMB_LATMINRST") {
+	field(DESC, "Rst. Min. IMB BLD Latency")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@imb_latmin_f,m32")
+	field(VAL,  "-1")
+	field(PINI, "YES")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):IMB_LATAVG") {
+	field(DESC, "Num. IMB BLD Lat above avg")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@imb_latavg_f,m32")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):IMB_LATAVGCNT") {
+	field(DESC, "Num. IMB BLD Lat above avg")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@imb_latavgcnt_f,m32")
+}
+
+# just write .PROC
+record(longout, "BLD:SYS0:$(LOCA):IMB_LATAVGCNTRST") {
+	field(DESC, "Rst. Num. IMB BLD Lat above avg")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@imb_latavgcnt_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}

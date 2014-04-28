@@ -1,12 +1,20 @@
-/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.3 2014/03/03 19:51:03 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.4 2014/03/06 19:12:47 lpiccoli Exp $ */
 
 #include <stdio.h>
 #include <string.h>
+
+#include <bsp/gt_timer.h>
 
 #include "BLDMCastReceiver.h"
 #include "BLDMCastReceiverPhaseCavity.h"
 
 IOSCANPVT bldPhaseCavityIoscan;
+
+double bld_min_recv_delay_us = 0.;
+double bld_max_recv_delay_us = 0.;
+
+volatile unsigned bldPCAVReceiverMaxDelayUs = 0;
+volatile unsigned bldPCAVReceiverMinDelayUs = 0;
 
 int phase_cavity_create(BLDMCastReceiver **bld_receiver) {
   int status = bld_receiver_create(bld_receiver, sizeof(BLDPhaseCavity) * 10,
@@ -58,15 +66,27 @@ extern EBEAMINFO bldEbeamInfo;
  * the bsa buffer (accessed by the device support code).
  */
 void phase_cavity_run(void *bld_receiver) {
+
+epicsTimeStamp then, now;
+double         remaining, diff;
+double         diffus = 0.;
+
   if (bld_receiver == NULL) {
     fprintf(stderr, "ERROR: Can't run PhaseCavity, got NULL parameter!\n");
     return;
   }
 
   BLDMCastReceiver *this = bld_receiver;
-  while(1) {
+  
+  epicsTimeGetCurrent( &then );
+    
+  while(1) { 
+    
     /** Get the next BLD from the message queue (saved to the bld_*_bsa */
-    if (bld_receiver_next(bld_receiver) == 0) {    
+    if (bld_receiver_next(bld_receiver) == 0) { 
+	
+	  epicsTimeGetCurrent( &now );		
+	  	  
       BLDPhaseCavity *pcav = this->bld_payload_bsa;
       BLDHeader *header = this->bld_header_bsa;
     
@@ -83,8 +103,21 @@ void phase_cavity_run(void *bld_receiver) {
 #endif
       
       scanIoRequest(bldPhaseCavityIoscan);
-      epicsMutexUnlock(this->mutex);
-    }
+      epicsMutexUnlock(this->mutex);	
+	  
+		diff = epicsTimeDiffInSeconds( &now, &then );		
+
+		diffus = (double)(diff * 1000000.);
+		
+		if ( diffus > bld_max_recv_delay_us )
+			bld_max_recv_delay_us = diffus;
+			
+		if ( diffus < bld_min_recv_delay_us )
+			bld_min_recv_delay_us = diffus;			
+  
+		then = now;  	  
+    }	
+  	
   }
 }
 

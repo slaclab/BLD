@@ -68,7 +68,8 @@ BLD_SRCS += BLD_registerRecordDeviceDriver.cpp
 BLD_SRCS += BLDMCastReceiver.c
 BLD_SRCS += BLDMCastReceiverPhaseCavity.c
 BLD_SRCS += devBLDMCastReceiverPhaseCavity.c
-
+BLD_SRCS += BLDMCastReceiverImb.c
+BLD_SRCS += devBLDMCastReceiverImb.c
 
 # Build the main IOC entry point on workstation OSs.
 BLD_SRCS_DEFAULT += BLDMain.cpp

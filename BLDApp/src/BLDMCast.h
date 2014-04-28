@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.25 2014/02/27 23:53:01 lpiccoli Exp $ */
+/* $Id: BLDMCast.h,v 1.26 2014/02/28 19:00:53 lpiccoli Exp $ */
 #ifndef _BLD_MCAST_H_
 #define _BLD_MCAST_H_
 
@@ -63,12 +63,58 @@ Endianness endian = {test:1};
 	*p = __le32(v);
 }
 
+typedef epicsUInt16 __u16_a __attribute__((may_alias));
+
+static __inline__ __u16_a
+__le16(__u16_a v)
+{
+Endianness   endian = {test:1};
+
+	if ( endian.is.big ) {
+		__u16_a m = 0x0f0f;
+
+		v = ((v&m)<<4) | ((v>>4)&m);
+		v = (v<<8)    | (v>>8);
+	}
+
+	return v;
+}
+
+static __inline__ __u16_a
+__ld_le16(__u16_a *p)
+{
+__u16_a      v;
+#ifdef __PPC__
+Endianness   endian = {test:1};
+
+	if ( endian.is.big ) {
+		__asm__ __volatile__("lwbrx %0,%y1":"=r"(v):"Z"(*p));
+	} else
+#endif
+	v  = __le16(*p);
+
+	return v;
+}
+
+static __inline__ void
+__st_le16(__u16_a *p, __u16_a v)
+{
+#ifdef __PPC__
+Endianness endian = {test:1};
+	if ( endian.is.big ) {
+		__asm__ __volatile__("stwbrx %1,%y0":"=Z"(*p):"r"(v));
+	} else
+#endif
+	*p = __le16(v);
+}
+
 typedef union Flt64_LE_ {
 	__u32_a      u[2];
 	epicsFloat64 d;
 } Flt64_LE;
 
 typedef __u32_a Uint32_LE;
+typedef __u16_a Uint16_LE;
 
 /* This is optimized for PPC where FP registers
  * cannot be manipulated nor copied to integer registers

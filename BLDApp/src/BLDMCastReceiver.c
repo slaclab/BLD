@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.c,v 1.4 2014/03/06 19:12:47 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.5 2014/03/13 00:45:34 lpiccoli Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -17,6 +17,8 @@
 #include <sys/uio.h>
 #include <net/if.h>
 
+#include <bsp/gt_timer.h>
+
 #include "epicsThread.h"
 #include "epicsEvent.h"
 #include "epicsMessageQueue.h"
@@ -24,6 +26,7 @@
 
 #include "BLDMCastReceiver.h"
 #include "BLDMCastReceiverPhaseCavity.h"
+#include "BLDMCastReceiverImb.h"
 
 #define BLD_FB05_ETH0 "172.27.2.185"
 #define BLD_IOC_ETH0 "172.27.2.162"
@@ -32,6 +35,9 @@
 #ifdef SIGNAL_TEST
 extern epicsEventId EVRFireEventPCAV;
 #endif
+
+typedef  int16_t  __attribute__ ((may_alias))  int16_t_a;
+typedef uint32_t  __attribute__ ((may_alias)) uint32_t_a;
 
 static void check(char *nm, void *ptr) {
   if (devBusMappedRegister(nm, ptr) == 0) {
@@ -50,6 +56,7 @@ static void bld_hook_function(initHookState state) {
 }
 
 int bld_hook_init() {
+
   return (initHookRegister(bld_hook_function));
 }
 
@@ -220,9 +227,9 @@ static int bld_register_mulitcast(BLDMCastReceiver *this) {
  *
  * @param bld_receiver output parameter with the pointer to the allocated struct
  * @param payload_size size in bytes of the BLD payload (e.g. size of 4 floats
- * for the phase cavity BLD)
+ * for the phase cavity BLD or size of 7 floats for Imb)
  * @param payload_count number of parameters in the BLD payload (e.g. 4
- * parameters for the phase cavity BLD)
+ * parameters for the phase cavity BLD or 7 parameters for Imb)
  * @param multicast_group BLD multicast group address in dotted string form
  * @param port socket port
  *
@@ -230,71 +237,78 @@ static int bld_register_mulitcast(BLDMCastReceiver *this) {
  */
 int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_count,
 			char *multicast_group, int port) {
-  *this = (BLDMCastReceiver *) malloc(sizeof(BLDMCastReceiver));
-  if (*this == NULL) {
-    fprintf(stderr, "ERROR: Failed to allocate memory for BLDMCastReceiver\n");
-    return -1;
-  }
+	*this = (BLDMCastReceiver *) malloc(sizeof(BLDMCastReceiver));
+	if (*this == NULL) {
+      fprintf(stderr, "ERROR: Failed to allocate memory for BLDMCastReceiver\n");
+      return -1;
+	}
 
-  (*this)->bld_header_recv = (BLDHeader *) malloc(sizeof(BLDHeader) + payload_size );
-  if ((*this)->bld_header_recv == NULL) {
-    fprintf(stderr, "ERROR: Failed to allocate memory for BLDMCastReceiver\n");
-    return -1;
-  }
-  (*this)->bld_payload_recv = ((*this)->bld_header_recv) + 1;
+	(*this)->bld_header_recv = (BLDHeader *) malloc(sizeof(BLDHeader) + payload_size );
+	if ((*this)->bld_header_recv == NULL) {
+      fprintf(stderr, "ERROR: Failed to allocate memory for BLDMCastReceiver\n");
+      return -1;
+	}
+	(*this)->bld_payload_recv = ((*this)->bld_header_recv) + 1;
 
-  (*this)->bld_header_bsa = (BLDHeader *) malloc(sizeof(BLDHeader) + payload_size );
-  if ((*this)->bld_header_bsa == NULL) {
-    fprintf(stderr, "ERROR: Failed to allocate memory for BLDMCastReceiver\n");
-    return -1;
-  }
-  (*this)->bld_payload_bsa = ((*this)->bld_header_bsa) + 1;
+	(*this)->bld_header_bsa = (BLDHeader *) malloc(sizeof(BLDHeader) + payload_size );
+	if ((*this)->bld_header_bsa == NULL) {
+      fprintf(stderr, "ERROR: Failed to allocate memory for BLDMCastReceiver\n");
+      return -1;
+	}
+	(*this)->bld_payload_bsa = ((*this)->bld_header_bsa) + 1;
 
-  (*this)->packets_received = 0;
-  (*this)->packets_processed = 0;
-  (*this)->payload_size = payload_size;
-  (*this)->payload_count = payload_count;
-  (*this)->bsa_counter = 0;
-  (*this)->missing_bld_counter = 0;
-  (*this)->bld_pulseid = 0x1FFFF;
-  (*this)->bsa_pulseid = 0x1FFFF;
-  (*this)->bsa_pulseid_mismatch = 0;
-  (*this)->queue_fail_send_count = 0;
-  (*this)->queue_fail_receive_count = 0;
-  (*this)->multicast_group = multicast_group;
-  (*this)->port = port;
-  (*this)->bld_max_received_delay_us = 0;
-  (*this)->bld_min_received_delay_us = 0xFFFFFFF;
-  (*this)->bld_avg_received_delay_us = 0;
-  (*this)->bld_received_delay_above_avg_counter = 0;
+	(*this)->packets_received = 0;
+	(*this)->packets_processed = 0;
+	(*this)->payload_size = payload_size;
+	(*this)->payload_count = payload_count;
+	(*this)->bsa_counter = 0;
+	(*this)->missing_bld_counter = 0;
+	(*this)->bld_pulseid = 0x1FFFF;
+	(*this)->bsa_pulseid = 0x1FFFF;
+	(*this)->bsa_pulseid_mismatch = 0;
+	(*this)->queue_fail_send_count = 0;
+	(*this)->queue_fail_receive_count = 0;
+	(*this)->multicast_group = multicast_group;
+	(*this)->port = port;
+	(*this)->bld_max_received_delay_us = 0;
+	(*this)->bld_min_received_delay_us = 0xFFFFFFF;
+	(*this)->bld_avg_received_delay_us = 0;
+	(*this)->bld_received_delay_above_avg_counter = 0;
 
-  check("pcav_latmax_f", &(*this)->bld_max_received_delay_us);
-  check("pcav_latmin_f", &(*this)->bld_min_received_delay_us);
-  check("pcav_latavg_f", &(*this)->bld_avg_received_delay_us);
-  check("pcav_latavgcnt_f", &(*this)->bld_received_delay_above_avg_counter);
+	if (strcmp(multicast_group,"239.255.24.1")== 0) {
+		check("pcav_latmax_f", &(*this)->bld_max_received_delay_us);
+		check("pcav_latmin_f", &(*this)->bld_min_received_delay_us);
+		check("pcav_latavg_f", &(*this)->bld_avg_received_delay_us);
+		check("pcav_latavgcnt_f", &(*this)->bld_received_delay_above_avg_counter);				
+	}
+	else if (strcmp(multicast_group,"239.255.24.4")== 0) {
+		check("imb_latmax_f", &(*this)->bld_max_received_delay_us);
+		check("imb_latmin_f", &(*this)->bld_min_received_delay_us);
+		check("imb_latavg_f", &(*this)->bld_avg_received_delay_us);
+		check("imb_latavgcnt_f", &(*this)->bld_received_delay_above_avg_counter);			
+	}
 
+  #ifndef SIGNAL_TEST
+	/** Create socket and register to multicast group */
+	if (bld_register_mulitcast(*this) < 0) {
+      free((*this)->bld_header_bsa);
+      free((*this)->bld_header_recv);
 
-#ifndef SIGNAL_TEST
-  /** Create socket and register to multicast group */
-  if (bld_register_mulitcast(*this) < 0) {
-    free((*this)->bld_header_bsa);
-    free((*this)->bld_header_recv);
-    
-    free(*this);
-    *this = NULL;
-    return -1;
-  }
-#endif
+      free(*this);
+      *this = NULL;
+      return -1;
+	}
+  #endif
 
-  (*this)->queue = epicsMessageQueueCreate(10, sizeof(BLDHeader) + (*this)->payload_size);
-  if ((*this)->queue == NULL) {
-    fprintf(stderr, "ERROR: Failed to create epicsMessageQueue\n");
-    return -1;
-  }
+	(*this)->queue = epicsMessageQueueCreate(10, sizeof(BLDHeader) + (*this)->payload_size);
+	if ((*this)->queue == NULL) {
+      fprintf(stderr, "ERROR: Failed to create epicsMessageQueue\n");
+      return -1;
+	}
 
-  (*this)->mutex = epicsMutexCreate();
+	(*this)->mutex = epicsMutexCreate();
 
-  return 0;
+	return 0;
 }
 
 int bld_receiver_destroy(BLDMCastReceiver *this) {
@@ -373,7 +387,7 @@ static int bld_get_message(BLDMCastReceiver *this) {
   int flags = 0;
 
   struct iovec       iov; // Buffer description socket receive
-  struct sockaddr_in src; // Socket name source machine
+  struct sockaddr_in src; // Socket name source machine  
 
   iov.iov_base = this->bld_header_recv;
   iov.iov_len  = sizeof(BLDHeader) + this->payload_size ;
@@ -441,10 +455,26 @@ static int bld_get_message(BLDMCastReceiver *this) {
  * This is the function invoked by the multicast receiver task.
  * It blocks waiting for BLD data. Once received the BLD is
  * copied to a shared message queue, which is later consumed
- * by another task (e.g. BLDPhaseCavity task).
+ * by another task (e.g. BLDPhaseCavity task) or BLDImb task.
  */
 void bld_receiver_run(BLDMCastReceiver *this) {
-  epicsThreadSleep(20);
+
+epicsTimeStamp then, now;
+double         remaining, diff;
+unsigned       diffus;
+
+  epicsTimeGetCurrent( &then );
+		
+  epicsThreadSleep(20); 
+  
+  epicsTimeGetCurrent( &now );  
+  
+  diff = epicsTimeDiffInSeconds( &now, &then );
+
+  diffus = (unsigned)(diff * 1000000.);
+
+  printf("BLD_RECEIVER_RUN(): %d\n",diffus);
+  
   printf("INFO: Waiting for BLD packets from group %s\n", this->multicast_group);
   for (;;) {
 #ifdef SIGNAL_TEST
@@ -478,6 +508,7 @@ void bld_receiver_run(BLDMCastReceiver *this) {
     this->packets_received++;
 
     epicsMutexUnlock(this->mutex);
+		
 #ifndef SIGNAL_TEST
     }
 #endif
@@ -485,11 +516,15 @@ void bld_receiver_run(BLDMCastReceiver *this) {
 }
 
 BLDMCastReceiver *bldPhaseCavityReceiver = NULL;
+BLDMCastReceiver *bldImbReceiver = NULL;
 
 void bld_receivers_report(int level) {
   if (bldPhaseCavityReceiver != NULL) {
     phase_cavity_report(bldPhaseCavityReceiver, level);
   }
+  if (bldImbReceiver != NULL) {
+    imb_report(bldImbReceiver, level);
+  }  
 }
 
 /**
@@ -498,6 +533,9 @@ void bld_receivers_report(int level) {
 void bld_receivers_start() {
   printf("INFO: Creating PhaseCavity Receiver... ");
   phase_cavity_create(&bldPhaseCavityReceiver);
+  
+  printf("INFO: Creating Imb Receiver... ");
+  imb_create(&bldImbReceiver);  
 
   printf("INFO: Starting PhaseCavity Receiver... ");
   epicsThreadMustCreate("BLDPhaseCavity", epicsThreadPriorityMedium, 20480,
@@ -505,4 +543,11 @@ void bld_receivers_start() {
   epicsThreadMustCreate("BLDPhaseCavityProd", epicsThreadPriorityMedium, 20480,
 			(EPICSTHREADFUNC)bld_receiver_run, bldPhaseCavityReceiver);
   printf(" done.\n ");
+  
+  printf("INFO: Starting Imb Receiver... ");
+  epicsThreadMustCreate("BLDImb", epicsThreadPriorityMedium, 20480,
+			(EPICSTHREADFUNC)bldImbReceiver->run, bldImbReceiver);
+  epicsThreadMustCreate("BLDImbProd", epicsThreadPriorityMedium, 20480,
+			(EPICSTHREADFUNC)bld_receiver_run, bldImbReceiver);
+  printf(" done.\n ");  
 }
