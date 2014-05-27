@@ -1,6 +1,12 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-5-1: Shantha Condamoor: 27-May-2014
+	Added more diagnostics records
+	Set the BLD header timestamp to when the BLD packet was received
+	Reset the TSE fields to -1 for BSA.
+	Priority of Imb and PhaseCavity Receiver threads set to epicsThreadPriorityHigh-1
+	
 BLD-R2-5-0: Shantha Condamoor: 28-Apr-2014
 	Added IMB BLD Packet receiver support
 

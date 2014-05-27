@@ -86,18 +86,18 @@ dbLoadRecords("db/BLDMCastReceiverImb.db","LOCA=501, DIAG_SCAN=I/O Intr, STAT_SC
 # which would be faster, simpler and more flexible)
 # 
 
-dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:FB05:BLDWAV, scan=Event, evnt=146, rarm=2")
+# dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:FB05:BLDWAV, scan=Event, evnt=146, rarm=2")
 
 # ======================================================================
 ## Configure AutoSave and Restore
 # ================================================================
 cd("iocBoot")
 ## autosave/restore settings
-save_restoreSet_status_prefix( "IOC:SYS0:BD01:")
+save_restoreSet_status_prefix( "IOC:SYS0:FB05:")
 save_restoreSet_IncompleteSetsOk(1)
 save_restoreSet_DatedBackupFiles(1)
 
-#cd("ioc-sys0-bd01")
+#cd("ioc-sys0-fb05")
 cd(pathSubstitute("%H"))
 
 set_requestfile_path("/data/autosave-req")

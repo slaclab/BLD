@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.h,v 1.1.2.4 2013/06/11 16:02:05 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiver.h,v 1.2 2014/02/27 23:53:01 lpiccoli Exp $ */
 
 #ifndef _BLDMCASTRECEIVER_H_
 #define _BLDMCASTRECEIVER_H_
@@ -97,7 +97,15 @@ struct BLDMCastReceiver {
 
   /** Count number of time elapsed 3x greater than the average */
   epicsUInt32 bld_received_delay_above_avg_counter;
-
+  
+  epicsUInt32   bld_received_delay_above_exp_counter;
+  
+  epicsTimeStamp previous_bld_time;
+  epicsUInt32       bld_diffus;
+  epicsUInt32       bld_diffus_max;
+  epicsUInt32       bld_diffus_min;
+  epicsUInt32       bld_diffus_avg;  
+  
   /** Print status information (dbior command) */
   void (*report)(void *bld_receiver, int level); 
   

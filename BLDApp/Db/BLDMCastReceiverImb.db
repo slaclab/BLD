@@ -4,7 +4,7 @@ record(ai, "BLD:SYS0:$(LOCA):IMB_SUM") {
   field(DTYP, "BLD_IMB")
   field(INP,  "@IMB_SUM")
   field(PREC, "5")
-  field(TSE,  "-2")
+  field(TSE,  "-1")
   field(EGU,  "")
   field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_SUM")
   field(PRIO, "HIGH")
@@ -16,7 +16,7 @@ record(ai, "BLD:SYS0:$(LOCA):IMB_XPOS") {
   field(DTYP, "BLD_IMB")
   field(INP,  "@IMB_XPOS")
   field(PREC, "5")
-  field(TSE,  "-2")
+  field(TSE,  "-1")
   field(EGU,  "")
   field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_XPOS")
   field(PRIO, "HIGH")
@@ -28,7 +28,7 @@ record(ai, "BLD:SYS0:$(LOCA):IMB_YPOS") {
   field(DTYP, "BLD_IMB")
   field(INP,  "@IMB_YPOS")
   field(PREC, "5")
-  field(TSE,  "-2")
+  field(TSE,  "-1")
   field(EGU,  "")
   field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_YPOS")
   field(PRIO, "HIGH")
@@ -40,7 +40,7 @@ record(ai, "BLD:SYS0:$(LOCA):IMB_CHANNEL10") {
   field(DTYP, "BLD_IMB")
   field(INP,  "@IMB_CHANNEL10")
   field(PREC, "5")
-  field(TSE,  "-2")
+  field(TSE,  "-1")
   field(EGU,  "")
   field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_CHANNEL10")
   field(PRIO, "HIGH")
@@ -52,7 +52,7 @@ record(ai, "BLD:SYS0:$(LOCA):IMB_CHANNEL11") {
   field(DTYP, "BLD_IMB")
   field(INP,  "@IMB_CHANNEL11")
   field(PREC, "5")
-  field(TSE,  "-2")
+  field(TSE,  "-1")
   field(EGU,  "")
   field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_CHANNEL11")
   field(PRIO, "HIGH")
@@ -64,7 +64,7 @@ record(ai, "BLD:SYS0:$(LOCA):IMB_CHANNEL12") {
   field(DTYP, "BLD_IMB")
   field(INP,  "@IMB_CHANNEL12")
   field(PREC, "5")
-  field(TSE,  "-2")
+  field(TSE,  "-1")
   field(EGU,  "")
   field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_CHANNEL12")
   field(PRIO, "HIGH")
@@ -76,7 +76,7 @@ record(ai, "BLD:SYS0:$(LOCA):IMB_CHANNEL13") {
   field(DTYP, "BLD_IMB")
   field(INP,  "@IMB_CHANNEL13")
   field(PREC, "5")
-  field(TSE,  "-2")
+  field(TSE,  "-1")
   field(EGU,  "")
   field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_CHANNEL13")
   field(PRIO, "HIGH")
@@ -88,7 +88,7 @@ record(ai, "BLD:SYS0:$(LOCA):IMB_PULSEID") {
   field(DTYP, "BLD_IMB")
   field(INP,  "@IMB_PULSEID")
   field(PREC, "5")
-  field(TSE,  "-2")
+  field(TSE,  "-1")
   field(EGU,  "Count")
   field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_PULSEID")
   field(PRIO, "HIGH")
@@ -100,7 +100,7 @@ record(ai, "BLD:SYS0:$(LOCA):IMB_STATUS") {
   field(DTYP, "BLD_IMB")
   field(INP,  "@IMB_STATUS")
   field(PREC, "5")
-  field(TSE,  "-2")
+  field(TSE,  "-1")
   field(EGU,  "Raw")
   field(FLNK, "BLD:SYS0:$(LOCA):EFIMB_STATUS")
   field(PRIO, "HIGH")
@@ -167,3 +167,66 @@ record(longout, "BLD:SYS0:$(LOCA):IMB_LATAVGCNTRST") {
 	field(VAL,  "0")
 	field(PINI, "YES")
 }
+
+record(longin, "BLD:SYS0:$(LOCA):IMB_MAX") {
+	field(DESC, "Max. IMB BLD Latency")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@imb_max_f,m32")
+}
+
+# just write .PROC
+record(longout, "BLD:SYS0:$(LOCA):IMB_MAXRST") {
+	field(DESC, "Rst. Max. IMB BLD Latency")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@imb_max_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):IMB_MIN") {
+	field(DESC, "Min. IMB BLD Latency")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@imb_min_f,m32")
+}
+
+# just write .PROC
+record(longout, "BLD:SYS0:$(LOCA):IMB_MINRST") {
+	field(DESC, "Rst. Min. IMB BLD Latency")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@imb_min_f,m32")
+	field(VAL,  "-1")
+	field(PINI, "YES")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):IMB_AVG") {
+	field(DESC, "Num. IMB BLD Lat above avg")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@imb_avg_f,m32")
+}
+
+record(longin, "BLD:SYS0:$(LOCA):IMB_DELAVGCNT") {
+	field(DESC, "Num. PCAV BLD Lat above avg")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@imb_delayed_f,m32")
+}
+
+# just write .PROC
+record(longout, "BLD:SYS0:$(LOCA):IMB_DELAVGCNTRST") {
+	field(DESC, "Rst. Num. PCAV BLD Lat above avg")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@imb_delayed_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+

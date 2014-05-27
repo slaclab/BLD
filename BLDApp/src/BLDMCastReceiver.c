@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.c,v 1.5 2014/03/13 00:45:34 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.6 2014/04/28 23:17:40 scondam Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -19,10 +19,11 @@
 
 #include <bsp/gt_timer.h>
 
-#include "epicsThread.h"
-#include "epicsEvent.h"
-#include "epicsMessageQueue.h"
-#include "initHooks.h"
+#include <epicsThread.h>
+#include <epicsEvent.h>
+#include <epicsMessageQueue.h>
+#include <initHooks.h>
+#include <evrTime.h>
 
 #include "BLDMCastReceiver.h"
 #include "BLDMCastReceiverPhaseCavity.h"
@@ -38,6 +39,10 @@ extern epicsEventId EVRFireEventPCAV;
 
 typedef  int16_t  __attribute__ ((may_alias))  int16_t_a;
 typedef uint32_t  __attribute__ ((may_alias)) uint32_t_a;
+
+int debug = 0;
+float DiffUs[1000];
+unsigned int Bld_Pulseid[1000];
 
 static void check(char *nm, void *ptr) {
   if (devBusMappedRegister(nm, ptr) == 0) {
@@ -279,12 +284,20 @@ int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_c
 		check("pcav_latmax_f", &(*this)->bld_max_received_delay_us);
 		check("pcav_latmin_f", &(*this)->bld_min_received_delay_us);
 		check("pcav_latavg_f", &(*this)->bld_avg_received_delay_us);
+		check("pcav_max_f", &(*this)->bld_diffus_max);
+		check("pcav_min_f", &(*this)->bld_diffus_min);
+		check("pcav_avg_f", &(*this)->bld_diffus_avg);	
+		check("pcav_delayed_f", &(*this)->bld_received_delay_above_exp_counter);				
 		check("pcav_latavgcnt_f", &(*this)->bld_received_delay_above_avg_counter);				
 	}
 	else if (strcmp(multicast_group,"239.255.24.4")== 0) {
 		check("imb_latmax_f", &(*this)->bld_max_received_delay_us);
 		check("imb_latmin_f", &(*this)->bld_min_received_delay_us);
 		check("imb_latavg_f", &(*this)->bld_avg_received_delay_us);
+		check("imb_max_f", &(*this)->bld_diffus_max);
+		check("imb_min_f", &(*this)->bld_diffus_min);
+		check("imb_avg_f", &(*this)->bld_diffus_avg);		
+		check("imb_delayed_f", &(*this)->bld_received_delay_above_exp_counter);		
 		check("imb_latavgcnt_f", &(*this)->bld_received_delay_above_avg_counter);			
 	}
 
@@ -305,9 +318,9 @@ int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_c
       fprintf(stderr, "ERROR: Failed to create epicsMessageQueue\n");
       return -1;
 	}
-
-	(*this)->mutex = epicsMutexCreate();
-
+	
+	(*this)->mutex = epicsMutexCreate();  	
+	
 	return 0;
 }
 
@@ -368,16 +381,40 @@ void bld_receiver_report(void *this, int level) {
 
 static epicsUInt32 us_since_last_bld(BLDMCastReceiver *this) {
   struct timeval now;
+  
+  epicsTimeStamp current,previous;  
+  double         diff, diffus;
+  
+  gettimeofday(&now, 0);  
+  epicsTimeGetCurrent( &current ); 
+ 
+  BLDHeader *header = this->bld_header_recv;        
+ 
+  epicsMutexLock(this->mutex);    
+    previous = this->previous_bld_time;  
+    diff = (double) epicsTimeDiffInSeconds( &current, &previous );
+    diffus = (diff * 1000000.);
+  
+	this->previous_bld_time = current;
+  	this->bld_diffus = (epicsUInt32) diffus;	
+    if (diffus > this->bld_diffus_max) 	this->bld_diffus_max = (epicsUInt32) diffus;
+    if (diffus < this->bld_diffus_min) 	this->bld_diffus_min = (epicsUInt32) diffus;	
+	this->bld_diffus_avg = (epicsUInt32) diffus;
+	if (diffus > 8333) this->bld_received_delay_above_exp_counter++;
+  epicsMutexUnlock(this->mutex);
 
-  gettimeofday(&now, 0);
-	
   if (now.tv_usec < this->bld_received_time.tv_usec) {
     now.tv_usec += 1000000;
     now.tv_sec--;	
   }
   now.tv_usec  = now.tv_usec - this->bld_received_time.tv_usec;
   now.tv_usec += now.tv_sec  - this->bld_received_time.tv_sec;
-
+ 
+  if (debug == 100) debug=0; 
+  DiffUs[debug] = diffus;
+  Bld_Pulseid[debug] = header->fiducialId;
+  debug++;
+  
   return (epicsUInt32) now.tv_usec;
 }
 
@@ -459,23 +496,26 @@ static int bld_get_message(BLDMCastReceiver *this) {
  */
 void bld_receiver_run(BLDMCastReceiver *this) {
 
-epicsTimeStamp then, now;
-double         remaining, diff;
-unsigned       diffus;
+   int         rc;
+   epicsTimeStamp epicsTs;
+   epicsTimeStamp tsSum;
 
-  epicsTimeGetCurrent( &then );
-		
-  epicsThreadSleep(20); 
+    printf("BLD_RECEIVER_RUN()\n");
   
-  epicsTimeGetCurrent( &now );  
-  
-  diff = epicsTimeDiffInSeconds( &now, &then );
+    printf("INFO: Waiting for BLD packets from group %s\n", this->multicast_group);	
+	
+  	epicsThreadSleep(20);	
+	
+    epicsTimeGetCurrent( &epicsTs ); 	
 
-  diffus = (unsigned)(diff * 1000000.);
+    epicsMutexLock(this->mutex);  
+    	this->previous_bld_time = epicsTs;
+    	this->bld_diffus = 8333;
+    	this->bld_diffus_max = 8333;
+    	this->bld_diffus_min = 8333;
+    	this->bld_diffus_avg = 8333;  
+    epicsMutexUnlock(this->mutex);
 
-  printf("BLD_RECEIVER_RUN(): %d\n",diffus);
-  
-  printf("INFO: Waiting for BLD packets from group %s\n", this->multicast_group);
   for (;;) {
 #ifdef SIGNAL_TEST
     /** TEST_CODE --- begin */
@@ -485,7 +525,9 @@ unsigned       diffus;
     /** Wait for BLD Multicast */
     if (bld_get_message(this) > 0) {
 #endif
-  
+
+    rc = evrTimeGetFromPipeline(&epicsTs, evrTimeActive, 0, 0, 0, 0, 0);
+	  
     epicsMutexLock(this->mutex);
 
     BLDHeader *header = this->bld_header_recv;
@@ -500,6 +542,9 @@ unsigned       diffus;
     /** TEST_CODE --- end */
 #endif
 
+	header->tv_sec = epicsTs.secPastEpoch;
+	header->tv_nsec = epicsTs.nsec;
+
     if (epicsMessageQueueTrySend(this->queue, header,
 				 sizeof(BLDHeader) + this->payload_size) != 0) {
       this->queue_fail_send_count++;
@@ -511,6 +556,11 @@ unsigned       diffus;
 		
 #ifndef SIGNAL_TEST
     }
+	/* if (debug == 99) {int i; 
+		for (i=0; i < 100; i++) {
+			printf("(%d) %f ",Bld_Pulseid[i],DiffUs[i]);
+		}
+	} */
 #endif
   }
 }
@@ -538,16 +588,16 @@ void bld_receivers_start() {
   imb_create(&bldImbReceiver);  
 
   printf("INFO: Starting PhaseCavity Receiver... ");
-  epicsThreadMustCreate("BLDPhaseCavity", epicsThreadPriorityMedium, 20480,
+  epicsThreadMustCreate("BLDPhaseCavity", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
 			(EPICSTHREADFUNC)bldPhaseCavityReceiver->run, bldPhaseCavityReceiver);
-  epicsThreadMustCreate("BLDPhaseCavityProd", epicsThreadPriorityMedium, 20480,
+  epicsThreadMustCreate("BLDPhaseCavityProd", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
 			(EPICSTHREADFUNC)bld_receiver_run, bldPhaseCavityReceiver);
   printf(" done.\n ");
   
   printf("INFO: Starting Imb Receiver... ");
-  epicsThreadMustCreate("BLDImb", epicsThreadPriorityMedium, 20480,
+  epicsThreadMustCreate("BLDImb", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
 			(EPICSTHREADFUNC)bldImbReceiver->run, bldImbReceiver);
-  epicsThreadMustCreate("BLDImbProd", epicsThreadPriorityMedium, 20480,
+  epicsThreadMustCreate("BLDImbProd", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
 			(EPICSTHREADFUNC)bld_receiver_run, bldImbReceiver);
   printf(" done.\n ");  
 }
