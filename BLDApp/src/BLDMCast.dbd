@@ -10,3 +10,4 @@ variable(DELAY_FOR_CA)
 
 function(subInit)
 function(subProcess)
+function(subTimeStampOfPulseId)

@@ -230,3 +230,18 @@ record(longout, "BLD:SYS0:$(LOCA):IMB_DELAVGCNTRST") {
 	field(PINI, "YES")
 }
 
+record(ai, "BLD:SYS0:$(LOCA):IMB_PULSEID_GLOBAL")
+{
+    field(DTYP, "Soft Channel")
+    field(INP, "PATT:SYS0:1:PULSEID CP MS")
+	field(TSE, "-2")
+	field(FLNK, "BLD:SYS0:$(LOCA):IMB_PULSEID_SUB")	
+}
+
+record(sub, "BLD:SYS0:$(LOCA):IMB_PULSEID_SUB")
+{
+    field(INPA, "BLD:SYS0:$(LOCA):IMB_PULSEID_GLOBAL NPP MS")
+	field(TSE, "-2")
+    field(TSEL, "BLD:SYS0:$(LOCA):IMB_PULSEID_GLOBAL.TIME")	
+	field(SNAM, "subTimeStampOfPulseId")	
+}

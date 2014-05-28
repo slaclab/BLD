@@ -137,7 +137,7 @@ record(longin, "BLD:SYS0:$(LOCA):PCAV_MAX") {
 	field(EGU,  "uS")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C0S2@pcav_max_f,m32")
+	field(INP,  "#C0S2@pcav_maxf,m32")
 }
 
 # just write .PROC
@@ -193,3 +193,20 @@ record(longout, "BLD:SYS0:$(LOCA):PCAV_DELAVGCNTRST") {
 	field(VAL,  "0")
 	field(PINI, "YES")
 }
+
+record(ai, "BLD:SYS0:$(LOCA):PCAV_PULSEID_GLOBAL")
+{
+    field(DTYP, "Soft Channel")
+    field(INP, "PATT:SYS0:1:PULSEID CP MS")
+	field(TSE, "-2")
+	field(FLNK, "BLD:SYS0:$(LOCA):PCAV_PULSEID_SUB")	
+}
+
+record(sub, "BLD:SYS0:$(LOCA):PCAV_PULSEID_SUB")
+{
+    field(INPA, "BLD:SYS0:$(LOCA):PCAV_PULSEID_GLOBAL NPP MS")
+	field(TSE, "-2")
+    field(TSEL, "BLD:SYS0:$(LOCA):PCAV_PULSEID_GLOBAL.TIME")	
+	field(SNAM, "subTimeStampOfPulseId")	
+}
+

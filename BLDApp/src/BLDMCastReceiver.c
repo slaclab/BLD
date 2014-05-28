@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.c,v 1.6 2014/04/28 23:17:40 scondam Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.7 2014/05/27 21:55:09 scondam Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -42,7 +42,25 @@ typedef uint32_t  __attribute__ ((may_alias)) uint32_t_a;
 
 int debug = 0;
 float DiffUs[1000];
-unsigned int Bld_Pulseid[1000];
+Uint32_LE Bld_Pulseid[1200] = {0};
+epicsTimeStamp Bld_Pulseid_Timestamp[1200];
+int		Bld_Pulseid_Count = 0;
+
+epicsTimeStamp getTimeStamp(Uint32_LE pulseid)
+{
+	epicsTimeStamp epicsTs;
+	
+	epicsTs.secPastEpoch = 0;
+	epicsTs.nsec = 0;
+	
+	int i;
+	
+	for (i=0; i < 1200; i++) {
+		if (Bld_Pulseid[i] == pulseid) { epicsTs = Bld_Pulseid_Timestamp[i]; break; }
+	}
+	
+	return epicsTs;
+}
 
 static void check(char *nm, void *ptr) {
   if (devBusMappedRegister(nm, ptr) == 0) {
@@ -498,7 +516,7 @@ void bld_receiver_run(BLDMCastReceiver *this) {
 
    int         rc;
    epicsTimeStamp epicsTs;
-   epicsTimeStamp tsSum;
+   epicsTimeStamp epicsTsPulseId;
 
     printf("BLD_RECEIVER_RUN()\n");
   
@@ -544,7 +562,15 @@ void bld_receiver_run(BLDMCastReceiver *this) {
 
 	header->tv_sec = epicsTs.secPastEpoch;
 	header->tv_nsec = epicsTs.nsec;
-
+	
+	epicsTsPulseId = getTimeStamp(header->fiducialId);
+	
+	if (epicsTsPulseId.secPastEpoch) 
+	{
+		header->tv_sec = epicsTsPulseId.secPastEpoch;
+		header->tv_nsec = epicsTsPulseId.nsec;
+	}
+	
     if (epicsMessageQueueTrySend(this->queue, header,
 				 sizeof(BLDHeader) + this->payload_size) != 0) {
       this->queue_fail_send_count++;
@@ -601,3 +627,33 @@ void bld_receivers_start() {
 			(EPICSTHREADFUNC)bld_receiver_run, bldImbReceiver);
   printf(" done.\n ");  
 }
+
+#include <subRecord.h>
+#include <registryFunction.h>
+#include <epicsExport.h>
+
+long subTimeStampOfPulseId(struct subRecord *psub) {
+  
+  Bld_Pulseid_Timestamp[Bld_Pulseid_Count] = psub->time;
+  psub->val = psub->a;
+  Bld_Pulseid[Bld_Pulseid_Count++] = (Uint32_LE) psub->val;
+  
+  if (1200 == Bld_Pulseid_Count) Bld_Pulseid_Count = 0;
+
+  /*  
+  const char *pcav = "PCAV_PULSEID_GLOBAL";
+  const char *imb = "IMB_PULSEID_GLOBAL";
+    
+    epicsTimeStamp epicsTs = psub->time;
+	epicsTs.secPastEpoch = (int)(psub->time.secPastEpoch);
+  	epicsTs.nsec = (int)(psub->time.nsec & 0x1FFFF);
+  
+  if (strstr(psub->name,pcav) != NULL) bldPhaseCavityReceiver->global_pulseid_time = psub->time;
+  else if (strstr(psub->name,imb) != NULL) bldImbReceiver->global_pulseid_time = psub->time;
+  */
+  
+  return 0;
+}
+
+epicsRegisterFunction(subTimeStampOfPulseId);
+

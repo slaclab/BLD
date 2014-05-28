@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.h,v 1.2 2014/02/27 23:53:01 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiver.h,v 1.3 2014/05/27 21:55:09 scondam Exp $ */
 
 #ifndef _BLDMCASTRECEIVER_H_
 #define _BLDMCASTRECEIVER_H_
@@ -105,6 +105,8 @@ struct BLDMCastReceiver {
   epicsUInt32       bld_diffus_max;
   epicsUInt32       bld_diffus_min;
   epicsUInt32       bld_diffus_avg;  
+  
+  epicsTimeStamp global_pulseid_time;  
   
   /** Print status information (dbior command) */
   void (*report)(void *bld_receiver, int level); 
