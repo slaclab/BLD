@@ -74,11 +74,11 @@ file save_restoreStatus.db
           { IOC:SYS0:FB05: }
 }
 
-file bsaBLDEdef.db {
-    pattern
-    { DEVICE, LOC, UN, SLCLNK }
-    { BLD:SYS0:501, SYS0, 501, "" }
-}
+# file bsaBLDEdef.db {
+#    pattern
+#    { DEVICE, LOC, UN, SLCLNK }
+#    { BLD:SYS0:501, SYS0, 501, "" }
+#}
 
 file bsaBLDReceiverPhaseCavityEdef.db {
     pattern

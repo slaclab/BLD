@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.4 2014/03/06 19:12:47 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.5 2014/04/28 23:17:40 scondam Exp $ */
 
 #include <stdio.h>
 #include <string.h>
@@ -22,13 +22,13 @@ int phase_cavity_create(BLDMCastReceiver **bld_receiver) {
 				   BLD_PHASE_CAVITY_PORT);
 
   if (status < 0) {
-    printf("ERROR: Failed on bld_receiver_create (status=%d)\n", status);
+    printf("\nERROR: Failed on bld_receiver_create (status=%d)\n", status);
     return status;
   }
 
   (*bld_receiver)->run = phase_cavity_run;
   (*bld_receiver)->report = phase_cavity_report;
-  printf("INFO: PhaseCavity receiver at 0x%x (run 0x%x, report 0x%x)",
+  printf("\nINFO: PhaseCavity receiver at 0x%x (run 0x%x, report 0x%x\n)",
 	 (int) bld_receiver, 0, 0); /*(*bld_receiver)->run,
 	 (*bld_receiver)->report);
   */

@@ -11,15 +11,25 @@
 file bsaATTREdef.db
 {
 #           Device   Attribute  Input          EGU   HOPR  LOPR PREC ADEL  Link
-  pattern { D, ATTR, I, EG, HO, LO, PR, AD, LNK }
-	  { $(DEVICE), IMB_SUM, $(DEVICE):IMB_SUM, count, 0, 0, 0, .001, "" }
-	  { $(DEVICE), IMB_XPOS, $(DEVICE):IMB_XPOS, count, 0, 0, 0, .001, "" }
-	  { $(DEVICE), IMB_YPOS, $(DEVICE):IMB_YPOS, count, 0, 0, 0, .001, "" }
-	  { $(DEVICE), IMB_CHANNEL10, $(DEVICE):IMB_CHANNEL10, count, 0, 0, 0, .001, "" }
-	  { $(DEVICE), IMB_CHANNEL11, $(DEVICE):IMB_CHANNEL11, count, 0, 0, 0, .001, "" }
-	  { $(DEVICE), IMB_CHANNEL12, $(DEVICE):IMB_CHANNEL12, status, 0, 0, 0, .001, "" }
-	  { $(DEVICE), IMB_CHANNEL13, $(DEVICE):IMB_CHANNEL13, status, 0, 0, 0, .001, "" }	  
-	  { $(DEVICE), IMB_PULSEID, $(DEVICE):IMB_PULSEID, count, 0, 0, 0, .001, "" }
-	  { $(DEVICE), IMB_STATUS, $(DEVICE):IMB_STATUS, status, 0, 0, 0, .001, "" }    
+  pattern { D, 		ATTR, 						I, EG, HO, LO, PR, AD, LNK }
+	  	{ $(DEVICE), IMB0_SUM, 		$(DEVICE):IMB_HxxUm6Imb01_SUM, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB0_XPOS, 		$(DEVICE):IMB_HxxUm6Imb01_XPOS, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB0_YPOS, 		$(DEVICE):IMB_HxxUm6Imb01_YPOS, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB0_CHANNEL10,	$(DEVICE):IMB_HxxUm6Imb01_CHANNEL10, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB0_CHANNEL11,	$(DEVICE):IMB_HxxUm6Imb01_CHANNEL11, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB0_CHANNEL12,	$(DEVICE):IMB_HxxUm6Imb01_CHANNEL12, status, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB0_CHANNEL13,	$(DEVICE):IMB_HxxUm6Imb01_CHANNEL13, status, 0, 0, 0, .001, "" }	  
+	  	{ $(DEVICE), IMB0_PULSEID,	$(DEVICE):IMB_HxxUm6Imb01_PULSEID, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB0_STATUS,	$(DEVICE):IMB_HxxUm6Imb01_STATUS, status, 0, 0, 0, .001, "" }    
+	  
+	  	{ $(DEVICE), IMB1_SUM, 		$(DEVICE):IMB_HxxUm6Imb02_SUM, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB1_XPOS, 		$(DEVICE):IMB_HxxUm6Imb02_XPOS, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB1_YPOS, 		$(DEVICE):IMB_HxxUm6Imb02_YPOS, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB1_CHANNEL10, $(DEVICE):IMB_HxxUm6Imb02_CHANNEL10, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB1_CHANNEL11, $(DEVICE):IMB_HxxUm6Imb02_CHANNEL11, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB1_CHANNEL12, $(DEVICE):IMB_HxxUm6Imb02_CHANNEL12, status, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB1_CHANNEL13, $(DEVICE):IMB_HxxUm6Imb02_CHANNEL13, status, 0, 0, 0, .001, "" }	  
+	  	{ $(DEVICE), IMB1_PULSEID, 	$(DEVICE):IMB_HxxUm6Imb02_PULSEID, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB1_STATUS, 	$(DEVICE):IMB_HxxUm6Imb02_STATUS, status, 0, 0, 0, .001, "" }    	  
 }
 

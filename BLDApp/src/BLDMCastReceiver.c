@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.c,v 1.7 2014/05/27 21:55:09 scondam Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.8 2014/05/28 17:19:27 scondam Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -309,15 +309,25 @@ int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_c
 		check("pcav_latavgcnt_f", &(*this)->bld_received_delay_above_avg_counter);				
 	}
 	else if (strcmp(multicast_group,"239.255.24.4")== 0) {
-		check("imb_latmax_f", &(*this)->bld_max_received_delay_us);
-		check("imb_latmin_f", &(*this)->bld_min_received_delay_us);
-		check("imb_latavg_f", &(*this)->bld_avg_received_delay_us);
-		check("imb_max_f", &(*this)->bld_diffus_max);
-		check("imb_min_f", &(*this)->bld_diffus_min);
-		check("imb_avg_f", &(*this)->bld_diffus_avg);		
-		check("imb_delayed_f", &(*this)->bld_received_delay_above_exp_counter);		
-		check("imb_latavgcnt_f", &(*this)->bld_received_delay_above_avg_counter);			
+		check("HxxUm6Imb01_latmax_f", &(*this)->bld_max_received_delay_us);
+		check("HxxUm6Imb01_latmin_f", &(*this)->bld_min_received_delay_us);
+		check("HxxUm6Imb01_latavg_f", &(*this)->bld_avg_received_delay_us);
+		check("HxxUm6Imb01_max_f", &(*this)->bld_diffus_max);
+		check("HxxUm6Imb01_min_f", &(*this)->bld_diffus_min);
+		check("HxxUm6Imb01_avg_f", &(*this)->bld_diffus_avg);		
+		check("HxxUm6Imb01_delayed_f", &(*this)->bld_received_delay_above_exp_counter);		
+		check("HxxUm6Imb01_latavgcnt_f", &(*this)->bld_received_delay_above_avg_counter);			
 	}
+	else if (strcmp(multicast_group,"239.255.24.5")== 0) {
+		check("HxxUm6Imb02_latmax_f", &(*this)->bld_max_received_delay_us);
+		check("HxxUm6Imb02_latmin_f", &(*this)->bld_min_received_delay_us);
+		check("HxxUm6Imb02_latavg_f", &(*this)->bld_avg_received_delay_us);
+		check("HxxUm6Imb02_max_f", &(*this)->bld_diffus_max);
+		check("HxxUm6Imb02_min_f", &(*this)->bld_diffus_min);
+		check("HxxUm6Imb02_avg_f", &(*this)->bld_diffus_avg);		
+		check("HxxUm6Imb02_delayed_f", &(*this)->bld_received_delay_above_exp_counter);		
+		check("HxxUm6Imb02_latavgcnt_f", &(*this)->bld_received_delay_above_avg_counter);			
+	}	
 
   #ifndef SIGNAL_TEST
 	/** Create socket and register to multicast group */
@@ -510,7 +520,7 @@ static int bld_get_message(BLDMCastReceiver *this) {
  * This is the function invoked by the multicast receiver task.
  * It blocks waiting for BLD data. Once received the BLD is
  * copied to a shared message queue, which is later consumed
- * by another task (e.g. BLDPhaseCavity task) or BLDImb task.
+ * by another task (e.g. BLDPhaseCavity task) or BLDHxxUm6ImbXY task.
  */
 void bld_receiver_run(BLDMCastReceiver *this) {
 
@@ -592,40 +602,54 @@ void bld_receiver_run(BLDMCastReceiver *this) {
 }
 
 BLDMCastReceiver *bldPhaseCavityReceiver = NULL;
-BLDMCastReceiver *bldImbReceiver = NULL;
+BLDMCastReceiver *bldHxxUm6Imb01Receiver = NULL;
+BLDMCastReceiver *bldHxxUm6Imb02Receiver = NULL;
 
 void bld_receivers_report(int level) {
   if (bldPhaseCavityReceiver != NULL) {
     phase_cavity_report(bldPhaseCavityReceiver, level);
   }
-  if (bldImbReceiver != NULL) {
-    imb_report(bldImbReceiver, level);
-  }  
+  if (bldHxxUm6Imb01Receiver != NULL) {
+    imb_report(bldHxxUm6Imb01Receiver, level);
+  } 
+  if (bldHxxUm6Imb02Receiver != NULL) {
+    imb_report(bldHxxUm6Imb02Receiver, level);
+  }    
 }
 
 /**
  * Create all BLD Multicast receivers and start the tasks.
  */
 void bld_receivers_start() {
-  printf("INFO: Creating PhaseCavity Receiver... ");
+  printf("\nINFO: Creating PhaseCavity Receiver... \n");
   phase_cavity_create(&bldPhaseCavityReceiver);
   
-  printf("INFO: Creating Imb Receiver... ");
-  imb_create(&bldImbReceiver);  
+  printf("\nINFO: Creating XRT HxxUm6Imb01Imb  Imb Receiver... \n");
+  imb_create(&bldHxxUm6Imb01Receiver,BLD_HxxUm6Imb01_GROUP);  
 
-  printf("INFO: Starting PhaseCavity Receiver... ");
+  printf("\nINFO: Creating XRT HxxUm6Imb02Imb Receiver... \n");
+  imb_create(&bldHxxUm6Imb02Receiver,BLD_HxxUm6Imb02_GROUP);  
+  
+  printf("\nINFO: Starting PhaseCavity Receiver... \n");
   epicsThreadMustCreate("BLDPhaseCavity", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
 			(EPICSTHREADFUNC)bldPhaseCavityReceiver->run, bldPhaseCavityReceiver);
   epicsThreadMustCreate("BLDPhaseCavityProd", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
 			(EPICSTHREADFUNC)bld_receiver_run, bldPhaseCavityReceiver);
   printf(" done.\n ");
   
-  printf("INFO: Starting Imb Receiver... ");
-  epicsThreadMustCreate("BLDImb", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
-			(EPICSTHREADFUNC)bldImbReceiver->run, bldImbReceiver);
-  epicsThreadMustCreate("BLDImbProd", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
-			(EPICSTHREADFUNC)bld_receiver_run, bldImbReceiver);
+  printf("\nINFO: Starting XRT Imb Receiver HxxUm6Imb01... \n");
+  epicsThreadMustCreate("BLDHxxUm6Imb01", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
+			(EPICSTHREADFUNC)bldHxxUm6Imb01Receiver->run, bldHxxUm6Imb01Receiver);
+  epicsThreadMustCreate("BLDHxxUm6Imb01Prod", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
+			(EPICSTHREADFUNC)bld_receiver_run, bldHxxUm6Imb01Receiver);
   printf(" done.\n ");  
+  
+  printf("\nINFO: Starting XRT Imb Receiver HxxUm6Imb02... \n");
+  epicsThreadMustCreate("BLDHxxUm6Imb02", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
+			(EPICSTHREADFUNC)bldHxxUm6Imb02Receiver->run, bldHxxUm6Imb02Receiver);
+  epicsThreadMustCreate("BLDHxxUm6Imb02Prod", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
+			(EPICSTHREADFUNC)bld_receiver_run, bldHxxUm6Imb02Receiver);
+  printf(" done.\n ");   
 }
 
 #include <subRecord.h>
@@ -649,7 +673,7 @@ long subTimeStampOfPulseId(struct subRecord *psub) {
   	epicsTs.nsec = (int)(psub->time.nsec & 0x1FFFF);
   
   if (strstr(psub->name,pcav) != NULL) bldPhaseCavityReceiver->global_pulseid_time = psub->time;
-  else if (strstr(psub->name,imb) != NULL) bldImbReceiver->global_pulseid_time = psub->time;
+  else if (strstr(psub->name,imb) != NULL) bldHxxUm6Imb01Receiver->global_pulseid_time = psub->time;
   */
   
   return 0;

@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.h,v 1.3 2014/05/27 21:55:09 scondam Exp $ */
+/* $Id: BLDMCastReceiver.h,v 1.4 2014/05/28 17:19:01 scondam Exp $ */
 
 #ifndef _BLDMCASTRECEIVER_H_
 #define _BLDMCASTRECEIVER_H_
@@ -126,5 +126,23 @@ void bld_receiver_run(BLDMCastReceiver *this);
 
 void bld_receivers_start();
 void bld_receivers_report(int level);
+
+/*XRT */
+#define BLD_HxxUm6Imb01_GROUP "239.255.24.4"
+#define BLD_HxxUm6Imb02_GROUP "239.255.24.5"
+#define BLD_HfxDg2Imb01_GROUP "239.255.24.6"
+#define BLD_HfxDg2Imb02_GROUP "239.255.24.7"
+#define BLD_XcsDg3Imb03_GROUP "239.255.24.8"
+#define BLD_XcsDg3Imb04_GROUP "239.255.24.9"
+#define BLD_HfxDg3Imb01_GROUP "239.255.24.10"
+#define BLD_HfxDg3Imb02_GROUP "239.255.24.11"
+#define BLD_HfxMonImb01_GROUP "239.255.24.17"
+#define BLD_HfxMonImb02_GROUP "239.255.24.18"
+#define BLD_HfxMonImb03_GROUP "239.255.24.19"
+/* CXI Local */
+#define BLD_CxiDg1Imb01_GROUP "239.255.24.27"
+#define BLD_CxiDg2Imb01_GROUP "239.255.24.28"
+#define BLD_CxiDg2Imb02_GROUP "239.255.24.29"
+#define BLD_CxiDg4Imb01_GROUP "239.255.24.30"
 
 #endif

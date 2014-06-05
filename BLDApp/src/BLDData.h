@@ -1,9 +1,9 @@
-/* $Id: BLDData.h,v 1.1.2.1 2013/05/24 22:12:05 lpiccoli Exp $ */
+/* $Id: BLDData.h,v 1.2 2014/02/27 23:53:00 lpiccoli Exp $ */
 
 #ifndef _BLDDATA_H_
 #define _BLDDATA_H_
 
-#include "BLDMCast.h"
+#include "BLDTypes.h"
 
 /**
  * BLDData.h
@@ -18,6 +18,7 @@
  * Structure defined in this document:
  * https://confluence.slac.stanford.edu/download/attachments/10256639/bldicd.pdf
  */
+ 
 typedef struct BLDHeader {
   Uint32_LE tv_sec;
   Uint32_LE tv_nsec;

@@ -1,0 +1,15 @@
+record(ai, "$(DEVICE):IMB_PULSEID_GLOBAL")
+{
+    field(DTYP, "Soft Channel")
+    field(INP, "PATT:SYS0:1:PULSEID CP MS")
+	field(TSE, "-2")
+	field(FLNK, "$(DEVICE):IMB_PULSEID_SUB")	
+}
+
+record(sub, "$(DEVICE):IMB_PULSEID_SUB")
+{
+    field(INPA, "$(DEVICE):IMB_PULSEID_GLOBAL NPP MS")
+	field(TSE, "-2")
+    field(TSEL, "$(DEVICE):IMB_PULSEID_GLOBAL.TIME")	
+	field(SNAM, "subTimeStampOfPulseId")	
+}

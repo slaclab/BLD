@@ -3,7 +3,6 @@
 
 #include "BLDMCast.h"
 
-#define BLD_IMB_GROUP "239.255.24.4"
 #define BLD_IMB_PORT 10148
 
 /**
@@ -61,7 +60,7 @@ typedef struct BLDImb {
 
 #define BLD_IMB_PARAMS 7
 
-int imb_create(BLDMCastReceiver **bld_receiver);
+int imb_create(BLDMCastReceiver **bld_receiver,char *multicast_group);
 void imb_report(void *bld_receiver, int level);
 void imb_run(void *bld_receiver);
 

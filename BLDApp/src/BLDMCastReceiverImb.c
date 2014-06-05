@@ -1,29 +1,35 @@
 #include <stdio.h>
 #include <string.h>
+#include <epicsThread.h>/* for epicsThreadSleepQuantum */
 
 #include "BLDMCastReceiver.h"
 #include "BLDMCastReceiverImb.h"
 
-IOSCANPVT bldImbIoscan;
+IOSCANPVT bldHxxUm6Imb01Ioscan;
+IOSCANPVT bldHxxUm6Imb02Ioscan;
 
-int imb_create(BLDMCastReceiver **bld_receiver) {
+int imb_create(BLDMCastReceiver **bld_receiver,char *multicast_group) {
 
   int status = bld_receiver_create(bld_receiver, sizeof(BLDImb) * 10,
-				   BLD_IMB_PARAMS, BLD_IMB_GROUP,
+				   BLD_IMB_PARAMS, multicast_group,
 				   BLD_IMB_PORT);
 
   if (status < 0) {
-    printf("ERROR: Failed on bld_receiver_create (status=%d)\n", status);
+    printf("\nERROR: Failed on bld_receiver_create (status=%d)\n", status);
     return status;
   }
 
   (*bld_receiver)->run = imb_run;
   (*bld_receiver)->report = imb_report;
-  printf("INFO: Imb receiver at 0x%x (run 0x%x, report 0x%x)",
+  printf("\nINFO: Imb receiver at 0x%x (run 0x%x, report 0x%x\n)",
 	 (int) bld_receiver, 0, 0); /*(*bld_receiver)->run,
 	 (*bld_receiver)->report);
   */
-  scanIoInit(&bldImbIoscan);
+  
+  if (strcmp(multicast_group,"239.255.24.4")== 0) 
+  		scanIoInit(&bldHxxUm6Imb01Ioscan);
+  else if (strcmp(multicast_group,"239.255.24.5")== 0) 
+  		scanIoInit(&bldHxxUm6Imb02Ioscan);		
 
   return 0;
 }
@@ -49,8 +55,6 @@ void imb_report(void *bld_receiver, int level) {
     }
   }
 }
-
-extern EBEAMINFO bldEbeamInfo;
 
 /**
  * Loop does not terminate. Processes after receiving a phase cavity
@@ -86,8 +90,12 @@ void imb_run(void *bld_receiver) {
       __st_le64(&(imb->channel13), (double)this->packets_received + 6);	  	  
       /** TEST_CODE --- end */
 #endif
-      
-      scanIoRequest(bldImbIoscan);
+
+  	  if (strcmp(this->multicast_group,"239.255.24.4")== 0)         
+      	scanIoRequest(bldHxxUm6Imb01Ioscan);
+  	  else if (strcmp(this->multicast_group,"239.255.24.5")== 0)         
+      	scanIoRequest(bldHxxUm6Imb02Ioscan);		
+			
       epicsMutexUnlock(this->mutex);
     }
   }

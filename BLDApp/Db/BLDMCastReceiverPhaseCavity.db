@@ -137,7 +137,7 @@ record(longin, "BLD:SYS0:$(LOCA):PCAV_MAX") {
 	field(EGU,  "uS")
 	field(SCAN, "$(STAT_SCAN)")
 	field(DTYP, "BusAddress")
-	field(INP,  "#C0S2@pcav_maxf,m32")
+	field(INP,  "#C0S2@pcav_max_f,m32")
 }
 
 # just write .PROC
