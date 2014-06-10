@@ -1,6 +1,11 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-5-3: Shantha Condamoor: 10-Jun-2014 (POMM)
+	Added generic scripts in iocBoot 
+	Added ioc-sys0-bd02
+	Added one more multicasting IMB packet receiver support
+
 BLD-R2-5-2: Shantha Condamoor: 28-May-2014 (PAMM)
 	Added ai and sub records to get the pulseid and corresponding timestamp from PATT:SYS0:1:PULSEID for diagnostics.
 	Set the latest received BLD packet header's timestamp to above timestamp for the matching pulseid.	
