@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.c,v 1.8 2014/05/28 17:19:27 scondam Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.9 2014/06/05 19:51:33 scondam Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -32,6 +32,7 @@
 #define BLD_FB05_ETH0 "172.27.2.185"
 #define BLD_IOC_ETH0 "172.27.2.162"
 #define BLD_B34_IOC_ETH0 "134.79.219.145"
+#define BLD_B34_IOC1_ETH0 "134.79.218.187"
 
 #ifdef SIGNAL_TEST
 extern epicsEventId EVRFireEventPCAV;
@@ -171,13 +172,18 @@ static int register_multicast(int sock, unsigned int address) {
 	interface_string = BLD_B34_IOC_ETH0;
       }
       else {
-	if (strcmp("ioc-sys0-fb05", name) == 0) {
-	  interface_string = BLD_FB05_ETH0;
-	}
-	else {
-	  printf("ERROR: BLD code running on unknown IOC\n");
-	  return -1;
-	}
+		if (strcmp("ioc-sys0-fb05", name) == 0) {
+	  		interface_string = BLD_FB05_ETH0;
+		}
+		else {
+			if (strcmp("ioc-b34-bd02", name) == 0) {
+	  			interface_string = BLD_B34_IOC1_ETH0;
+			}	
+			else {
+	  			printf("ERROR: BLD code running on unknown IOC\n");
+	  			return -1;
+			}
+		}
       }
     }
   }

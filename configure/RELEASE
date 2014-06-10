@@ -1,50 +1,25 @@
 #RELEASE Location of external products
-#
-# IF YOU MAKE ANY CHANGES to this file you MUST at least run
-# "gnumake" in this directory afterwards; you usually need
-# to run "gnumake rebuild" in the application's top level
-# directory each time this file is changed.
-#
-# NOTE: The build does not check dependencies against files
-# that are outside this application, thus you should run
-# "gnumake distclean install" in the top directory each time
-# EPICS_BASE, SNCSEQ, or any other external module defined
-# in the RELEASE file is rebuilt.
-#
-# Host/target specific settings can be specified in files named
-#  RELEASE.$(EPICS_HOST_ARCH).Common
-#  RELEASE.Common.$(T_A)
-#  RELEASE.$(EPICS_HOST_ARCH).$(T_A)
+# Run "gnumake clean uninstall install" in the application
+# top directory each time this file is changed.
 
-# Pickup the path to your EPICS top level directory
-# This is where EPICS lives at your site.
 include $(TOP)/RELEASE_SITE
-
 
 TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
 
 # =============================================================
 # Define location of module tree with respect to
-# EPICS_SITE_TOP
 # =============================================================
-#EPICS_MODULES=$(EPICS_SITE_TOP)/modules
-
+EPICS_MODULES=$(MODULES_SITE_TOP)
 
 # ==============================================================
 # Define the version of EPICS BASE that you will use
 # =============================================================
-#BASE_MODULE_VERSION=base-R3-14-8-2-lcls6
-
-# =============================================================
-# Define location of the modules tree
-# =============================================================
-EPICS_MODULES=$(MODULES_SITE_TOP)
-
+BASE_MODULE_VERSION=$(EPICS_BASE_VER)
 
 # ==============================================================
-# Define the cvs module version of EPICS BASE that you will use
+# Define location of Linux kernel modules
 # =============================================================
-BASE_MODULE_VERSION=$(EPICS_BASE_VER)
+#LINUX_KERNEL_MODULES=$(PACKAGE_SITE_TOP)/linuxKernel_Modules/
 
 # ===============================================================
 # Define the version of modules needed by
@@ -53,48 +28,45 @@ BASE_MODULE_VERSION=$(EPICS_BASE_VER)
 # the appropriate version dependencies
 # http://www-group.slac.stanford.edu/cdsoft/epics/swModules3.htm
 # ===============================================================
-SEQ_MODULE_VERSION=seq-R2.1.4
+SEQ_MODULE_VERSION=seq-R2-1-6_1-0
 EVENT_MODULE_VERSION=event-R4-1-0
-GENERALTIME_MODULE_VERSION=generalTime-R2-2-0
-SSUBRECORD_MODULE_VERSION=sSubRecord-R2-2-1
+#GENERALTIME_MODULE_VERSION=generalTime-R2-2-0
+#SSUBRECORD_MODULE_VERSION=sSubRecord-R2-2-1
 AUTOSAVE_MODULE_VERSION=autosave-R4-8-lcls2
 #RESTORE_MODULE_VERSION=restore-R2-0-0
-IOCADMIN_MODULE_VERSION=iocAdmin-R3-3-1
+IOCADMIN_MODULE_VERSION=iocAdmin-R3-1-8-lcls1
 MISCUTILS_MODULE_VERSION=miscUtils-R2-2-2
+RTEMSUTILS_MODULE_VERSION=rtemsutils-R1-0-0-lcls5
 FCOM_MODULE_VERSION=fcom-R1-3-24
 FCOMUTIL_MODULE_VERSION=fcomUtil-R1-1-26
 UDPCOMM_MODULE_VERSION=udpComm-R2-5-5
 DEVBUSMAPPED_MODULE_VERSION=devBusMapped-R3-1-0
+SSCAN_MODULE_VERSION=sscan-R2-8-1_1-0
 
 # ============================================================
 # Support module locations
 # ============================================================
 SNCSEQ=$(EPICS_MODULES)/seq/$(SEQ_MODULE_VERSION)
 EVENT=$(EPICS_MODULES)/event/$(EVENT_MODULE_VERSION)
-GENERALTIME=$(EPICS_MODULES)/generalTime/$(GENERALTIME_MODULE_VERSION)
-SSUBRECORD= $(EPICS_MODULES)/sSubRecord/$(SSUBRECORD_MODULE_VERSION)
+#GENERALTIME=$(EPICS_MODULES)/generalTime/$(GENERALTIME_MODULE_VERSION)
+#SSUBRECORD= $(EPICS_MODULES)/sSubRecord/$(SSUBRECORD_MODULE_VERSION)
 AUTOSAVE=$(EPICS_MODULES)/autosave/$(AUTOSAVE_MODULE_VERSION)
 #RESTORE=$(EPICS_MODULES)/restore/$(RESTORE_MODULE_VERSION)
 IOCADMIN=$(EPICS_MODULES)/iocAdmin/$(IOCADMIN_MODULE_VERSION)
 MISCUTILS=$(EPICS_MODULES)/miscUtils/$(MISCUTILS_MODULE_VERSION)
+RTEMSUTILS=$(EPICS_MODULES)/rtemsutils/$(RTEMSUTILS_MODULE_VERSION)
 FCOM=$(EPICS_MODULES)/fcom/$(FCOM_MODULE_VERSION)
 FCOMUTIL=$(EPICS_MODULES)/fcomUtil/$(FCOMUTIL_MODULE_VERSION)
 UDPCOMM=$(EPICS_MODULES)/udpComm/$(UDPCOMM_MODULE_VERSION)
 DEVBUSMAPPED=$(EPICS_MODULES)/devBusMapped/$(DEVBUSMAPPED_MODULE_VERSION)
+SSCAN=$(EPICS_MODULES)/sscan/$(SSCAN_MODULE_VERSION)
 
 # ========================================================================================
-#If using macro substitutions, point MSI at the binary:
-#EXTENSIONS_MODULE_VERSION=extensions-R3-14-8-2
-#MSI=$(EPICS_SITE_TOP)/extensions/$(EXTENSIONS_MODULE_VERSION)/bin/$(EPICS_HOST_ARCH)/msi
-# ========================================================================================
-
 # =================================================================
 # Define EPICS_BASE
 # EPICS_BASE usually appears last so other apps can override stuff:
 # =================================================================
-# EPICS_BASE usually appears last so other apps can override stuff:
-# EPICS_BASE=/PTx/epics/base/base-R3-14-10
+EPICS_BASE=$(BASE_SITE_TOP)/$(BASE_MODULE_VERSION)
 
-EPICS_BASE=$(EPICS_SITE_TOP)/base/$(BASE_MODULE_VERSION)
 # =================================================================
-
+# End of file

@@ -1,0 +1,33 @@
+#==============================================================================
+#
+# Abs:  LCLS Beam Synchronous Acquisition records for SYS0 BD02
+#
+# Name: IOC-SYS0-BD02bsa.substitutions
+#
+# Associated Displays: bsa_sys0_maint.edl
+#
+# Rem:  Instantiate one line for every beam synchronous item.
+# 
+# Macros:
+#	DEVICE	Name of the beam synchronous triggered device.  Must match the 
+#		name in <ioc>trig.substitutions without the 3rd colon and beyond.
+#	LOC	IOC location.
+#	UN	IOC unit number.
+#	IOC	Name of IOC that contains the EVR, not including the 3rd colon.
+#	ATRB    BSA attribute name
+#	IN	Input to BSA record
+#	SLCLNK	Set to "" if the IOC is not slc-aware.
+#		Otherwise, set to "<device>:FANOUTSLC".
+#==============================================================================
+#
+file bsaBLDReceiverPhaseCavityEdef.db {
+    pattern
+    { DEVICE, LOC, UN, SLCLNK }
+    { BLD:SYS0:501, SYS0, 501, "" }
+}
+
+file bsaBLDReceiverImbEdef.db {
+    pattern
+    { DEVICE, LOC, UN, SLCLNK }
+    { BLD:SYS0:501, SYS0, 501, "" }
+}

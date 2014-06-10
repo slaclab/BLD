@@ -47,9 +47,18 @@ putenv ("EPICS_CA_MAX_ARRAY_BYTES=1000000")
 ## Register all support components
 dbLoadDatabase("dbd/BLD.dbd")
 BLD_registerRecordDeviceDriver(pdbbase)
+###########################
+# initialize all hardware #
+###########################
+
+bspExtVerbosity=0
 
 # Init PMC EVR
 ErConfigure(0, 0, 0, 0, 1)
+#ErConfigure( 0,0x300000,0x60,4,0)       # VME EVR:SYS0:BD02
+
+evrInitialize()
+bspExtVerbosity = 1
 
 ###########################
 ## Load record instances ##

@@ -1,4 +1,4 @@
-# BLD Receiver App RTEMS startup script for VME crate for the LCLS SYS0 BD01 IOC
+# BLD Receiver App RTEMS startup script for VME crate for the LCLS SYS0 BD02 IOC
 # LCLS Multicast and BSA capable
 #============================================================================================================================================================
 # Author:
@@ -9,26 +9,20 @@
 
 # For iocAdmin
 setenv("LOCN","B005-2930")
-setenv("IOC_MACRO","IOC=IOC:SYS0:BD01")
+setenv("IOC_MACRO","IOC=IOC:SYS0:BD02")
 
 setenv("LOCAs","SYS0",1)
-setenv("UNITs","BD01")
+setenv("UNITs","BD02")
 
 # for save-restore
-setenv("AUTOSAVE_PREFIX","IOC:SYS0:BD01:")
-setenv("AUTOSAVE_MACRO","P=IOC:SYS0:BD01:")
+setenv("AUTOSAVE_PREFIX","IOC:SYS0:BD02:")
+setenv("AUTOSAVE_MACRO","P=IOC:SYS0:BD02:")
 
-setenv("IPADDR1","172.27.28.14",0)		# LCLS VME BD01 IOC ETH2 - ioc-sys0-bd01-fnet on LCLSFNET subnet
+setenv("IPADDR1","172.27.29.100",0)		# LCLS VME BD02 IOC ETH2 - ioc-sys0-bd02-fnet on LCLSFNET subnet
 setenv("NETMASK1","255.255.252.0",0)
 
-setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
-setenv("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
-setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
-
-#setenv("EPICS_CA_AUTO_ADDR_LIST","NO")
-#setenv("EPICS_CA_ADDR_LIST","172.27.11.54 172.27.9.76 172.27.9.77 172.27.9.78")
-
 # =====================================================================
+
 # Execute common fnet st.cmd
 . "../st.fnetgeneric.lcls.cmd"
 
@@ -82,16 +76,15 @@ free(malloc(1024*1024*32))
 bspExtVerbosity=0
 
 # Prod: Init PMC EVR
-ErConfigure(0, 0, 0, 0, 1)           # PMC EVR:SYS0:BD01
-#ErConfigure( 0,0x300000,0x60,4,0)       # VME EVR:SYS0:BD01
+ErConfigure(0, 0, 0, 0, 1)           # PMC EVR:SYS0:BD02
 
 evrInitialize()
 bspExtVerbosity = 1
 
 # Load EVR and Pattern databases
-dbLoadRecords("db/IOC-SYS0-BD01evr.db","EVR=EVR:SYS0:BD01")	# EVR CARD 0
+dbLoadRecords("db/IOC-SYS0-BD02evr.db","EVR=EVR:SYS0:BD02")	# EVR CARD 0
 
-dbLoadRecords("db/lclsPattern.db","IOC=IOC:SYS0:BD01",0)
+dbLoadRecords("db/lclsPattern.db","IOC=IOC:SYS0:BD02",0)
 
 # bspExtMemProbe only durint init. clear this to avoid the lecture.
 bspExtVerbosity = 0
@@ -99,28 +92,26 @@ bspExtVerbosity = 0
 ###########################
 ## Load record instances ##
 ###########################
-epicsEnvSet("IOC_MACRO","IOC=IOC:SYS0:BD01")
+epicsEnvSet("IOC_MACRO","IOC=IOC:SYS0:BD02")
 # Set IOC Shell Prompt as well:
-epicsEnvSet("IOCSH_PS1","ioc-sys0-bd01:")
+epicsEnvSet("IOCSH_PS1","ioc-sys0-bd02:")
 
 # Load standard databases
 . "iocBoot/st.vmedb.cmd"
 
 # Load BSA database
-dbLoadRecords("db/IOC-SYS0-BD01bsa.db",0)
+dbLoadRecords("db/IOC-SYS0-BD02bsa.db",0)
 
 # Load access database
-dbLoadRecords("db/IOC-SYS0-BD01access.db")
+dbLoadRecords("db/IOC-SYS0-BD02access.db")
 
 # Load trigger database
-dbLoadRecords("db/IOC-SYS0-BD01trig.db")	# has only one EVRs' triggers
+dbLoadRecords("db/IOC-SYS0-BD02trig.db")	# has only one EVRs' triggers
 
-###########################
-## Load record instances ##
-###########################
-
-dbLoadRecords("db/BLDMCast.db","LOCA=500, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
-dbLoadRecords("db/BLDMCastReceiverPhaseCavity.db","LOCA=500, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+# Load BLD databases
+dbLoadRecords("db/BLDMCastReceiverPhaseCavity.db","LOCA=501, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+dbLoadRecords("db/BLDMCastReceiverImbs.db","DEVICE=BLD:SYS0:501")
+dbLoadRecords("db/BLDMCastReceiver.db","DEVICE=BLD:SYS0:501")
 
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.
@@ -143,7 +134,7 @@ dbLoadRecords("db/BLDMCastReceiverPhaseCavity.db","LOCA=500, DIAG_SCAN=I/O Intr,
 # which would be faster, simpler and more flexible)
 # 
 
-dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:BD01:BLDWAV, scan=Event, evnt=146, rarm=2")
+# dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:BD02:BLDWAV, scan=Event, evnt=146, rarm=2")
 
 # END: Loading the record databases
 # =====================================================================
@@ -194,8 +185,3 @@ bootConfigShow()
 
 # One more sleep to allow mutex to be created before crashing on dbior()
 epicsThreadSleep(5)
-#create_monitor_set("bldParams.req",30,0)
-
-#BLDMCastStart(0, 0)
-#BLDMCastStart(1, "172.27.225.21")
-

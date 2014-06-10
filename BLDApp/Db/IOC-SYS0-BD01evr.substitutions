@@ -1,0 +1,83 @@
+#==============================================================================
+# Abs:  LCLS EVR records for SYS0 BD01
+#
+# Name: IOC-SYS0-BD01evr.substitutions
+#
+# Macros: evrWithDelays.db - instantiates an EVR record.
+#	  Associated display is evrDiags.edl.
+#	DEV	Name of EVR - EVR:<loca>:<unit>
+#	CARD	EVR card number starting at 0 (matches card number in ErConfigure).
+#	DELAY0 to D	Initial delay in ticks for normal delay triggers (one tick = 8.4 nsec)
+#	WIDTH	Initial pulse width in ticks
+#
+#	evrEventCtrl.db - instantiates a record for an EVR event.
+#	Associated display is evrTriggerDiags.edl.
+#	DEV	Name of EVR - EVR:<loca>:<unit>
+#	CARD	EVR card number starting at 0 (matches card number in ErConfigure).
+#	NAME	EVENT1 to EVENT14 - instantiate all 14 records even if you only use a few events.
+#	ID	Event code number.  To find all available event codes:
+#		lclshome -> Event -> Events... (in the EVG IOC box).
+#		This display brings up all the event that are beam-dependent.
+#	        For events that are beam-independent (constant or standby), select 
+#		"Time Slot 1 to 6 Event Codes".  Find the event that you want to trigger one or 
+#		more devices connected to the EVR.  Use number in the Event Code column.
+#		Also check sharepoint spreadsheet:
+#		Controls -> Timing -> timingEventCodes
+#		NOTE: There is a dependency on event code assignments and triggers.
+#     		When changing event code assignments below, also change the appropriate
+#    		<ioc>trig.substitutions file!
+#		NOTE: If you don't need to use all 14 event codes, populate the spare records 
+#		with other event codes from the "Time Slot 1 to 6 Event Codes" display.
+#	P0 to P13 - trigger state for channels 0 to 13
+#		(0 = disabled for the event code, 1 = enabled for the event code)
+#		Channels 0 to 3  are used for the front panel triggers.
+#		Channels 0 to 13 are used for the transition module triggers.
+#		The assignments here must match the field selections in <ioc>trig.substitution.
+#	VME	Controls whether an IRQ happens when this event code occurs.
+#		(0 = no IRQ, 1 = IRQ)
+#		Must be set to 1 if you want event record processing using the event code.
+#		Must be set to 1 if you have records with TSE fields set to the event code.
+#
+#==============================================================================
+#
+file evr.db
+{
+#                               Default Pulse
+#         Device         Card   Delay   Width (clock ticks)    
+pattern { DEV          , CARD , DELAY , WIDTH}
+        { EVR:SYS0:BD01,  0   ,   8   ,  12  }
+}
+file evrWithFrontPanel.db
+{
+#                               Default Pulse
+#         Device         Card   Delay   Width (clock ticks)    
+pattern { DEV          , CARD , DELAY , WIDTH , FP0 , FP1 , FP2 , FP3 }
+        { EVR:SYS0:BD01,  1   ,   8   ,  12   ,  0  ,  1  ,  22 , 23  }
+}
+
+file evrWithDelays.db
+{
+#                               Pulse   
+#	  Device         Card   Width   Channel Delays (clock ticks)  
+pattern { DEV          , CARD , WIDTH , DELAY0, DELAY1, DELAY2, DELAY3, DELAY4, DELAY5, DELAY6, DELAY7, DELAY8, DELAY9, DELAYA, DELAYB, DELAYC, DELAYD }
+	{ EVR:SYS0:BD01,  0   ,  12   , 110000, 110000, 110000, 110000, 110000, 110000, 110000, 110000, 110700, 110000, 110000, 110000, 110000, 110000 }
+}
+file evrEventCtrl.db
+{
+#	  Device         Card  <----------------------------  Event -------------------------->       
+pattern { DEV          ,  CARD , NAME    , ID ,P0,P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12,P13,VME,	SYS	 }
+	{ EVR:SYS0:BD01,   		0  , EVENT1  ,140 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0,	SYS0 }
+	{ EVR:SYS0:BD01,   		0  , EVENT2  ,141 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0,	SYS0 }
+	{ EVR:SYS0:BD01,   		0  , EVENT3  ,142 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0,	SYS0 }
+	{ EVR:SYS0:BD01,   		0  , EVENT4  , 43 , 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 , 1 , 1 , 1 , 0,	SYS0 }
+	{ EVR:SYS0:BD01,   		0  , EVENT5  ,144 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0,	SYS0 }
+	{ EVR:SYS0:BD01,   		0  , EVENT6  ,145 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0,	SYS0 }
+	{ EVR:SYS0:BD01,   		0  , EVENT7  ,146 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 1,	SYS0 }
+	{ EVR:SYS0:BD01,   		0  , EVENT8  , 10 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0,	SYS0 }
+	{ EVR:SYS0:BD01,   		0  , EVENT9  , 11 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0,	SYS0 }
+	{ EVR:SYS0:BD01,   		0  , EVENT10 , 12 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0,	SYS0 }
+	{ EVR:SYS0:BD01,   		0  , EVENT11 , 13 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0,	SYS0 }
+	{ EVR:SYS0:BD01,   		0  , EVENT12 , 14 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0,	SYS0 }
+	{ EVR:SYS0:BD01,   		0  , EVENT13 , 15 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0,	SYS0 }
+	{ EVR:SYS0:BD01,   		0  , EVENT14 , 16 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0,	SYS0 }
+}

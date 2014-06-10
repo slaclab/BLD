@@ -31,7 +31,6 @@ BLD_DBD += base.dbd
 
 # Include dbd files from all support applications:
 BLD_DBD += BLDMCast.dbd
-BLD_DBD += autosaveSupport.dbd
 BLD_DBD += evrSupport.dbd
 BLD_DBD += devMrfEr.dbd
 #BLD_DBD += dbRestore.dbd

@@ -1,0 +1,24 @@
+#==============================================================================
+#
+# Abs:  LCLS Access records for SYS0 BD02
+#
+# Name: IOC-SYS0-BD02access.substitutions
+#
+# Associated Displays: none
+#
+# Rem:  Instantiate one line for every access item.
+#       use iocAdmin-2-1-0 or higher
+# TODO: add to restore 
+# 
+# Macros:
+#	DEVICE	Name of the beam synchronous triggered device.  Must match the 
+#		name in <ioc>trig.substitutions without the 3rd colon and beyond.
+#==============================================================================
+#
+file access.db 
+{
+  pattern {DEV, MANAGE}
+	  { BLD:SYS0:501:, IOCMANAGERS }
+}
+
+        

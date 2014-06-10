@@ -82,8 +82,8 @@ free(malloc(1024*1024*32))
 bspExtVerbosity=0
 
 # Prod: Init PMC EVR
-ErConfigure(0, 0, 0, 0, 1)           # PMC EVR:SYS0:BD01
-#ErConfigure( 0,0x300000,0x60,4,0)       # VME EVR:SYS0:BD01
+#ErConfigure(0, 0, 0, 0, 1)           # PMC EVR:SYS0:BD01
+ErConfigure( 0,0x300000,0x60,4,0)       # VME EVR:SYS0:BD01
 
 evrInitialize()
 bspExtVerbosity = 1
@@ -194,7 +194,7 @@ bootConfigShow()
 
 # One more sleep to allow mutex to be created before crashing on dbior()
 epicsThreadSleep(5)
-#create_monitor_set("bldParams.req",30,0)
+create_monitor_set("bldParams.req",30,0)
 
 #BLDMCastStart(0, 0)
 #BLDMCastStart(1, "172.27.225.21")

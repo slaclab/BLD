@@ -1,0 +1,94 @@
+#==============================================================================
+#
+# Abs:  LCLS Trigger records for SYS0 BD01
+#
+# Name: IOC-SYS0-BD01trig.substitutions
+#
+# Associated Display: evnt_sys0_bd02.edl
+#
+# Rem:  Instantiate one line for every trigger channel including ones not used. 
+# There should be 3 lines for each PMC EVR without a transition module for the 3 front panel triggers.
+# There should be 4 lines for each VME EVR without a transition module for the 4 front panel triggers.
+# There should be 14 additional lines for each PMC or VME EVR that has a transition module.
+# 
+# Macros:
+#	DEV	Name of the device being triggered up to and including the 3rd colon.  
+#		Add a qualifying name after the 3rd colon, if necessary, to keep name unique.
+#		If the trigger channel is not used, use "TRIG:<loca>:<unit>:" 
+#		where <loca> is the location of your IOC and <unit> is xxyy, where xx = subsystem
+#		and yy is 01, 02, etc.
+#	DESC	Description.  Include MAD name in the description if applicable. 
+#	POL	Initial polarity.  0 = normal, 1 = inverted.  Normally restored on reboot.
+#	WID	Initial pulse width in nsec.                  Normally restored on reboot.
+#	DES	Initial desired delay in nsec.                Normally restored on reboot.
+#		Note: the DES value is with respect to IOC TREF (reference time) which is set in 
+#		<ioc>pattern.substitution:
+#		EVR delay = TREF + TDES - event code delay from the fiducial		
+#	CTL	Initial state.     0 = disabled, 1 = enabled. Normally restored on reboot.
+#	TEC	Trigger event code name.  To find all available event codes:
+#		lclshome -> Event -> Events... (in the EVG IOC box).
+#		This display brings up all the event that are beam-dependent.
+#	        For events that are beam-independent (constant or standby), select 
+#		"Time Slot 1 to 6 Event Codes" and find the event that you want to trigger your device.  
+#		Use the middle-mouse-button in the Event Code column to find the PV name.  TEC is the 
+#		part of the name between "IOC:SYS0:EV01:" and "EVNT.A".
+#		Also check sharepoint spreadsheet:
+#		Controls -> Timing -> timingEventCodes
+#	LOCA	Location of the EVR that triggers the device.  It is the second part of the 
+#		EVR:<loca>:<unit>:CTRL record instantiated in <ioc>evr.db.
+#	UNIT	Unit number of the EVR instantiated in <ioc>evr.db.
+#	IOC	Name of IOC that contains the EVR, not including the 3rd colon.
+#	DRVL and DRVH  Drive low and high limits for the trigger delay in nsec.
+#	TCTL	Field in EVR:<loca>:<unit>:CTRL that enables/disables the trigger:
+#		DGxE, where x=0 to 3   for front panel triggers.
+#		OTPx, where x=0 to 0xD for transition module triggers.
+#	TPOL	Field in EVR:<loca>:<unit>:CTRL for polarity: 
+#		DGxP, where x=0 to 3   for front panel triggers.
+#		OTxP, where x=0 to 0xD for transition module triggers.
+#	TWID	Field in EVR:<loca>:<unit>:CTRL for pulse width: 
+#		DGxW, where x=0 to 3   for front panel triggers.
+#		OTxW, where x=0 to 0xD for transition module triggers.
+#	TDES	Field in EVR:<loca>:<unit>:CTRL for delay: 
+#		DGxD, where x=0 to 3   for front panel triggers.
+#		OTxD, where x=0 to 0xD for transition module triggers.
+#-----------------------------------------------------------------------------------------------------
+# Mod:
+#       10-Feb-2012, K. Kim         (KHKIM)
+#          fix mis-assigned macros for the event code invariant delay to avoid un-necessrary PV name resolving
+#
+#       Jan-2012, T. Lahey          (LAHEY):
+#          Add EVR and FILE tags to generate event edl files & fix DESC for channel 3
+#=============================================================================================
+# 
+file evrDevTrig.db 
+{
+#EVR EVR:SYS0:BD01
+#FILE evnt_sys0_bd02
+#CONTROLPV1 SIOC:SYS0:AL00:MODE
+#CONTROLPV2 SIOC:SYS0:AL00:TOD
+#           Device	   , Description     ,polarity,width,delay,event , EVR  , EVR,  IOC 
+#			                                           code  ,location,unit
+  pattern { DEV             ,  DESC              ,POL, WID, DES  , LOCA , UNIT, IOC          ,  DRVL  ,  DRVH   , TCTL , TPOL, TWID, TDES, CTL, TOUT,	SYS}
+
+{ BLD:SYS0:500:SPARE0:      ,  "Spare Trig 0"    , 0 , 100, 3820 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , OTP0 , OT0P, OT0W, OT0D, 1,   OUT0,	SYS0}
+{ BLD:SYS0:500:SPARE1:      ,  "Spare Trig 1"    , 0 , 100, 3820 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , OTP1 , OT1P, OT1W, OT1D, 1,   OUT1,	SYS0}
+{ BLD:SYS0:500:SPARE2:      ,  "Spare Trig 2"    , 0 , 100, 3820 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , OTP2 , OT2P, OT2W, OT2D, 1,   OUT2,	SYS0}
+{ BLD:SYS0:500:SPARE3:      ,  "Spare Trig 3"    , 0 , 100, 3820 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , OTP3 , OT3P, OT3W, OT3D, 1,   OUT3,	SYS0}
+{ BLD:SYS0:500:SPARE4:      ,  "Spare Trig 4"    , 0 , 100, 3820 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , OTP4 , OT4P, OT4W, OT4D, 1,   OUT4,	SYS0}
+{ BLD:SYS0:500:SPARE5:      ,  "Spare Trig 5"    , 0 , 100, 3820 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , OTP5 , OT5P, OT5W, OT5D, 1,   OUT5,	SYS0}
+{ BLD:SYS0:500:SPARE6:      ,  "Spare Trig 6"    , 0 , 100, 3820 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , OTP6 , OT6P, OT6W, OT6D, 1,   OUT6,	SYS0}
+{ BLD:SYS0:500:SPARE7:      ,  "Spare Trig 7"    , 0 , 100, 3820 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , OTP7 , OT7P, OT7W, OT7D, 1,   OUT7,	SYS0}
+{ BLD:SYS0:500:SPARE8:      ,  "Spare Trig 8"    , 0 , 100,-4950 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , OTP8 , OT8P, OT8W, OT8D, 1,   OUT8,	SYS0}
+{ BLD:SYS0:500:SPARE9:      ,  "Spare Trig 9"    , 0 , 100,-5540 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , OTP9 , OT9P, OT9W, OT9D, 1,   OUT9,	SYS0}
+#  spare triggers 1- 4 FP (VME)
+{ BLD:SYS0:500:SPR0:        ,  "FP Spare Trig 0" , 0 , 100, 3820 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , DG0E , DG0P, DG0W, DG0D, 1,   OUT0,	SYS0}
+{ BLD:SYS0:500:SPR1:        ,  "FP Spare Trig 1" , 0 , 100, 3820 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , DG1E , DG1P, DG1W, DG1D, 1,   OUT1,	SYS0}
+{ BLD:SYS0:500:SPR2:        ,  "FP Spare Trig 2" , 0 , 100, 3820 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , DG2E , DG2P, DG2W, DG2D, 1,   OUT2,	SYS0}
+{ BLD:SYS0:500:SPR3:        ,  "FP Spare Trig 3" , 0 , 100, 3820 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , DG3E , DG3P, DG3W, DG3D, 1,   OUT3,	SYS0}
+# spare triggers 6-9 TTB 10-13
+{ BLD:SYS0:500:SPAREA:      ,  "Spare Trig 10"   , 0 , 100, 3820 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , OTPA , OTAP, OTAW, OTAD, 1,   OUTA,	SYS0}
+{ BLD:SYS0:500:SPAREB:      ,  "Spare Trig 11"   , 0 , 100, 3820 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , OTPB , OTBP, OTBW, OTBD, 1,   OUTB,	SYS0}
+{ BLD:SYS0:500:SPAREC:      ,  "Spare Trig 12"   , 0 , 100, 3820 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , OTPC , OTCP, OTCW, OTCD, 1,   OUTC,	SYS0}
+{ BLD:SYS0:500:SPARED:      ,  "Spare Trig 13"   , 0 , 100, 3820 ,  SYS0 , BD01, IOC:SYS0:BD01, -2.8E06, 2.8E06  , OTPD , OTDP, OTDW, OTDD, 1,   OUTD,	SYS0}
+
+}

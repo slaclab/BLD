@@ -1,0 +1,55 @@
+#==============================================================================
+#
+# Abs:  LCLS pattern records for PAD IOCs
+#
+# Name: llrfPattern.substitutions
+# 
+# Macros: evrPatternAll.db - instantiates 120hz pattern records.
+#	  Associated display is evrPatternDiags.edl.
+#	DEVICE	Name of the IOC, IOC:<loca>:<unit> 
+#
+#	LINK4	Set to "" if the IOC is not slc-aware.  
+#		Otherwise, set to "IOC:<loca>:<unit>:FANOUTSLC".  
+#
+#	LINK5,	Set to any record you want processed at 120hz after the timing
+#	LINK6	pattern is received.  If not applicable, set to "".
+#
+#	TREF	Reference delay in nsec from the fiducial for this IOC.  Normally  
+#		restored on reboot.  Nominal value is 1.03E6 nsec.  TREF is used 
+#		with the TDES value for each device to calculate the actual delay 
+#		updated in the EVR hardware:
+#		EVR delay = TREF + TDES - event code delay from the fiducial
+#
+#	TS1ST	For 120hz operation, 2 of the 6 time slots (1,2,3,4,5,6,  
+#	and	360hz apart) are used to update the pattern and timestamp for   
+#	TS2ND	this IOC (pattern is used for beam sync acq).  The other 4 time    
+#		slots are used for other projects.  Check with operations to find 
+#		the time slots used for your project/run and fill them in.  For  
+#		instance, for BC1 LCLS 2007 operation, time slots 1 and 4 were 
+#		used so TS1ST was set to 1 and TS2ND was set to 4.  For IOCs that 
+#		cannot acquire and process data at 120hz (data ready in 8.3 msec),  
+#               set TS1ST to 0 to ignore the 1st timeslot and the pattern and 
+#		timestamp will only update on time slot 4 at 60hz.
+#
+#	  evrEventAll.db - instantiates records for each event code.
+#	  Associated display is evrEventDiags.edl.
+#	DEVICE	Name of the IOC, IOC:<loca>:<unit> 
+#
+#==============================================================================
+#
+file evrPatternAll.db 
+{
+#	    Device ,  SLC Pattern Check   Fiducial       
+#	                                  Flag to BPMs       
+  pattern { DEVICE ,        LINK4     ,    LINK5    , LINK6 , TREF    , TS1ST, TS2ND }
+	  { $(IOC) , ""               , ""          ,  ""   , 1.03E06 ,   1  ,   4   }
+# Comment the previous line and uncomment the next line in order to use 
+# event records to generate simulated data
+#	  { $(IOC) , ""               , $(IOC):FIDP ,  ""   , 1.03E06 ,   1  ,   4   }
+}
+file evrEventAll.db 
+{
+  pattern { DEVICE        }
+	  { $(IOC)        }
+}
+
