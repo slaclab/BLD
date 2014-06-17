@@ -1,6 +1,11 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-5-4: Shantha Condamoor: 18-Jun-2014 (POMM)
+	Split BLD application into BLDSender and BLDReceiver.
+	Timestamp for Receiver device support from BLD packet header->tv_nsec and header->tv_sec fields
+	Added late_bld_pulse counter. Keeps track of time wrt to EVG time and network received time.
+
 BLD-R2-5-3: Shantha Condamoor: 10-Jun-2014 (POMM)
 	Added generic scripts in iocBoot 
 	Added ioc-sys0-bd02
