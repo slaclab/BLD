@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.h,v 1.4 2014/05/28 17:19:01 scondam Exp $ */
+/* $Id: BLDMCastReceiver.h,v 1.5 2014/06/05 19:51:33 scondam Exp $ */
 
 #ifndef _BLDMCASTRECEIVER_H_
 #define _BLDMCASTRECEIVER_H_
@@ -82,6 +82,9 @@ struct BLDMCastReceiver {
 
   /** Counts number of BSA PULSEID mismatches */
   long bsa_pulseid_mismatch;
+  
+  /** Count late BLDs based on differences between EVG timestamp and BLD header timestamp for same pulseid */
+  long late_bld_pulse;  
 
   /** Time when the last BLD packet was received */
   struct timeval bld_received_time;

@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.5 2014/04/28 23:17:40 scondam Exp $ */
+/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.6 2014/06/05 19:51:33 scondam Exp $ */
 
 #include <stdio.h>
 #include <string.h>
@@ -28,7 +28,7 @@ int phase_cavity_create(BLDMCastReceiver **bld_receiver) {
 
   (*bld_receiver)->run = phase_cavity_run;
   (*bld_receiver)->report = phase_cavity_report;
-  printf("\nINFO: PhaseCavity receiver at 0x%x (run 0x%x, report 0x%x\n)",
+  printf("\nINFO: PhaseCavity receiver at 0x%x (run 0x%x, report 0x%x)\n",
 	 (int) bld_receiver, 0, 0); /*(*bld_receiver)->run,
 	 (*bld_receiver)->report);
   */
@@ -92,15 +92,6 @@ double         diffus = 0.;
     
       epicsMutexLock(this->mutex);
       this->packets_processed++;
-      
-#ifdef SIGNAL_TEST
-      /** TEST_CODE --- begin */
-      __st_le64(&(pcav->charge1), (double)this->packets_received);
-      __st_le64(&(pcav->charge2), (double)this->packets_received + 1);
-      __st_le64(&(pcav->fitTime1), (double)this->packets_received + 2);
-      __st_le64(&(pcav->fitTime2), (double)this->packets_received + 3);
-      /** TEST_CODE --- end */
-#endif
       
       scanIoRequest(bldPhaseCavityIoscan);
       epicsMutexUnlock(this->mutex);	

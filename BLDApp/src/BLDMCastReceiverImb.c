@@ -21,7 +21,7 @@ int imb_create(BLDMCastReceiver **bld_receiver,char *multicast_group) {
 
   (*bld_receiver)->run = imb_run;
   (*bld_receiver)->report = imb_report;
-  printf("\nINFO: Imb receiver at 0x%x (run 0x%x, report 0x%x\n)",
+  printf("\nINFO: Imb receiver at 0x%x (run 0x%x, report 0x%x)\n",
 	 (int) bld_receiver, 0, 0); /*(*bld_receiver)->run,
 	 (*bld_receiver)->report);
   */
@@ -77,19 +77,7 @@ void imb_run(void *bld_receiver) {
       BLDHeader *header = this->bld_header_bsa;
     
       epicsMutexLock(this->mutex);
-      this->packets_processed++;
-      
-#ifdef SIGNAL_TEST
-      /** TEST_CODE --- begin */
-      __st_le64(&(imb->sum), (double)this->packets_received);
-      __st_le64(&(imb->xpos), (double)this->packets_received + 1);
-      __st_le64(&(imb->ypos), (double)this->packets_received + 2);
-      __st_le64(&(imb->channel10), (double)this->packets_received + 3);
-      __st_le64(&(imb->channel11), (double)this->packets_received + 4);	  
-      __st_le64(&(imb->channel12), (double)this->packets_received + 5);
-      __st_le64(&(imb->channel13), (double)this->packets_received + 6);	  	  
-      /** TEST_CODE --- end */
-#endif
+      this->packets_processed++;	
 
   	  if (strcmp(this->multicast_group,"239.255.24.4")== 0)         
       	scanIoRequest(bldHxxUm6Imb01Ioscan);
