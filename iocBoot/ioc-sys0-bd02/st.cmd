@@ -23,17 +23,11 @@ setenv("NETMASK1","255.255.252.0",0)
 
 # =====================================================================
 
-# Execute common fnet st.cmd
-. "../st.fnetgeneric.lcls.cmd"
-
 # execute generic part
 . "../st.vmegeneric.cmd"
 
 # Load IN20 RF01 VME IOC
-ld("bin/RTEMS-beatnik/BLD.obj")
-
-# Only set IPADDR1 if the caller had not provided a value
-# getenv("NEW_LANIP") && (pre_ipaddr1 || fcomUtilSetIPADDR1("-fnet"))
+ld("bin/RTEMS-beatnik/BLDReceiver.obj")
 
 lanIpSetup(getenv("IPADDR1"),getenv("NETMASK1"),0,0)
 lanIpDebug=0
@@ -43,15 +37,9 @@ lsmod()
 
 epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES","1000000")
 
-#set fcom multicast prefix to mc-lcls-fcom for LCLS
-epicsEnvSet ("FCOM_MC_PREFIX", "239.219.8.0")
-
-#initialize FCOM now to work around RTEMS bug #2068
-fcomInit(getenv("FCOM_MC_PREFIX",0),1000)
-
 ## Register all support components
-dbLoadDatabase("dbd/BLD.dbd")
-BLD_registerRecordDeviceDriver(pdbbase)
+dbLoadDatabase("dbd/BLDReceiver.dbd")
+BLDReceiver_registerRecordDeviceDriver(pdbbase)
 
 # hack around the EPICS memory tester
 free(malloc(1024*1024*32))
@@ -77,6 +65,7 @@ bspExtVerbosity=0
 
 # Prod: Init PMC EVR
 ErConfigure(0, 0, 0, 0, 1)           # PMC EVR:SYS0:BD02
+#ErConfigure( 0,0x300000,0x60,4,0)   # VME EVR:SYS0:BD01
 
 evrInitialize()
 bspExtVerbosity = 1
@@ -108,33 +97,10 @@ dbLoadRecords("db/IOC-SYS0-BD02access.db")
 # Load trigger database
 dbLoadRecords("db/IOC-SYS0-BD02trig.db")	# has only one EVRs' triggers
 
-# Load BLD databases
-dbLoadRecords("db/BLDMCastReceiverPhaseCavity.db","LOCA=501, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
-dbLoadRecords("db/BLDMCastReceiverImbs.db","DEVICE=BLD:SYS0:501")
-dbLoadRecords("db/BLDMCastReceiver.db","DEVICE=BLD:SYS0:501")
-
-# Have a BLD listener running on this IOC and fill a waveform
-# with the BLD data.
-# We scan with event 146 (beam + .5Hz)
-#
-# NOTE: There must be one of the EVR:IOC:SYS0:BD01:EVENTxyCTRL
-#       records holding the event number we use here and it
-#       must have VME interrupts (.VME field) enabled.
-#
-#       Furthermore, you cannot use any event but only 
-#       such ones for which an event record has been
-#       instantiated with MRF ER device support -- this
-#       is thanks to the great MRF software design, yeah!
-#
-# The erEvent record enables interrupts for an event
-# the interrupt handler calls scanIoRequest(lists[event]) and
-# there must be an event record registered on that list which
-# then does post_event().
-# (Well, the VME ISR firing 'event' could IMHO directly post_event(event)
-# which would be faster, simpler and more flexible)
-# 
-
-# dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:BD02:BLDWAV, scan=Event, evnt=146, rarm=2")
+# Load BLDReceiver databases
+dbLoadRecords("db/BLDMCastReceiverPhaseCavity.db","LOCA=500, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+dbLoadRecords("db/BLDMCastReceiverImbs.db","DEVICE=BLD:SYS0:500")
+dbLoadRecords("db/BLDMCastReceiver.db","DEVICE=BLD:SYS0:500")
 
 # END: Loading the record databases
 # =====================================================================
@@ -150,9 +116,6 @@ lsmod()
 # =====================================================================
 # Start the EPICS IOC
 # =====================================================================
-
-#BLD_MCAST_DEBUG=2
-#DELAY_FOR_CA=30
 
 bld_hook_init()
 iocInit()

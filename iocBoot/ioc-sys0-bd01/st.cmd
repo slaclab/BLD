@@ -3,6 +3,7 @@
 #============================================================================================================================================================
 # Author:
 #       scondam: 10-Jun-2014:	Common scripts created for iocAdmin, autosave/restore etc.
+#       scondam: 17-Jun-2014:   Split Sender and Receiver apps. ioc-sys0-bd01 is MCAST sender only.
 #============================================================================================================================================================
 
 # IOC-IN20-RF01 startup script for LCLS LLRF production
@@ -25,9 +26,6 @@ setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
 setenv("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
 setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 
-#setenv("EPICS_CA_AUTO_ADDR_LIST","NO")
-#setenv("EPICS_CA_ADDR_LIST","172.27.11.54 172.27.9.76 172.27.9.77 172.27.9.78")
-
 # =====================================================================
 # Execute common fnet st.cmd
 . "../st.fnetgeneric.lcls.cmd"
@@ -36,7 +34,7 @@ setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 . "../st.vmegeneric.cmd"
 
 # Load IN20 RF01 VME IOC
-ld("bin/RTEMS-beatnik/BLD.obj")
+ld("bin/RTEMS-beatnik/BLDSender.obj")
 
 # Only set IPADDR1 if the caller had not provided a value
 # getenv("NEW_LANIP") && (pre_ipaddr1 || fcomUtilSetIPADDR1("-fnet"))
@@ -56,8 +54,8 @@ epicsEnvSet ("FCOM_MC_PREFIX", "239.219.8.0")
 fcomInit(getenv("FCOM_MC_PREFIX",0),1000)
 
 ## Register all support components
-dbLoadDatabase("dbd/BLD.dbd")
-BLD_registerRecordDeviceDriver(pdbbase)
+dbLoadDatabase("dbd/BLDSender.dbd")
+BLDSender_registerRecordDeviceDriver(pdbbase)
 
 # hack around the EPICS memory tester
 free(malloc(1024*1024*32))
@@ -120,7 +118,6 @@ dbLoadRecords("db/IOC-SYS0-BD01trig.db")	# has only one EVRs' triggers
 ###########################
 
 dbLoadRecords("db/BLDMCast.db","LOCA=500, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
-dbLoadRecords("db/BLDMCastReceiverPhaseCavity.db","LOCA=500, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.
