@@ -23,11 +23,11 @@
 file bsaBLDReceiverPhaseCavityEdef.db {
     pattern
     { DEVICE, LOC, UN, SLCLNK }
-    { BLD:SYS0:501, SYS0, 501, "" }
+    { BLD:SYS0:500, SYS0, 500, "" }
 }
 
 file bsaBLDReceiverImbEdef.db {
     pattern
     { DEVICE, LOC, UN, SLCLNK }
-    { BLD:SYS0:501, SYS0, 501, "" }
+    { BLD:SYS0:500, SYS0, 500, "" }
 }
