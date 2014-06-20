@@ -8,9 +8,8 @@ include $(TOP)/configure/CONFIG_APP
 # Set this when you only want to compile this application
 # for a subset of the cross-compiled target architectures
 # that Base is built for.
-#ALL_CC_ARCHS:=$(CROSS_COMPILER_TARGET_ARCHS)
-#CROSS_COMPILER_TARGET_ARCHS = $(filter-out vxworks% vxWorks%,$(ALL_CC_ARCHS))
-CROSS_COMPILER_TARGET_ARCHS = RTEMS-beatnik
+ALL_CC_ARCHS:=$(CROSS_COMPILER_TARGET_ARCHS)
+CROSS_COMPILER_TARGET_ARCHS =  RTEMS-beatnik
 
 # Set this when your IOC and the host use different paths
 # to access the application. This will be needed to boot
@@ -21,8 +20,8 @@ CROSS_COMPILER_TARGET_ARCHS = RTEMS-beatnik
 
 # kill the bad RTEMS setting - Ernest should do that globally
 ifneq ($(filter RTEMS-%,$(T_A))xx,xx)
-        OP_SYS_LDLIBS=
-#       OP_SYS_LDFLAGS=
+	OP_SYS_LDLIBS=
+#	OP_SYS_LDFLAGS=
 endif
 
 SHARED_LIBRARIES=NO
