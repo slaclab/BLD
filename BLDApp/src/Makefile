@@ -28,6 +28,7 @@ BUILDFOR=_RTEMS
 endif
 
 LIBRARY_IOC$(BUILDFOR)    += devBLDMCastWfRecv
+#LIBRARY_IOC$(BUILDFOR)    += bldSndrSupport
 LIBRARY_IOC$(BUILDFOR)    += bldRcvrSupport
 
 # BLD*.dbd will be installed
@@ -38,6 +39,12 @@ DBD += bldrx.dbd
 #=============================
 # The following are compiled and added to the Support library for devBLDMCastWfRecv
 devBLDMCastWfRecv_SRCS = devBLDMCastWfRecv.c
+
+# The following are compiled and added to the Support library for BLD Sender
+
+# bldSndrSupport_LIBS_DEFAULT += -nil-
+# bldSndrSupport_LIBS_RTEMS   += -nil-
+#=============================
 
 # The following are compiled and added to the Support library for BLD Receiver
 bldRcvrSupport_SRCS += BLDMCastReceiver.c
@@ -93,11 +100,27 @@ BLDSender_LIBS += devMrfEr
 BLDSender_LIBS += mrfVme64x
 BLDSender_LIBS += autosave
 BLDSender_LIBS += devIocStats
-BLDSender_LIBS += fcomUtil
-BLDSender_LIBS += fcom
-BLDSender_LIBS += udpComm
 BLDSender_LIBS += devBusMapped
 BLDSender_LIBS += devBLDMCastWfRecv
+BLDSender_LIBS += udpComm 
+BLDSender_LIBS += fcom
+BLDSender_LIBS += fcomUtil
+#BLDSender_LIBS += bldSndrSupport
+
+
+# BLDSender_registerRecordDeviceDriver.cpp derives from BLDSender.dbd
+BLDSender_SRCS += BLDMCast.c
+BLDSender_SRCS += devBLDMCastStatus.c
+BLDSender_SRCS += catest.c
+BLDSender_SRCS += camon.c
+BLDSender_SRCS += getBLD.c
+
+# Build the main IOC entry point on workstation OSs.
+BLDSender_SRCS += BLDSender_registerRecordDeviceDriver.cpp
+BLDSender_SRCS_DEFAULT += BLDMain.cpp
+BLDSender_SRCS_vxWorks += -nil-
+
+#=============================
 
 # Add all the support libraries needed by this IOC for BLDReceiver app
 BLDReceiver_LIBS += evrSupport
@@ -108,30 +131,12 @@ BLDReceiver_LIBS += devIocStats
 BLDReceiver_LIBS += devBusMapped
 BLDReceiver_LIBS += bldRcvrSupport
 
-#=============================
-
-# BLDSender_registerRecordDeviceDriver.cpp derives from BLDSender.dbd
-BLDSender_SRCS += BLDMCast.c
-BLDSender_SRCS += devBLDMCastStatus.c
-BLDSender_SRCS += catest.c
-BLDSender_SRCS += camon.c
-BLDSender_SRCS += getBLD.c
-
-BLDSender_SRCS += BLDMCastReceiver.c
-BLDSender_SRCS += BLDMCastReceiverPhaseCavity.c
-BLDSender_SRCS += devBLDMCastReceiverPhaseCavity.c
-BLDSender_SRCS += BLDMCastReceiverImb.c
-BLDSender_SRCS += devBLDMCastReceiverImb.c
-
-# Build the main IOC entry point on workstation OSs.
-BLDSender_SRCS += BLDSender_registerRecordDeviceDriver.cpp
-BLDSender_SRCS_DEFAULT += BLDMain.cpp
-BLDSender_SRCS_vxWorks += -nil-
-
 # Build the main IOC entry point on workstation OSs.
 BLDReceiver_SRCS += BLDReceiver_registerRecordDeviceDriver.cpp
 BLDReceiver_SRCS_DEFAULT += BLDMain.cpp
 BLDReceiver_SRCS_vxWorks += -nil-
+
+#=============================
 
 # Finally link to the EPICS Base libraries
 BLDSender_LIBS += $(EPICS_BASE_IOC_LIBS)
