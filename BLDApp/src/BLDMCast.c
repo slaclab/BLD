@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.59 2014/03/11 18:32:28 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.60 2014/03/13 00:45:34 lpiccoli Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -18,27 +18,25 @@
 #include <sys/uio.h>
 #include <net/if.h>
 
-#include "epicsExport.h"
-#include "epicsEvent.h"
-#include "epicsMutex.h"
-#include "epicsThread.h"
-#include "cadef.h"
-#include "dbScan.h"
-#include "drvSup.h"
-#include "alarm.h"
-#include "cantProceed.h"
-#include "errlog.h"
-#include "epicsExit.h"
+#include <epicsExport.h>
+#include <epicsEvent.h>
+#include <epicsThread.h>
+#include <cadef.h>
+#include <drvSup.h>
+#include <alarm.h>
+#include <cantProceed.h>
+#include <errlog.h>
+#include <epicsExit.h>
 
-#include "evrTime.h"
-#include "evrPattern.h"
+#include <evrTime.h>
+#include <evrPattern.h>
 
-#include "fcom_api.h"
-#include "fcomUtil.h"
-#include "udpComm.h"
-#include "fcomLclsBpm.h"
-#include "fcomLclsBlen.h"
-#include "fcomLclsLlrf.h"
+#include <fcom_api.h>
+#include <fcomUtil.h>
+#include <udpComm.h>
+#include <fcomLclsBpm.h>
+#include <fcomLclsBlen.h>
+#include <fcomLclsLlrf.h>
 
 #include <devBusMapped.h>
 
@@ -46,7 +44,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.59 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.60 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -351,8 +349,10 @@ int BLDMCastStart(int enable, const char * NIC)
 {/* This function will be called in st.cmd after iocInit() */
     /* Do we need to use RTEMS task priority to get higher priority? */
     BLD_MCAST_ENABLE = enable;
+		
     if(NIC && NIC[0] != 0)
         mcastIntfIp = inet_addr(NIC);
+			
     if(mcastIntfIp == (in_addr_t)(-1))
     {
 	errlogPrintf("Illegal MultiCast NIC IP\n");
@@ -574,6 +574,7 @@ unsigned long cnt;
 
 	for(loop=0; loop<n_pvs; loop++)
 	{
+
 		if ( connectCaPv( p_pvs[loop].name, &p_pvs[loop].pvChId ) ) {
 			errlogPrintf("FATAL: connection attempts aborted!\n");
 			return -1;
@@ -653,10 +654,13 @@ FcomBlobSetMask got_mask;
 
 epicsUInt32     this_time;
 
-	/******** Prepare MultiCast **************************************************/
+	/******** Prepare MultiCast **************************************************/	
+	
 #ifdef MULTICAST
 #ifdef MULTICAST_UDPCOMM
+
 	sFd = udpCommSocket(0);
+
 	if ( sFd < 0 ) {
 		errlogPrintf("Failed to create socket for multicast: %s\n", strerror(-sFd));
 		epicsMutexDestroy(bldMutex);
@@ -671,6 +675,7 @@ epicsUInt32     this_time;
 		udpCommClose( sFd );
 		return -1;
 	}
+
 	if ( mcastIntfIp && ( rtncode = udpCommSetIfMcastOut( sFd, mcastIntfIp ) ) ) {
 		errlogPrintf("Failed to choose outgoing interface for multicast: %s\n", strerror(-rtncode));
 		epicsMutexDestroy( bldMutex );
@@ -678,8 +683,10 @@ epicsUInt32     this_time;
 		udpCommClose( sFd );
 		return -1;
 	}
-#else
+#else	
+	
 	sFd = socket(AF_INET, SOCK_DGRAM, 0);
+
 	if(sFd == -1)
 	{
 		errlogPrintf("Failed to create socket for multicast\n");
@@ -716,7 +723,7 @@ epicsUInt32     this_time;
 #ifdef __linux__
 		unsigned int iLength = sizeof(sockaddrName);
 #elif defined(__rtems__)
-		socklen_t iLength = sizeof(sockaddrName);
+		socklen_t iLength = sizeof(sockaddrName);			
 #else
 		int iLength = sizeof(sockaddrName);
 #endif
@@ -745,7 +752,7 @@ epicsUInt32     this_time;
 			close(sFd);
 			epicsMutexDestroy(bldMutex);
 			return -1;
-		}
+		}			
 	}
 #endif
 #endif
@@ -762,26 +769,28 @@ epicsUInt32     this_time;
 	}
 
 	SEVCHK(ca_context_create(ca_enable_preemptive_callback),"ca_context_create");
-	SEVCHK(ca_add_exception_event(exceptionCallback,NULL), "ca_add_exception_event");
+	SEVCHK(ca_add_exception_event(exceptionCallback,NULL), "ca_add_exception_event");		
 
 	/* TODO, clean up resource when fail */
 
 	/* Monitor static PVs */
 	if ( init_pvarray( bldStaticPVs, N_STATIC_PVS, 1 /* do subscribe */ ) )
-		return -1; /* error message already printed */
+		return -1; /* error message already printed */	
 
 	ca_flush_io();
-	/* ca_pend_event(2.0); */
+	/* ca_pend_event(2.0); */		
 
 #ifdef USE_PULSE_CA
 #endif
 
 	/* All ready to go, create event and register with EVR */
 	EVRFireEvent = epicsEventMustCreate(epicsEventEmpty);
+		
 	/* Register EVRFire */
 #ifdef USE_PULSE_CA
 #endif
 	evrTimeRegister(EVRFire, bldBlobSet);
+	
 #undef  bldBlobSet
 
 	bldAllPVsConnected       = TRUE;
@@ -799,7 +808,7 @@ epicsUInt32     this_time;
 	bldEbeamInfo.uLogicalId2 = __le32(0x06000000);
 	bldEbeamInfo.uPhysicalId2= __le32(0);
 	bldEbeamInfo.uDataType2  = __le32(EBEAMINFO_VERSION_3);
-	bldEbeamInfo.uExtentSize2= __le32(EBEAMINFO_VERSION_3_SIZE);
+	bldEbeamInfo.uExtentSize2= __le32(EBEAMINFO_VERSION_3_SIZE);		
 
 	while(bldAllPVsConnected)
 	{
@@ -842,7 +851,7 @@ epicsUInt32     this_time;
 			 * blobs...
 			 */
 		}
-		
+			
 		this_time = usSinceFiducial();
 
 		if ( this_time > bldMaxFcomDelayUs )
@@ -1290,7 +1299,7 @@ static long BLD_EPICS_Init()
   rtncode = gethostname(name, name_len);
   if (rtncode == 0) {
     printf("INFO: BLD hostname is %s\n", name);
-    if (strcmp("ioc-sys0-bd01", name) == 0) {
+    if ((strcmp("ioc-sys0-bd01", name) == 0) || (strcmp("ioc-b34-bd01", name)== 0)) {
       enable_broadcast = 1;
       printf("INFO: *** Enabling Multicast ***\n");
     }
@@ -1336,11 +1345,13 @@ static long BLD_EPICS_Init()
 		errlogPrintf("WARNING: system clock rate not high enough to timeout -- using asynchronous mode\n");
 		      
 	} else {
+	
 		if ( (rtncode = fcomAllocBlobSet( bldPulseID, sizeof(bldPulseID)/sizeof(bldPulseID[0]), &bldBlobSet)) ) {
 			errlogPrintf("ERROR: Unable to allocate blob set: %s; trying asynchronous mode\n", fcomStrerror(rtncode));
 			bldBlobSet = 0;
+			
 		} else {
-			bldUseFcomSet = 1;
+			bldUseFcomSet = 1;			
 		}
 	}
 #endif
@@ -1348,6 +1359,7 @@ static long BLD_EPICS_Init()
 	if ( devBusMappedRegisterIO("bld_timer_io", &timer_delay_io) )
 		errlogPrintf("ERROR: Unable to register I/O methods for timer delay\n"
                      "SOFTWARE MAY NOT WORK PROPERLY\n");
+					 
 	check("bld_stat_bad_t", &bldUnmatchedTSCount);
 	check("bld_stat_bad_d", &bldInvalidAlarmCount);
 	check("bld_stat_bad_f", &bldFcomGetErrs);
@@ -1358,7 +1370,7 @@ static long BLD_EPICS_Init()
 	check("bld_stat_max_p", &bldMaxPostDelayUs);
 	check("bld_stat_avg_p", &bldAvgPostDelayUs);
 	check("bld_fcom_use_s", &bldUseFcomSet);
-
+	
 	scanIoInit(&bldIoscan);
 
 	bldMutex = epicsMutexMustCreate();
@@ -1369,11 +1381,6 @@ static long BLD_EPICS_Init()
 	else {
 	  errlogPrintf("WARN: *** Not starting BLDMCast task ***\n");
 	}
-
-	/** This starts the Multicast Receiver Tasks */
-#ifdef SIGNAL_TEST
-	EVRFireEventPCAV = epicsEventMustCreate(epicsEventEmpty);
-#endif
 
 	return 0;
 }
@@ -1431,7 +1438,10 @@ static long BLD_EPICS_Report(int level)
 	  BLD_report_EBEAMINFO();
 	}
 
-	bld_receivers_report(level);
+	/* scondam: 19-Jun-2014: BLDSender and BLDReceiver apps have been split.
+	   bld_receivers_report() not needed for Sender. */
+	   
+	/* bld_receivers_report(level); */
 
     return 0;
 }
