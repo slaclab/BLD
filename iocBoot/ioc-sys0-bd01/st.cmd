@@ -1,4 +1,4 @@
-# BLD Receiver App RTEMS startup script for VME crate for the LCLS SYS0 BD01 IOC
+# BLD MCAST Sender App RTEMS startup script for VME crate for the LCLS SYS0 BD01 IOC
 # LCLS Multicast and BSA capable
 #============================================================================================================================================================
 # Author:
@@ -6,7 +6,7 @@
 #       scondam: 17-Jun-2014:   Split Sender and Receiver apps. ioc-sys0-bd01 is MCAST sender only.
 #============================================================================================================================================================
 
-# IOC-IN20-RF01 startup script for LCLS LLRF production
+# Startup script for LCLS BLD production ioc-sys0-bd01
 
 # For iocAdmin
 setenv("LOCN","B005-2930")
@@ -33,15 +33,14 @@ setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 # execute generic part
 . "../st.vmegeneric.cmd"
 
-# Load IN20 RF01 VME IOC
+# Load obj file
 ld("bin/RTEMS-beatnik/BLDSender.obj")
 
-# Only set IPADDR1 if the caller had not provided a value
-# getenv("NEW_LANIP") && (pre_ipaddr1 || fcomUtilSetIPADDR1("-fnet"))
+#fcomUtilSetIPADDR1("-fnet")
 
+## Configure 2nd NIC using lanIpBasic
 lanIpSetup(getenv("IPADDR1"),getenv("NETMASK1"),0,0)
 lanIpDebug=0
-padProtoDebug=0
 
 lsmod()
 
@@ -53,25 +52,16 @@ epicsEnvSet ("FCOM_MC_PREFIX", "239.219.8.0")
 #initialize FCOM now to work around RTEMS bug #2068
 fcomInit(getenv("FCOM_MC_PREFIX",0),1000)
 
+# Set IOC Shell Prompt as well:
+epicsEnvSet("IOCSH_PS1","ioc-sys0-bd01>")
+
+setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
+setenv("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
+setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
+
 ## Register all support components
 dbLoadDatabase("dbd/BLDSender.dbd")
 BLDSender_registerRecordDeviceDriver(pdbbase)
-
-# hack around the EPICS memory tester
-free(malloc(1024*1024*32))
-
-# From Till Straumann (for RTEMS 4.9.1 upgrade):
-# This should set the VME chip into a mode where it
-# surrenders the VME bus after every transaction.
-# This means that the master has to rearbitrate for the bus for every cycle
-# (which slows things down).
-#
-# The faster setting I had enabled would let the master hold on to the bus
-# until some other master requests it.
-# *(long*)(vmeTsi148RegBase + 0x234) &= ~ 0x18
-
-# Add additional buffers; default amount not enough for some IOCs
-# lanIpBscAddBufs( 2000 )
 
 ###########################
 # initialize all hardware #
@@ -79,12 +69,17 @@ free(malloc(1024*1024*32))
 
 bspExtVerbosity=0
 
-# Prod: Init PMC EVR
-ErConfigure(0, 0, 0, 0, 1)           # PMC EVR:SYS0:BD01
+# Init PMC EVR
+ErConfigure(0, 0, 0, 0, 1)
 #ErConfigure( 0,0x300000,0x60,4,0)       # VME EVR:SYS0:BD01
 
 evrInitialize()
+
 bspExtVerbosity = 1
+
+###########################
+## Load record instances ##
+###########################
 
 # Load EVR and Pattern databases
 dbLoadRecords("db/IOC-SYS0-BD01evr.db","EVR=EVR:SYS0:BD01")	# EVR CARD 0
@@ -93,13 +88,6 @@ dbLoadRecords("db/lclsPattern.db","IOC=IOC:SYS0:BD01",0)
 
 # bspExtMemProbe only durint init. clear this to avoid the lecture.
 bspExtVerbosity = 0
-
-###########################
-## Load record instances ##
-###########################
-epicsEnvSet("IOC_MACRO","IOC=IOC:SYS0:BD01")
-# Set IOC Shell Prompt as well:
-epicsEnvSet("IOCSH_PS1","ioc-sys0-bd01:")
 
 # Load standard databases
 . "iocBoot/st.vmedb.cmd"
@@ -113,9 +101,11 @@ dbLoadRecords("db/IOC-SYS0-BD01access.db")
 # Load trigger database
 dbLoadRecords("db/IOC-SYS0-BD01trig.db")	# has only one EVRs' triggers
 
-###########################
-## Load record instances ##
-###########################
+# 5 = '2 second'
+
+# Set the BLDSender data records (which are now deprecated,
+# the BLDMcastWfRecv waveform should be used instead)
+# to 'Passive' to effectively disable them.
 
 dbLoadRecords("db/BLDMCast.db","LOCA=500, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 
@@ -160,7 +150,8 @@ lsmod()
 #BLD_MCAST_DEBUG=2
 #DELAY_FOR_CA=30
 
-bld_hook_init()
+# scondam: 19-Jun-2014: bld_hook_init() need only for BLDReceiver app. Commented out for BLDSender app.
+#bld_hook_init()
 iocInit()
 
 # =====================================================
