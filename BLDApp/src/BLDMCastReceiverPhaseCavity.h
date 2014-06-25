@@ -1,11 +1,10 @@
-/* $Id: BLDMCastReceiverPhaseCavity.h,v 1.1.2.2 2013/05/30 18:45:39 lpiccoli Exp $ */
+/* $Id: BLDMCastReceiverPhaseCavity.h,v 1.2 2014/02/27 23:53:01 lpiccoli Exp $ */
 
 #ifndef _BLDMCASTRECEIVERPHASECAVITY_H_
 #define _BLDMCASTRECEIVERPHASECAVITY_H_
 
-#include "BLDMCast.h"
+#include "BLDTypes.h"
 
-#define BLD_PHASE_CAVITY_GROUP "239.255.24.1"
 #define BLD_PHASE_CAVITY_PORT 10148
 
 /**
@@ -20,8 +19,7 @@ typedef struct BLDPhaseCavity {
 
 #define BLD_PHASE_CAVITY_PARAMS 4
 
-int phase_cavity_create(BLDMCastReceiver **bld_receiver);
+int phase_cavity_create(BLDMCastReceiver **bld_receiver, char *multicast_group);
 void phase_cavity_report(void *bld_receiver, int level);
-void phase_cavity_run(void *bld_receiver);
 
 #endif

@@ -1,7 +1,7 @@
 #ifndef _BLDMCASTRECEIVERIMB_H_
 #define _BLDMCASTRECEIVERIMB_H_
 
-#include "BLDMCast.h"
+#include "BLDTypes.h"
 
 #define BLD_IMB_PORT 10148
 
@@ -62,6 +62,5 @@ typedef struct BLDImb {
 
 int imb_create(BLDMCastReceiver **bld_receiver,char *multicast_group);
 void imb_report(void *bld_receiver, int level);
-void imb_run(void *bld_receiver);
 
 #endif

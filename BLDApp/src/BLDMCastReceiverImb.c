@@ -19,12 +19,9 @@ int imb_create(BLDMCastReceiver **bld_receiver,char *multicast_group) {
     return status;
   }
 
-  (*bld_receiver)->run = imb_run;
   (*bld_receiver)->report = imb_report;
-  printf("\nINFO: Imb receiver at 0x%x (run 0x%x, report 0x%x)\n",
-	 (int) bld_receiver, 0, 0); /*(*bld_receiver)->run,
-	 (*bld_receiver)->report);
-  */
+  printf("\nINFO: Imb receiver at 0x%x\n",
+	 (int) bld_receiver); 
   
   if (strcmp(multicast_group,"239.255.24.4")== 0) 
   		scanIoInit(&bldHxxUm6Imb01Ioscan);
@@ -56,36 +53,4 @@ void imb_report(void *bld_receiver, int level) {
   }
 }
 
-/**
- * Loop does not terminate. Processes after receiving a phase cavity
- * BLD package.
- *
- * Once received, the package is copied from the recv buffer into
- * the bsa buffer (accessed by the device support code).
- */
-void imb_run(void *bld_receiver) {
-  if (bld_receiver == NULL) {
-    fprintf(stderr, "ERROR: Can't run Imb, got NULL parameter!\n");
-    return;
-  }
-
-  BLDMCastReceiver *this = bld_receiver;
-  while(1) {
-    /** Get the next BLD from the message queue (saved to the bld_*_bsa */
-    if (bld_receiver_next(bld_receiver) == 0) {    
-      BLDImb *imb = this->bld_payload_bsa;
-      BLDHeader *header = this->bld_header_bsa;
-    
-      epicsMutexLock(this->mutex);
-      this->packets_processed++;	
-
-  	  if (strcmp(this->multicast_group,"239.255.24.4")== 0)         
-      	scanIoRequest(bldHxxUm6Imb01Ioscan);
-  	  else if (strcmp(this->multicast_group,"239.255.24.5")== 0)         
-      	scanIoRequest(bldHxxUm6Imb02Ioscan);		
-			
-      epicsMutexUnlock(this->mutex);
-    }
-  }
-}
 
