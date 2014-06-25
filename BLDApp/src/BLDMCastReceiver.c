@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.c,v 1.12 2014/06/17 23:32:50 scondam Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.13 2014/06/25 00:58:27 scondam Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -498,8 +498,8 @@ void bld_receiver_run(BLDMCastReceiver *this) {
 				epicsTsPulseId = getTimeStamp(header->fiducialId);
 
 				if (epicsTsPulseId.secPastEpoch)  { /* if  header->fiducialId within the past 2800 EVG PULSEIDs */
-					header->tv_sec = epicsTsPulseId.secPastEpoch;
-					header->tv_nsec = epicsTsPulseId.nsec;
+					/* header->tv_sec = epicsTsPulseId.secPastEpoch;
+					header->tv_nsec = epicsTsPulseId.nsec; */
 				}	
 				else { /* missed pulse - no match within last 2800 pulseIds*/
 					this->miss_bld_pulse++;			/* SCAN will take be done on the original timestamps in BLD packet */
