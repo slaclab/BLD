@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.27 2014/04/28 23:17:40 scondam Exp $ */
+/* $Id: BLDMCast.h,v 1.28 2014/06/05 19:51:32 scondam Exp $ */
 #ifndef _BLD_MCAST_H_
 #define _BLD_MCAST_H_
 
@@ -90,6 +90,7 @@ extern "C" {
     Flt64_LE      ebeamXTCAVAmpl; /* in MeV */
     Flt64_LE      ebeamXTCAVPhase; /* in deg */
     Flt64_LE      ebeamDMP502Charge; /* in Nel */
+    /* Flt64_LE      ebeamPhotonEnergy; *//* in eV */	
 } EBEAMINFO;
 
 #define EBEAM_INFO_ERROR 0x4000
