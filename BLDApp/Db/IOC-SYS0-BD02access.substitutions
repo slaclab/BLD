@@ -18,7 +18,7 @@
 file access.db 
 {
   pattern {DEV, MANAGE}
-	  { BLD:SYS0:500:, IOCMANAGERS }
+	  { BLD:SYS0:501:, IOCMANAGERS }
 }
 
         
