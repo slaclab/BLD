@@ -12,11 +12,11 @@ file bsaATTREdef.db
 {
 #           Device   Attribute  Input          EGU   HOPR  LOPR PREC ADEL  Link
   pattern { D, ATTR, I, EG, HO, LO, PR, AD, LNK }
-	  { $(DEVICE), PCAV_CHARGE1, $(DEVICE):PCAV_CHARGE1, pC, 3, -3, 3, .001, "" }
-	  { $(DEVICE), PCAV_CHARGE2, $(DEVICE):PCAV_CHARGE2, pC, 3, -3, 3, .001, "" }
-	  { $(DEVICE), PCAV_FITTIME1, $(DEVICE):PCAV_FITTIME1, ps, 3, -3, 3, .001, "" }
-	  { $(DEVICE), PCAV_FITTIME2, $(DEVICE):PCAV_FITTIME2, ps, 3, -3, 3, .001, "" }
-	  { $(DEVICE), PCAV_PULSEID, $(DEVICE):PCAV_PULSEID, count, 3, -3, 3, .001, "" }
-	  { $(DEVICE), PCAV_STATUS, $(DEVICE):PCAV_STATUS, status, 3, -3, 3, .001, "" }
+	  { $(DEVICE), PCAV1_CHARGE1, $(DEVICE):PCAV_CHARGE1, pC, 3, -3, 3, .001, "" }
+	  { $(DEVICE), PCAV1_CHARGE2, $(DEVICE):PCAV_CHARGE2, pC, 3, -3, 3, .001, "" }
+	  { $(DEVICE), PCAV1_FITTIME1, $(DEVICE):PCAV_FITTIME1, ps, 3, -3, 3, .001, "" }
+	  { $(DEVICE), PCAV1_FITTIME2, $(DEVICE):PCAV_FITTIME2, ps, 3, -3, 3, .001, "" }
+	  { $(DEVICE), PCAV1_PULSEID, $(DEVICE):PCAV_PULSEID, count, 3, -3, 3, .001, "" }
+	  { $(DEVICE), PCAV1_STATUS, $(DEVICE):PCAV_STATUS, status, 3, -3, 3, .001, "" }
 }
 
