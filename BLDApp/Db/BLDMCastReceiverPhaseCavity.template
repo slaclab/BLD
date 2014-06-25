@@ -170,3 +170,13 @@ record(longin, "$(DEVICE):PCAV_AVG") {
 	field(INP,  "#C0S2@pcav_avg_f,m32")
 }
 
+# just write .PROC
+record(longout, "$(DEVICE):PCAV_AVGRST") {
+	field(DESC, "Rst. Avg PCAV BLD Latency")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@pcav_avg_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+

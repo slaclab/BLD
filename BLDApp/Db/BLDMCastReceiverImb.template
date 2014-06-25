@@ -223,3 +223,13 @@ record(longin, "$(DEVICE):IMB_$(STN)_AVG") {
 	field(INP,  "#C0S2@$(STN)_avg_f,m32")
 }
 
+# just write .PROC
+record(longout, "$(DEVICE):IMB_$(STN)_AVGRST") {
+	field(DESC, "Rst. Avg IMB BLD Latency")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@$(STN)_avg_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
