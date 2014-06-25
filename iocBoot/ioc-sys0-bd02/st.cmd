@@ -98,9 +98,10 @@ dbLoadRecords("db/IOC-SYS0-BD02access.db")
 dbLoadRecords("db/IOC-SYS0-BD02trig.db")	# has only one EVRs' triggers
 
 # Load BLDReceiver databases
-dbLoadRecords("db/BLDMCastReceiverPhaseCavity.db","LOCA=500, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+# scondam: 24-Jun-2014: EVG Timestamps now obtained via Fiducial processing - hence BLDMCastReceiver unneeded 
+#dbLoadRecords("db/BLDMCastReceiver.db","DEVICE=BLD:SYS0:500")
+dbLoadRecords("db/BLDMCastReceiverPcavs.db","DEVICE=BLD:SYS0:500")
 dbLoadRecords("db/BLDMCastReceiverImbs.db","DEVICE=BLD:SYS0:500")
-dbLoadRecords("db/BLDMCastReceiver.db","DEVICE=BLD:SYS0:500")
 
 # END: Loading the record databases
 # =====================================================================
@@ -148,3 +149,4 @@ bootConfigShow()
 
 # One more sleep to allow mutex to be created before crashing on dbior()
 epicsThreadSleep(5)
+
