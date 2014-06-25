@@ -1,4 +1,4 @@
-device(ai, INST_IO, devAiBLD, "BLD")
+device(ai, INST_IO, devAiBLD, "BLD_SNDR")
 driver(drvBLD)
 
 variable(BLD_MCAST_DEBUG)
