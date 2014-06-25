@@ -1,10 +1,9 @@
-/* $Id: BLDMCastReceiver.h,v 1.5 2014/06/05 19:51:33 scondam Exp $ */
+/* $Id: BLDMCastReceiver.h,v 1.6 2014/06/17 23:32:50 scondam Exp $ */
 
 #ifndef _BLDMCASTRECEIVER_H_
 #define _BLDMCASTRECEIVER_H_
 
 #include "BLDData.h"
-#include "epicsMessageQueue.h"
 
 /**
  * BLDMCastReceiver.h
@@ -15,8 +14,7 @@
  *
  * Two tasks are created to receive and process BLD packets. The first task
  * (function bld_receiver_run()) waits for multicast data and saves it
- * to a message queue. The second task keeps removing the BLD packets from
- * the queue and invoking ioScanRequest to update the BSA PVs.
+ * to a tmp_buf to update the BSA PVs.
  */
 struct BLDMCastReceiver {
   /** Socket for receiving multicast BLD packets */
@@ -50,66 +48,35 @@ struct BLDMCastReceiver {
   /** Number of PVs to be updated (Number of items in BLD payload */
   int payload_count;
 
-  /** Message queue contaiting BLD received packets */
-  epicsMessageQueueId queue;
-
   /** Mutex for controlling access to this struct */
   epicsMutexId mutex;
-
-  /** Count number of failed queue.trySend() */
-  long queue_fail_send_count;
-
-  /** Count number of failed queue.receive() */
-  long queue_fail_receive_count;
-
-  /** BSA PV counter - used to verify all BSA PVs were written */
-  int bsa_counter;
-
-  /** Count missing BLDs based on differences between received PULSEIDs */
-  long missing_bld_counter;
   
   /** Number of BLD packets received */
   long packets_received;
 
   /** Number of BLD packets processed */
   long packets_processed;
-
-  /** Current BSA PULSEID - used to make sure BSA buffers get the same data */
-  unsigned int bsa_pulseid;
-
-  /** Current BLD PULSEID - used to verify if there are missing BLD packets */
-  unsigned int bld_pulseid;
-
-  /** Counts number of BSA PULSEID mismatches */
-  long bsa_pulseid_mismatch;
+  
+    /** Last BLD pulseid received */
+  long last_bld_pulse;  
   
   /** Count late BLDs based on differences between EVG timestamp and BLD header timestamp for same pulseid */
   long late_bld_pulse;  
-
-  /** Time when the last BLD packet was received */
-  struct timeval bld_received_time;
-
-  /** Max time elapsed (in usec) between BLD packets */
-  epicsUInt32 bld_max_received_delay_us;
-
-  /** Min time elapsed (in usec) between BLD packets */
-  epicsUInt32 bld_min_received_delay_us;
-
-  /** Average time elapsed (in usec) between BLD packets */
-  epicsUInt32 bld_avg_received_delay_us;
-
-  /** Count number of time elapsed 3x greater than the average */
-  epicsUInt32 bld_received_delay_above_avg_counter;
   
-  epicsUInt32   bld_received_delay_above_exp_counter;
+    /** Count missed BLDs. There was no match within the last 2800 fiducials for a missed pulseid. May be it came too late? */
+  long miss_bld_pulse;
+
+	/* last BLD packet received time */
+  epicsTimeStamp	bld_recv_time;  
   
-  epicsTimeStamp previous_bld_time;
-  epicsUInt32       bld_diffus;
-  epicsUInt32       bld_diffus_max;
-  epicsUInt32       bld_diffus_min;
-  epicsUInt32       bld_diffus_avg;  
+	/* previous (one before last) BLD packet received time */	   
+  epicsTimeStamp	previous_bld_time;
   
-  epicsTimeStamp global_pulseid_time;  
+	/* difference between  previous_bld_time and bld_recv_time */	  
+  double			bld_diffus;
+  double			bld_diffus_max;
+  double			bld_diffus_min;
+  double			bld_diffus_avg; 
   
   /** Print status information (dbior command) */
   void (*report)(void *bld_receiver, int level); 
@@ -130,22 +97,61 @@ void bld_receiver_run(BLDMCastReceiver *this);
 void bld_receivers_start();
 void bld_receivers_report(int level);
 
+#define BLD_PhaseCavity_GROUP "239.255.24.1"
 /*XRT */
 #define BLD_HxxUm6Imb01_GROUP "239.255.24.4"
 #define BLD_HxxUm6Imb02_GROUP "239.255.24.5"
-#define BLD_HfxDg2Imb01_GROUP "239.255.24.6"
-#define BLD_HfxDg2Imb02_GROUP "239.255.24.7"
-#define BLD_XcsDg3Imb03_GROUP "239.255.24.8"
-#define BLD_XcsDg3Imb04_GROUP "239.255.24.9"
-#define BLD_HfxDg3Imb01_GROUP "239.255.24.10"
-#define BLD_HfxDg3Imb02_GROUP "239.255.24.11"
-#define BLD_HfxMonImb01_GROUP "239.255.24.17"
-#define BLD_HfxMonImb02_GROUP "239.255.24.18"
-#define BLD_HfxMonImb03_GROUP "239.255.24.19"
-/* CXI Local */
-#define BLD_CxiDg1Imb01_GROUP "239.255.24.27"
-#define BLD_CxiDg2Imb01_GROUP "239.255.24.28"
-#define BLD_CxiDg2Imb02_GROUP "239.255.24.29"
-#define BLD_CxiDg4Imb01_GROUP "239.255.24.30"
+
+typedef enum {
+	EBeam,					/* 239.255.24.0 Global */
+	PhaseCavity,			/* 239.255.24.1 Global */
+	FEEGasDetEnergy,		/* 239.255.24.2 Global */
+	Nh2Sb1Ipm01,			/* 239.255.24.3 XPP (in SXR) */
+	HxxUm6Imb01,			/* 239.255.24.4 (XCS-IPM-01) XRT (controls) */
+	HxxUm6Imb02,			/* 239.255.24.5 (XCS-DIO-01) XRT (controls) */
+	HfxDg2Imb01,			/* 239.255.24.6 (XCS-IPM-02) XRT (controls) */
+	HfxDg2Imb02,			/* 239.255.24.7 (XCS-DIO-02) XRT (controls) */
+	XcsDg3Imb03,			/* 239.255.24.8 (XCS-IPM-03) XRT (controls) */
+	XcsDg3Imb04,			/* 239.255.24.9 (XCS-DIO-03) XRT (controls) */
+	HfxDg3Imb01,			/* 239.255.24.10 (XCS-IPM-03m) XRT (not connected) */
+	HfxDg3Imb02,			/* 239.255.24.11 (XCS-DIO-03m) XRT (controls) */
+	HxxDg1Cam,				/* 239.255.24.12 (XCS-YAG-1) XRT (controls) */
+	HfxDg2Cam,				/* 239.255.24.13 (XCS-YAG-2) XRT (controls) */
+	HfxDg3Cam,				/* 239.255.24.14 (XCS-YAG-3m) XRT (controls) */
+	XcsDg3Cam,				/* 239.255.24.15 (XCS-YAG-3) XRT */
+	HfxMonCam,				/* 239.255.24.16 (XCS-YAG-mono) XRT */
+	HfxMonImb01,			/* 239.255.24.17 (XCS-IPM-mono) XRT */
+	HfxMonImb02,			/* 239.255.24.18 (XCS-DIO-mono) XRT */
+	HfxMonImb03,			/* 239.255.24.19 (XCS-DEC-mono) XRT */
+	MecLasEm01,				/* 239.255.24.20 (MEC-LAS-EM-01) MEC Local */
+	MecLasDio01,			/* 239.255.24.21 (MEC-TCTR-PIP-01) MEC Local */
+	MecTcTrDio01,			/* 239.255.24.22 (MEC-TCTR-DI-01) MEC Local */
+	MecXt2Ipm02,			/* 239.255.24.23 (MEC-XT2-IPM-02) MEC Local */
+	MecXt2Ipm03,			/* 239.255.24.24 (MEC-XT2-IPM-03) MEC Local */
+	MecHxmIpm01,			/* 239.255.24.25 (MEC-HXM-IPM-01) MEC XRT */
+	GMD,					/* 239.255.24.26 SXR Local */
+	CxiDg1Imb01,			/* 239.255.24.27 CXI Local */
+	CxiDg2Imb01,			/* 239.255.24.28 CXI Local */
+	CxiDg2Imb02,			/* 239.255.24.29 CXI Local */
+	CxiDg4Imb01,			/* 239.255.24.30 CXI Local */
+	CxiDg1Pim,				/* 239.255.24.31 CXI Local */
+	CxiDg2Pim,				/* 239.255.24.32 CXI Local */
+	CxiDg4Pim,				/* 239.255.24.33 CXI Local */
+	XppMonPim0,				/* 239.255.24.34  XPP Local */
+	XppMonPim1,				/* 239.255.24.35  XPP Local */
+	XppSb2Ipm,				/* 239.255.24.36  XPP Local */
+	XppSb3Ipm,				/* 239.255.24.37  XPP Local */
+	XppSb3Pim,				/* 239.255.24.38  XPP Local */
+	XppSb4Pim,				/* 239.255.24.39  XPP Local */
+	XppEndstation0,			/* (XppEnds_Ipm0) 239.255.24.40  XPP Local */
+	XppEndstation1,			/* (XppEnds_Ipm1) 239.255.24.41  XPP Local */
+	MecXt2Pim02,			/* (MEC-XT2-PIM-02) 239.255.24.42  XPP Local */
+	MecXt2Pim03,			/* (MEC-XT2-PIM-03) 239.255.24.43  XPP Local */
+	CxiDg3Spec,				/* 239.255.24.44 */
+	Nh2Sb1Ipm02,			/* 239.255.24.45  XPP + downstream */	 
+	FeeSpec0,				/* 239.255.24.46 */
+	SxrSpec0,				/* 239.255.24.47 */
+	XppSpec0,				/* 239.255.24.48 */
+} BLDMCGroup;
 
 #endif
