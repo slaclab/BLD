@@ -49,9 +49,8 @@ devBLDMCastWfRecv_SRCS = devBLDMCastWfRecv.c
 # The following are compiled and added to the Support library for BLD Receiver
 bldRcvrSupport_SRCS += BLDMCastReceiver.c
 bldRcvrSupport_SRCS += BLDMCastReceiverPhaseCavity.c
-bldRcvrSupport_SRCS += devBLDMCastReceiverPhaseCavity.c
+bldRcvrSupport_SRCS += devBLDMCastReceiver.c
 bldRcvrSupport_SRCS += BLDMCastReceiverImb.c
-bldRcvrSupport_SRCS += devBLDMCastReceiverImb.c
 
 bldRcvrSupport_LIBS_DEFAULT += -nil-
 bldRcvrSupport_LIBS_RTEMS   += -nil-
