@@ -1,0 +1,172 @@
+# INP fields for ai records are defined as "@attr multicast_group" 
+# 	where 'attr' is defined in BLDPhaseCavityAttributes
+#	and 'multi_cast_group' is the last number of the four fields in a MC address
+# typedef enum {
+#   PCAV_PULSEID,
+#   PCAV_STATUS,
+#   PCAV_CHARGE1,
+#   PCAV_CHARGE2,
+#   PCAV_FITTIME1,
+#   PCAV_FITTIME2,
+# } BLDPhaseCavityAttributes;
+#
+#####
+# typedef enum {
+# /*XRT */
+# 	PCAV_PhaseCavity,		/* 0: "239.255.24.1" */
+#} BLDPcavMCGroup;
+#####
+
+
+record(ai, "$(DEVICE):PCAV_PULSEID") {
+  field(DESC, "Phase Cavity PULSEID")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "BLD_RCVR")
+  field(INP,  "@0 $(MC)")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "nC")
+  field(FLNK, "$(DEVICE):EFPCAV$(MC)_PULSEID")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "$(DEVICE):PCAV_STATUS") {
+  field(DESC, "Phase Cavity STATUS")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "BLD_RCVR")
+  field(INP,  "@1 $(MC)")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "nC")
+  field(FLNK, "$(DEVICE):EFPCAV$(MC)_STATUS")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "$(DEVICE):PCAV_CHARGE1") {
+  field(DESC, "Phase Cavity Charge1")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "BLD_RCVR")
+  field(INP,  "@2 $(MC)")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "nC")
+  field(FLNK, "$(DEVICE):EFPCAV$(MC)_CHARGE1")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "$(DEVICE):PCAV_CHARGE2") {
+  field(DESC, "Phase Cavity Charge2")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "BLD_RCVR")
+  field(INP,  "@3 $(MC)")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "nC")
+  field(FLNK, "$(DEVICE):EFPCAV$(MC)_CHARGE2")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "$(DEVICE):PCAV_FITTIME1") {
+  field(DESC, "Phase Cavity FitTime1")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "BLD_RCVR")
+  field(INP,  "@4 $(MC)")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "nC")
+  field(FLNK, "$(DEVICE):EFPCAV$(MC)_FITTIME1")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "$(DEVICE):PCAV_FITTIME2") {
+  field(DESC, "Phase Cavity FitTime2")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "BLD_RCVR")
+  field(INP,  "@5 $(MC)")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "nC")
+  field(FLNK, "$(DEVICE):EFPCAV$(MC)_FITTIME2")
+  field(PRIO, "HIGH")
+}
+
+record(longin, "$(DEVICE):PCAV_LATE") {
+	field(DESC, "PCAV BLD Late Packet Cnt")
+	field(EGU,  "Count")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@pcav_late_f,m32")
+}
+
+# just write .PROC
+record(longout, "$(DEVICE):PCAV_LATERST") {
+	field(DESC, "Rst.PCAV BLD Late Packet Cnt")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@pcav_late_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(longin, "$(DEVICE):PCAV_MISS") {
+	field(DESC, "PCAV BLD Miss Packet Cnt")
+	field(EGU,  "Count")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@pcav_miss_f,m32")
+}
+
+# just write .PROC
+record(longout, "$(DEVICE):PCAV_MISSRST") {
+	field(DESC, "Rst.PCAV BLD Miss Packet Cnt")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@pcav_miss_f,m32")
+	field(VAL,  "-1")
+	field(PINI, "YES")
+}
+
+record(longin, "$(DEVICE):PCAV_MAX") {
+	field(DESC, "Max. PCAV BLD Latency")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@pcav_max_f,m32")
+}
+
+# just write .PROC
+record(longout, "$(DEVICE):PCAV_MAXRST") {
+	field(DESC, "Rst. Max. PCAV BLD Latency")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@pcav_max_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(longin, "$(DEVICE):PCAV_MIN") {
+	field(DESC, "Min. PCAV BLD Latency")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@pcav_min_f,m32")
+}
+
+# just write .PROC
+record(longout, "$(DEVICE):PCAV_MINRST") {
+	field(DESC, "Rst. Min. PCAV BLD Latency")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@pcav_min_f,m32")
+	field(VAL,  "-1")
+	field(PINI, "YES")
+}
+
+record(longin, "$(DEVICE):PCAV_AVG") {
+	field(DESC, "Num. PCAV BLD Lat above avg")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@pcav_avg_f,m32")
+}
+

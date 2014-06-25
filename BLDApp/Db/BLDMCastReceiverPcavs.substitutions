@@ -1,0 +1,6 @@
+file BLDMCastReceiverPhaseCavity.template
+{
+#         Station			MC Group	Stat_Scan    
+pattern { STN			,	MC,			STAT_SCAN	}
+        { "PhaseCavity"	,  	"1"			"5"	}
+}
