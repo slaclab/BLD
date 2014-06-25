@@ -4,6 +4,7 @@
 # Author:
 #       scondam: 10-Jun-2014:	Common scripts created for iocAdmin, autosave/restore etc.
 #       scondam: 17-Jun-2014:   Split Sender and Receiver apps. ioc-sys0-bd01 is MCAST sender only.
+#       scondam: 25-Jun-2014:   Removedbld_hook_init() as it is need only for BLDReceiver app.
 #============================================================================================================================================================
 
 # Startup script for LCLS BLD production ioc-sys0-bd01
@@ -137,7 +138,24 @@ dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:BD01:BLDWAV, scan=Event, evn
 # Setup autosave/restore
 # =====================================================================
 
-. "iocBoot/init_restore.cmd"
+#. "iocBoot/init_restore.cmd"
+
+cd("iocBoot")
+## autosave/restore settings
+save_restoreSet_status_prefix( "IOC:SYS0:BD01:")
+save_restoreSet_IncompleteSetsOk(1)
+save_restoreSet_DatedBackupFiles(1)
+
+cd(pathSubstitute("%H"))
+
+set_requestfile_path("/data/autosave-req")
+set_savefile_path("/data/autosave")
+
+set_pass1_restoreFile("info_positions.sav")
+set_pass1_restoreFile("info_settings.sav")
+
+#BLD_MCAST_DEBUG=2
+#DELAY_FOR_CA=30
 
 # Capture load addresses of all modules (essential for debugging if iocInit crashes...)
 
@@ -150,8 +168,6 @@ lsmod()
 #BLD_MCAST_DEBUG=2
 #DELAY_FOR_CA=30
 
-# scondam: 19-Jun-2014: bld_hook_init() need only for BLDReceiver app. Commented out for BLDSender app.
-#bld_hook_init()
 iocInit()
 
 # =====================================================
@@ -182,7 +198,6 @@ bootConfigShow()
 
 # One more sleep to allow mutex to be created before crashing on dbior()
 epicsThreadSleep(5)
-#create_monitor_set("bldParams.req",30,0)
 
 #BLDMCastStart(0, 0)
 #BLDMCastStart(1, "172.27.225.21")
