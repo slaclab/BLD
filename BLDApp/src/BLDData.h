@@ -1,4 +1,4 @@
-/* $Id: BLDData.h,v 1.2 2014/02/27 23:53:00 lpiccoli Exp $ */
+/* $Id: BLDData.h,v 1.3 2014/06/05 19:51:32 scondam Exp $ */
 
 #ifndef _BLDDATA_H_
 #define _BLDDATA_H_
@@ -20,8 +20,9 @@
  */
  
 typedef struct BLDHeader {
-  Uint32_LE tv_sec;
+  /* scondam: 25-Jun-2014: PCD swapped the tv_nsec and tv_sec fields for several BLDs on this PAMM day */
   Uint32_LE tv_nsec;
+  Uint32_LE tv_sec;  
   Uint32_LE mbz1; /* must be zero */
   Uint32_LE fiducialId;
   Uint32_LE mbz2; /* must be zero */
