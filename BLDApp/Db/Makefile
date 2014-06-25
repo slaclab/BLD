@@ -17,7 +17,7 @@ DB += bsaBLDReceiverImbEdef.db
 
 DB += BLDMCast.db
 DB += BLDMCastWfRecv.db
-DB += BLDMCastReceiverPhaseCavity.db
+DB += BLDMCastReceiverPcavs.db
 DB += BLDMCastReceiverImbs.db
 DB += BLDMCastReceiver.db
 
