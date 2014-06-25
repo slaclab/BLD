@@ -1,4 +1,3 @@
-device(ai, INST_IO, devAiBldPhaseCavity, "BLD_PCAV")
-device(ai, INST_IO, devAiBldImb, "BLD_IMB")
+device(ai, INST_IO, devAiBldRcvr, "BLD_RCVR")
 
 function(subTimeStampOfPulseId)
