@@ -1,6 +1,12 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-5-5: Shantha Condamoor: 25-Jun-2014 (AOMM)
+	Cleaned up BLDSender and BLDRcvr applications..
+	Timestamp for Receiver device support from BLD packet header->tv_nsec and header->tv_sec fields.
+	PCD swapped nsec/sec fields - accommodate this change.
+	Cleaaned up time-counters.
+
 BLD-R2-5-4: Shantha Condamoor: 18-Jun-2014 (POMM)
 	Split BLD application into BLDSender and BLDReceiver.
 	Timestamp for Receiver device support from BLD packet header->tv_nsec and header->tv_sec fields
