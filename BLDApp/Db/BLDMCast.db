@@ -24,7 +24,7 @@ record (waveform, "BLD:SYS0:$(LOCA):FMTRX") {
 record(ai, "BLD:SYS0:$(LOCA):CHARGE") {
   field(DESC, "Beam Charge")
   field(SCAN, "$(DIAG_SCAN)")
-  field(DTYP, "BLD")
+  field(DTYP, "BLD_SNDR")
   field(INP,  "@CHARGE")
   field(PREC, "5")
   field(TSE,  "-2")
@@ -44,7 +44,7 @@ record(ai, "BLD:SYS0:$(LOCA):CHARGE") {
 record(ai, "BLD:SYS0:$(LOCA):ENERGY") {
   field(DESC, "Beam ENERGY")
   field(SCAN, "$(DIAG_SCAN)")
-  field(DTYP, "BLD")
+  field(DTYP, "BLD_SNDR")
   field(INP,  "@ENERGY")
   field(PREC, "5")
   field(TSE,  "-2")
@@ -56,7 +56,7 @@ record(ai, "BLD:SYS0:$(LOCA):ENERGY") {
 record(ai, "BLD:SYS0:$(LOCA):POS_X") {
   field(DESC, "Beam Position X")
   field(SCAN, "$(DIAG_SCAN)")
-  field(DTYP, "BLD")
+  field(DTYP, "BLD_SNDR")
   field(INP,  "@POS_X")
   field(PREC, "5")
   field(TSE,  "-2")
@@ -68,7 +68,7 @@ record(ai, "BLD:SYS0:$(LOCA):POS_X") {
 record(ai, "BLD:SYS0:$(LOCA):POS_Y") {
   field(DESC, "Beam Position Y")
   field(SCAN, "$(DIAG_SCAN)")
-  field(DTYP, "BLD")
+  field(DTYP, "BLD_SNDR")
   field(INP,  "@POS_Y")
   field(PREC, "5")
   field(TSE,  "-2")
@@ -80,7 +80,7 @@ record(ai, "BLD:SYS0:$(LOCA):POS_Y") {
 record(ai, "BLD:SYS0:$(LOCA):ANG_X") {
   field(DESC, "Beam Angle X")
   field(SCAN, "$(DIAG_SCAN)")
-  field(DTYP, "BLD")
+  field(DTYP, "BLD_SNDR")
   field(INP,  "@ANG_X")
   field(PREC, "5")
   field(TSE,  "-2")
@@ -92,7 +92,7 @@ record(ai, "BLD:SYS0:$(LOCA):ANG_X") {
 record(ai, "BLD:SYS0:$(LOCA):ANG_Y") {
   field(DESC, "Beam Angle Y")
   field(SCAN, "$(DIAG_SCAN)")
-  field(DTYP, "BLD")
+  field(DTYP, "BLD_SNDR")
   field(INP,  "@ANG_Y")
   field(PREC, "5")
   field(TSE,  "-2")
@@ -104,7 +104,7 @@ record(ai, "BLD:SYS0:$(LOCA):ANG_Y") {
 record(ai, "BLD:SYS0:$(LOCA):BLEN") {
   field(DESC, "BC2 Charge")
   field(SCAN, "$(DIAG_SCAN)")
-  field(DTYP, "BLD")
+  field(DTYP, "BLD_SNDR")
   field(INP,  "@BC2CHARGE")
   field(PREC, "5")
   field(TSE,  "-2")
@@ -114,7 +114,7 @@ record(ai, "BLD:SYS0:$(LOCA):BLEN") {
 record(ai, "BLD:SYS0:$(LOCA):BC2CHARGE") {
   field(DESC, "BC2 Charge")
   field(SCAN, "$(DIAG_SCAN)")
-  field(DTYP, "BLD")
+  field(DTYP, "BLD_SNDR")
   field(INP,  "@BC2CHARGE")
   field(PREC, "5")
   field(TSE,  "-2")
@@ -126,7 +126,7 @@ record(ai, "BLD:SYS0:$(LOCA):BC2CHARGE") {
 record(ai, "BLD:SYS0:$(LOCA):BC2ENERGY") {
   field(DESC, "BC2 Energy")
   field(SCAN, "$(DIAG_SCAN)")
-  field(DTYP, "BLD")
+  field(DTYP, "BLD_SNDR")
   field(INP,  "@BC2ENERGY")
   field(PREC, "5")
   field(TSE,  "-2")
@@ -138,7 +138,7 @@ record(ai, "BLD:SYS0:$(LOCA):BC2ENERGY") {
 record(ai, "BLD:SYS0:$(LOCA):BC1CHARGE") {
   field(DESC, "BC1 Charge")
   field(SCAN, "$(DIAG_SCAN)")
-  field(DTYP, "BLD")
+  field(DTYP, "BLD_SNDR")
   field(INP,  "@BC1CHARGE")
   field(PREC, "5")
   field(TSE,  "-2")
@@ -150,7 +150,7 @@ record(ai, "BLD:SYS0:$(LOCA):BC1CHARGE") {
 record(ai, "BLD:SYS0:$(LOCA):BC1ENERGY") {
   field(DESC, "BC2 Energy")
   field(SCAN, "$(DIAG_SCAN)")
-  field(DTYP, "BLD")
+  field(DTYP, "BLD_SNDR")
   field(INP,  "@BC1ENERGY")
   field(PREC, "5")
   field(TSE,  "-2")
@@ -162,7 +162,7 @@ record(ai, "BLD:SYS0:$(LOCA):BC1ENERGY") {
 record(ai, "BLD:SYS0:$(LOCA):UND_POS_X") {
   field(DESC, "Beam Position X")
   field(SCAN, "$(DIAG_SCAN)")
-  field(DTYP, "BLD")
+  field(DTYP, "BLD_SNDR")
   field(INP,  "@POS_X")
   field(PREC, "5")
   field(TSE,  "-2")
@@ -174,7 +174,7 @@ record(ai, "BLD:SYS0:$(LOCA):UND_POS_X") {
 record(ai, "BLD:SYS0:$(LOCA):UND_POS_Y") {
   field(DESC, "Beam Position Y")
   field(SCAN, "$(DIAG_SCAN)")
-  field(DTYP, "BLD")
+  field(DTYP, "BLD_SNDR")
   field(INP,  "@POS_Y")
   field(PREC, "5")
   field(TSE,  "-2")
@@ -186,7 +186,7 @@ record(ai, "BLD:SYS0:$(LOCA):UND_POS_Y") {
 record(ai, "BLD:SYS0:$(LOCA):UND_ANG_X") {
   field(DESC, "Beam Angle X")
   field(SCAN, "$(DIAG_SCAN)")
-  field(DTYP, "BLD")
+  field(DTYP, "BLD_SNDR")
   field(INP,  "@ANG_X")
   field(PREC, "5")
   field(TSE,  "-2")
@@ -198,7 +198,7 @@ record(ai, "BLD:SYS0:$(LOCA):UND_ANG_X") {
 record(ai, "BLD:SYS0:$(LOCA):UND_ANG_Y") {
   field(DESC, "Beam Angle Y")
   field(SCAN, "$(DIAG_SCAN)")
-  field(DTYP, "BLD")
+  field(DTYP, "BLD_SNDR")
   field(INP,  "@ANG_Y")
   field(PREC, "5")
   field(TSE,  "-2")
