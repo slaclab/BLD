@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.c,v 1.13 2014/06/25 00:58:27 scondam Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.15 2014/06/25 19:07:55 scondam Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -293,7 +293,7 @@ int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_c
 	(*this)->bld_payload_bsa = ((*this)->bld_header_bsa) + 1;
 
 	(*this)->packets_received = 0;
-	(*this)->packets_processed = 0;
+	(*this)->packets_duplicates = 0;
 	(*this)->payload_size = payload_size;
 	(*this)->payload_count = payload_count;
 	(*this)->multicast_group = multicast_group;
@@ -311,21 +311,24 @@ int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_c
 		check("pcav_min_f", &(*this)->bld_diffus_min);
 		check("pcav_avg_f", &(*this)->bld_diffus_avg);
 		check("pcav_late_f", &(*this)->late_bld_pulse);
-		check("pcav_miss_f", &(*this)->miss_bld_pulse);						
+		check("pcav_miss_f", &(*this)->miss_bld_pulse);	
+		check("pcav_dup_f", &(*this)->packets_duplicates);								
 	}
 	else if (strcmp(multicast_group,"239.255.24.4")== 0) {
 		check("HxxUm6Imb01_max_f", &(*this)->bld_diffus_max);
 		check("HxxUm6Imb01_min_f", &(*this)->bld_diffus_min);
 		check("HxxUm6Imb01_avg_f", &(*this)->bld_diffus_avg);	
 		check("HxxUm6Imb01_late_f", &(*this)->late_bld_pulse);
-		check("HxxUm6Imb01_miss_f", &(*this)->miss_bld_pulse);						
+		check("HxxUm6Imb01_miss_f", &(*this)->miss_bld_pulse);	
+		check("HxxUm6Imb01_dup_f", &(*this)->packets_duplicates);							
 	}
 	else if (strcmp(multicast_group,"239.255.24.5")== 0) {
 		check("HxxUm6Imb02_max_f", &(*this)->bld_diffus_max);
 		check("HxxUm6Imb02_min_f", &(*this)->bld_diffus_min);
 		check("HxxUm6Imb02_avg_f", &(*this)->bld_diffus_avg);	
 		check("HxxUm6Imb02_late_f", &(*this)->late_bld_pulse);
-		check("HxxUm6Imb02_miss_f", &(*this)->miss_bld_pulse);							
+		check("HxxUm6Imb02_miss_f", &(*this)->miss_bld_pulse);	
+		check("HxxUm6Imb02_dup_f", &(*this)->packets_duplicates);								
 	}	
 
   #ifndef SIGNAL_TEST
@@ -424,7 +427,9 @@ void bld_receiver_run(BLDMCastReceiver *this) {
     epicsTimeStamp epicsTs;
     epicsTimeStamp epicsTsPulseId;   
 	
-	BLDHeader *header = NULL;  
+    BLDHeader *header = NULL;  
+    
+    int duplicate_pkt = 0;
   
     printf("BLD_RECEIVER_RUN()\n");
   
@@ -438,76 +443,83 @@ void bld_receiver_run(BLDMCastReceiver *this) {
 	
 	for (;;) {
 	
-    	/** Wait for BLD Multicast */
-    	if (bld_get_message(this) > 0) {
+    	    /** Wait for BLD Multicast */
+    	    if (bld_get_message(this) > 0) {
 
-            /* BLD packet received time */
-        	rc = evrTimeGetFromPipeline(&epicsTs, evrTimeActive, 0, 0, 0, 0, 0);		
+        	/* BLD packet received time */
+        	    rc = evrTimeGetFromPipeline(&epicsTs, evrTimeActive, 0, 0, 0, 0, 0);		
 
-        	epicsMutexLock(this->mutex);
-			
-            	this->packets_received++;
-				
-				this->bld_recv_time = epicsTs;			/* current BLD packet received time */				
-			
+        	    epicsMutexLock(this->mutex);
+
+            		this->packets_received++;
+
+			this->bld_recv_time = epicsTs;			/* current BLD packet received time */				
+
     			header = this->bld_header_recv;	
-				this->bld_header_recv = this->bld_header_bsa;		
-				this->bld_header_bsa = header;
+			this->bld_header_recv = this->bld_header_bsa;		
+			this->bld_header_bsa = header;
 
-  	  			if (strcmp(this->multicast_group,"239.255.24.1")== 0)  {
-				   BLDPhaseCavity *payload = (BLDPhaseCavity *) this->bld_payload_recv;
-				   this->bld_payload_recv = this->bld_payload_bsa;
-				   this->bld_payload_bsa = payload;				   
+  	  		if (strcmp(this->multicast_group,"239.255.24.1")== 0)  {
+			   BLDPhaseCavity *payload = (BLDPhaseCavity *) this->bld_payload_recv;
+			   this->bld_payload_recv = this->bld_payload_bsa;
+			   this->bld_payload_bsa = payload;				   
+			}
+  	  		else if (strcmp(this->multicast_group,"239.255.24.4")== 0)   {  
+			   BLDImb *payload = (BLDImb *) this->bld_payload_recv;
+			   this->bld_payload_recv = this->bld_payload_bsa;
+			   this->bld_payload_bsa = payload;					   
+			}
+  	  		else if (strcmp(this->multicast_group,"239.255.24.5")== 0) { 
+			   BLDImb *payload = (BLDImb *) this->bld_payload_recv;
+			   this->bld_payload_recv = this->bld_payload_bsa;
+			   this->bld_payload_bsa = payload;					   
+			}
+
+			/* check for duplicate packets */
+			if (this->last_bld_pulse == header->fiducialId) { duplicate_pkt = 1; this->packets_duplicates++;}
+			else {
+			    duplicate_pkt = 0;			
+		    	    this->last_bld_pulse = header->fiducialId;	
+			    		
+			    if (this->last_bld_pulse+3 != header->fiducialId) { /* received correct pulseID */ 
+				if (this->last_bld_pulse==131037) {
+				    if (header->fiducialId == 0) { /* pulse ID rollover? */  }
 				}
-  	  			else if (strcmp(this->multicast_group,"239.255.24.4")== 0)   {  
-				   BLDImb *payload = (BLDImb *) this->bld_payload_recv;
-				   this->bld_payload_recv = this->bld_payload_bsa;
-				   this->bld_payload_bsa = payload;					   
+				else {
+				    this->miss_bld_pulse +=  abs(header->fiducialId - this->last_bld_pulse) / 3;
 				}
-  	  			else if (strcmp(this->multicast_group,"239.255.24.5")== 0) { 
-				   BLDImb *payload = (BLDImb *) this->bld_payload_recv;
-				   this->bld_payload_recv = this->bld_payload_bsa;
-				   this->bld_payload_bsa = payload;					   
-				}
-								
-    			this->bld_diffus = (double) (epicsTimeDiffInSeconds( &this->bld_recv_time, &this->previous_bld_time ) * 1000000.);
+			    }
+			    
+    			    this->bld_diffus = (double) (epicsTimeDiffInSeconds( &this->bld_recv_time, &this->previous_bld_time ) * 1000000.);
 
-				this->previous_bld_time = this->bld_recv_time;	
+			    this->previous_bld_time = this->bld_recv_time;	
 
-    			if (this->bld_diffus > this->bld_diffus_max) 	this->bld_diffus_max = this->bld_diffus;
-    			if (this->bld_diffus < this->bld_diffus_min) 	this->bld_diffus_min = this->bld_diffus;	
-				this->bld_diffus_avg = (this->bld_diffus + this->bld_diffus_avg) / 2.0;		
-				
-				if 	(this->bld_diffus > (1.0/120)*1000000.) this->late_bld_pulse++;	
-				
-				if (this->last_bld_pulse+3 != header->fiducialId) { /* received correct pulseID */ 
-					if (this->last_bld_pulse==131037) {
-						if (header->fiducialId == 0) { /* pulse ID rollover? */  }
-					}
-					else {
-						this->miss_bld_pulse +=  abs(header->fiducialId - this->last_bld_pulse) / 3;
-					}
-				}
-				
-				this->last_bld_pulse = header->fiducialId;
-				
-				/* check timestamp against EVG timestamp */	
-				/* if  header->fiducialId not the last pulseID, check if within the past 2800 EVG PULSEIDs */
+    			    if (this->bld_diffus > this->bld_diffus_max) 	this->bld_diffus_max = this->bld_diffus;
+    			    if (this->bld_diffus < this->bld_diffus_min) 	this->bld_diffus_min = this->bld_diffus;	
+			    this->bld_diffus_avg = (this->bld_diffus + this->bld_diffus_avg) / 2.0;		
 
-				/* Get EVG timestamp for header->fiducialId */	
-				epicsTsPulseId = getTimeStamp(header->fiducialId);
+			    if 	(this->bld_diffus > (1.0/120)*1000000.) this->late_bld_pulse++;				    
+			}
 
-				if (epicsTsPulseId.secPastEpoch)  { /* if  header->fiducialId within the past 2800 EVG PULSEIDs */
-					/* header->tv_sec = epicsTsPulseId.secPastEpoch;
-					header->tv_nsec = epicsTsPulseId.nsec; */
-				}	
-				else { /* missed pulse - no match within last 2800 pulseIds*/
-					this->miss_bld_pulse++;			/* SCAN will take be done on the original timestamps in BLD packet */
-													/* this may mess up the BSA buffer */
-				}					
+			/* check timestamp against EVG timestamp */	
+			/* if  header->fiducialId not the last pulseID, check if within the past 2800 EVG PULSEIDs */
 
-        	epicsMutexUnlock(this->mutex);						
-			
+			/* Get EVG timestamp for header->fiducialId */	
+			epicsTsPulseId = getTimeStamp(header->fiducialId);
+
+			if (epicsTsPulseId.secPastEpoch)  { /* if  header->fiducialId within the past 2800 EVG PULSEIDs */
+				/* header->tv_sec = epicsTsPulseId.secPastEpoch;
+				header->tv_nsec = epicsTsPulseId.nsec; */
+			}	
+			else { /* missed pulse - no match within last 2800 pulseIds*/
+				this->miss_bld_pulse++;			/* SCAN will take be done on the original timestamps in BLD packet */
+									/* this may mess up the BSA buffer */
+			}											
+		    
+        	    epicsMutexUnlock(this->mutex);
+
+		    /* scan only if not a duplicate packet */
+		    if (duplicate_pkt != 1) {
   	  		if (strcmp(this->multicast_group,"239.255.24.1")== 0)  {
 			   scanIoRequest(bldPhaseCavityIoscan);
 			}
@@ -516,8 +528,9 @@ void bld_receiver_run(BLDMCastReceiver *this) {
 			}
   	  		else if (strcmp(this->multicast_group,"239.255.24.5")== 0) { 
 			   scanIoRequest(bldHxxUm6Imb02Ioscan); 
-			}	
-			
+			}
+			duplicate_pkt = 0;							
+		    } 		    		    
 		}
 		/* if a BLD packet corresponding to a pulseID never arrived, then currently there is no logic to detect this
 		   and fill with NaN data. BSA buffer will be messed up currently. Add NaN data in future for missed BLDs. */	
@@ -608,19 +621,19 @@ void bld_receivers_start() {
   
   printf("\nINFO: Starting PhaseCavity Receiver... \n");
 
-  epicsThreadMustCreate("BLDPhaseCavityProd",  epicsThreadPriorityMedium, 20480,
+  epicsThreadMustCreate("BLDPhaseCavityProd", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium), 
 			(EPICSTHREADFUNC)bld_receiver_run, bldPhaseCavityReceiver);
   printf(" done.\n ");
   
   printf("\nINFO: Starting XRT Imb Receiver HxxUm6Imb01... \n");
 
-  epicsThreadMustCreate("BLDHxxUm6Imb01Prod", epicsThreadPriorityMedium, 20480,
+  epicsThreadMustCreate("BLDHxxUm6Imb01Prod", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
 			(EPICSTHREADFUNC)bld_receiver_run, bldHxxUm6Imb01Receiver);
   printf(" done.\n ");  
   
   printf("\nINFO: Starting XRT Imb Receiver HxxUm6Imb02... \n");
 
-  epicsThreadMustCreate("BLDHxxUm6Imb02Prod", epicsThreadPriorityMedium, 20480,
+  epicsThreadMustCreate("BLDHxxUm6Imb02Prod", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
 			(EPICSTHREADFUNC)bld_receiver_run, bldHxxUm6Imb02Receiver);
   printf(" done.\n ");   
 }
@@ -632,7 +645,7 @@ void bld_receiver_report(void *this, int level) {
     epicsMutexLock(receiver->mutex);
 
     printf("Received BLD packets : %ld\n", receiver->packets_received);
-    printf("Processed BLD packets: %ld\n", receiver->packets_processed);
+    printf("Processed BLD packets: %ld\n", receiver->packets_duplicates);
     printf("Received Late BLD packets : %ld\n", receiver->late_bld_pulse);
     printf("Missed BLD packets : %ld\n", receiver->miss_bld_pulse);	
     

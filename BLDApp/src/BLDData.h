@@ -1,4 +1,4 @@
-/* $Id: BLDData.h,v 1.3 2014/06/05 19:51:32 scondam Exp $ */
+/* $Id: BLDData.h,v 1.4 2014/06/25 19:03:16 scondam Exp $ */
 
 #ifndef _BLDDATA_H_
 #define _BLDDATA_H_
@@ -21,8 +21,11 @@
  
 typedef struct BLDHeader {
   /* scondam: 25-Jun-2014: PCD swapped the tv_nsec and tv_sec fields for several BLDs on this PAMM day */
+  /*                       BldSender and BldRcvr apps share this file */
+  /*                       Left the order unchanged here so as not to affect e-beam data */
+  /*                       but swapped sec/nsec in device support  for receiver */
+  Uint32_LE tv_sec;    
   Uint32_LE tv_nsec;
-  Uint32_LE tv_sec;  
   Uint32_LE mbz1; /* must be zero */
   Uint32_LE fiducialId;
   Uint32_LE mbz2; /* must be zero */

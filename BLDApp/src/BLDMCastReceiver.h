@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.h,v 1.6 2014/06/17 23:32:50 scondam Exp $ */
+/* $Id: BLDMCastReceiver.h,v 1.7 2014/06/25 00:59:15 scondam Exp $ */
 
 #ifndef _BLDMCASTRECEIVER_H_
 #define _BLDMCASTRECEIVER_H_
@@ -54,17 +54,17 @@ struct BLDMCastReceiver {
   /** Number of BLD packets received */
   long packets_received;
 
-  /** Number of BLD packets processed */
-  long packets_processed;
-  
-    /** Last BLD pulseid received */
-  long last_bld_pulse;  
+  /** Number of BLD packets that are duplicates (same pulseID in header) */
+  long packets_duplicates;  
   
   /** Count late BLDs based on differences between EVG timestamp and BLD header timestamp for same pulseid */
   long late_bld_pulse;  
   
     /** Count missed BLDs. There was no match within the last 2800 fiducials for a missed pulseid. May be it came too late? */
   long miss_bld_pulse;
+  
+    /** Last BLD pulseid received */
+  Uint32_LE last_bld_pulse;    
 
 	/* last BLD packet received time */
   epicsTimeStamp	bld_recv_time;  

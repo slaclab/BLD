@@ -24,7 +24,7 @@ record(ai, "$(DEVICE):PCAV_PULSEID") {
   field(DTYP, "BLD_RCVR")
   field(INP,  "@0 $(MC)")
   field(PREC, "5")
-  field(TSE,  "-1")
+  field(TSE,  "-2")
   field(EGU,  "nC")
   field(FLNK, "$(DEVICE):EFPCAV$(MC)_PULSEID")
   field(PRIO, "HIGH")
@@ -36,7 +36,7 @@ record(ai, "$(DEVICE):PCAV_STATUS") {
   field(DTYP, "BLD_RCVR")
   field(INP,  "@1 $(MC)")
   field(PREC, "5")
-  field(TSE,  "-1")
+  field(TSE,  "-2")
   field(EGU,  "nC")
   field(FLNK, "$(DEVICE):EFPCAV$(MC)_STATUS")
   field(PRIO, "HIGH")
@@ -48,7 +48,7 @@ record(ai, "$(DEVICE):PCAV_CHARGE1") {
   field(DTYP, "BLD_RCVR")
   field(INP,  "@2 $(MC)")
   field(PREC, "5")
-  field(TSE,  "-1")
+  field(TSE,  "-2")
   field(EGU,  "nC")
   field(FLNK, "$(DEVICE):EFPCAV$(MC)_CHARGE1")
   field(PRIO, "HIGH")
@@ -60,7 +60,7 @@ record(ai, "$(DEVICE):PCAV_CHARGE2") {
   field(DTYP, "BLD_RCVR")
   field(INP,  "@3 $(MC)")
   field(PREC, "5")
-  field(TSE,  "-1")
+  field(TSE,  "-2")
   field(EGU,  "nC")
   field(FLNK, "$(DEVICE):EFPCAV$(MC)_CHARGE2")
   field(PRIO, "HIGH")
@@ -72,7 +72,7 @@ record(ai, "$(DEVICE):PCAV_FITTIME1") {
   field(DTYP, "BLD_RCVR")
   field(INP,  "@4 $(MC)")
   field(PREC, "5")
-  field(TSE,  "-1")
+  field(TSE,  "-2")
   field(EGU,  "nC")
   field(FLNK, "$(DEVICE):EFPCAV$(MC)_FITTIME1")
   field(PRIO, "HIGH")
@@ -84,7 +84,7 @@ record(ai, "$(DEVICE):PCAV_FITTIME2") {
   field(DTYP, "BLD_RCVR")
   field(INP,  "@5 $(MC)")
   field(PREC, "5")
-  field(TSE,  "-1")
+  field(TSE,  "-2")
   field(EGU,  "nC")
   field(FLNK, "$(DEVICE):EFPCAV$(MC)_FITTIME2")
   field(PRIO, "HIGH")
@@ -176,6 +176,24 @@ record(longout, "$(DEVICE):PCAV_AVGRST") {
 	field(SCAN, "Passive")
 	field(DTYP, "BusAddress")
 	field(OUT,  "#C0S2@pcav_avg_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(longin, "$(DEVICE):PCAV_DUP") {
+	field(DESC, "PCAV BLD Duplicate Packet Cnt")
+	field(EGU,  "Count")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@pcav_dup_f,m32")
+}
+
+# just write .PROC
+record(longout, "$(DEVICE):PCAV_DUPRST") {
+	field(DESC, "Rst.PCAV BLD Duplicate Packet Cnt")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@pcav_dup_f,m32")
 	field(VAL,  "0")
 	field(PINI, "YES")
 }

@@ -231,8 +231,9 @@ static long read_ai(struct aiRecord *pai) {
 
 		if(pai->tse == epicsTimeEventDeviceTime) {
     	  /* do timestamp by device support */
-    	  pai->time.secPastEpoch = __ld_le32(&(paip->header->tv_sec));
-    	  pai->time.nsec         = __ld_le32(&(paip->header->tv_nsec));
+	  /* scondam: PCD swapped nsec/sec fields on all BLDS on 25-Jun-2014 */
+    	  pai->time.nsec  = __ld_le32(&(paip->header->tv_sec));
+    	  pai->time.secPastEpoch   = __ld_le32(&(paip->header->tv_nsec));
 		}
 	
     epicsMutexUnlock(paip->receiver->mutex);		
