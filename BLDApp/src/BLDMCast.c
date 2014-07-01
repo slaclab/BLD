@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.60 2014/03/13 00:45:34 lpiccoli Exp $ */
+/* $Id: BLDMCast.c,v 1.61 2014/06/20 21:44:40 scondam Exp $ */
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +44,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.60 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.61 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -953,8 +953,10 @@ passed:
 			/* Calculate beam energy */
 			if( AVAIL_L3ENERGY == (AVAIL_L3ENERGY & dataAvailable ) ) {
 				double tempD;
-				tempD = bldPulseBlobs[BMENERGY1X].blob->fcbl_bpm_X/(1000.0 * bldStaticPVs[DSPR1].pTD->value);
-				tempD += bldPulseBlobs[BMENERGY2X].blob->fcbl_bpm_X/(1000.0 * bldStaticPVs[DSPR2].pTD->value);
+				if (bldStaticPVs[DSPR1].pTD->value != 0)
+					tempD = bldPulseBlobs[BMENERGY1X].blob->fcbl_bpm_X/(1000.0 * bldStaticPVs[DSPR1].pTD->value);
+				if (bldStaticPVs[DSPR2].pTD->value != 0)
+					tempD += bldPulseBlobs[BMENERGY2X].blob->fcbl_bpm_X/(1000.0 * bldStaticPVs[DSPR2].pTD->value);
 				tempD = tempD/2.0 + 1.0;
 				tempD *= bldStaticPVs[E0BDES].pTD->value * 1000.0;
 				__st_le64(&bldEbeamInfo.ebeamL3Energy, tempD);

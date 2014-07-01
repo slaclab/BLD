@@ -11,6 +11,8 @@
 #include <debugPrint.h> 	/* for DEBUGPRINT */
 #include <devLib.h>			/* for S_dev_noMemory */
 
+#include <errlog.h>
+
 #include "BLDTypes.h"
 #include "BLDMCastReceiver.h"
 #include "BLDMCastReceiverImb.h"
@@ -77,26 +79,17 @@ static long init_ai( struct aiRecord * pai) {
 	  }
 	  
 	  paip->receiver = NULL;
-	  paip->header = NULL;
-	  paip->pcav_payload = NULL;		  
-	  paip->imb_payload = NULL;	  
   
 	  switch (paip->mc_group) {	
-				case PhaseCavity: 
-					paip->receiver = bldPhaseCavityReceiver;
-					paip->header = (BLDHeader *) bldPhaseCavityReceiver->bld_header_bsa;	
-					paip->pcav_payload = (BLDPhaseCavity *) bldPhaseCavityReceiver->bld_payload_bsa;
-					break;			  
-				case HxxUm6Imb01: 
-					paip->receiver = bldHxxUm6Imb01Receiver;
-					paip->header = (BLDHeader *) bldHxxUm6Imb01Receiver->bld_header_bsa;	
-					paip->imb_payload = (BLDImb *) bldHxxUm6Imb01Receiver->bld_payload_bsa;					
-					break;
-				case HxxUm6Imb02: 
-  					paip->receiver = bldHxxUm6Imb02Receiver;
-    				paip->header = (BLDHeader *) bldHxxUm6Imb02Receiver->bld_header_bsa;	
-					paip->imb_payload = (BLDImb *)bldHxxUm6Imb02Receiver->bld_payload_bsa;																																
-					break;				  
+		  case PhaseCavity: 
+			  paip->receiver = bldPhaseCavityReceiver;
+			  break;			  
+		  case HxxUm6Imb01: 
+			  paip->receiver = bldHxxUm6Imb01Receiver;								
+			  break;
+		  case HxxUm6Imb02: 
+  			  paip->receiver = bldHxxUm6Imb02Receiver;																																		
+			  break;				  
 	  }
 
 	  break;
@@ -160,63 +153,71 @@ static long read_ai(struct aiRecord *pai) {
 	}
 
 	paip = &((aiBldDpvt_t*)pai->dpvt)->bldAttr;	
+		
+    epicsMutexMustLock(paip->receiver->mutex);
 	
-    epicsMutexLock(paip->receiver->mutex);
+	
+		BLDHeader *header = (BLDHeader *) paip->receiver->bld_header_bsa;	
 	
 	    if ((paip->attr >= PULSEID)	&& (paip->attr <= STATUS)) { /* BLD Header data */
 			switch (paip->attr) {
 				case PULSEID:
-					v = (int) __ld_le32(&(paip->header->fiducialId));
+					v = (int) __ld_le32(&(header->fiducialId));
       				break;
 				case STATUS:
-      				v = (int) __ld_le32(&(paip->header->damage));
+      				v = (int) __ld_le32(&(header->damage));
       				break;				
 			}
 		}
 		else {												/* BLD Payload data */
+					
 			switch (paip->mc_group) {	
-				case PhaseCavity: 				
-					switch (paip->attr) {
-						case CHARGE1:
-    			  			v = __ld_le64(&(paip->pcav_payload->charge1));
-    			 			 break;
-						case CHARGE2:
-    			  			v = __ld_le64(&(paip->pcav_payload->charge2));
-    			  			break;
-						case FITTIME1:
-    			  			v = __ld_le64(&(paip->pcav_payload->fitTime1));
-    			  			break;
-						case FITTIME2:
-    			  			v = __ld_le64(&(paip->pcav_payload->fitTime2));
-    			  			break;	
+				case PhaseCavity: {
+						BLDPhaseCavity *pcav_payload = (BLDPhaseCavity *) header+1;
+						switch (paip->attr) {
+							case CHARGE1:
+    			  				v = __ld_le64(&(pcav_payload->charge1));
+    			 				 break;
+							case CHARGE2:
+    			  				v = __ld_le64(&(pcav_payload->charge2));
+    			  				break;
+							case FITTIME1:
+    			  				v = __ld_le64(&(pcav_payload->fitTime1));
+    			  				break;
+							case FITTIME2:
+    			  				v = __ld_le64(&(pcav_payload->fitTime2));
+    			  				break;	
+						}
 					}
 					break;	
-				case HxxUm6Imb01: 
-				case HxxUm6Imb02: 
-					switch (paip->attr) {
-						case SUM:
-    					  v = __ld_le64(&(paip->imb_payload->sum));
-    					  break;
-						case XPOS:
-    					  v = __ld_le64(&(paip->imb_payload->xpos));
-    					  break;
-						case YPOS:
-    					  v = __ld_le64(&(paip->imb_payload->ypos));
-    					  break;
-						case CHANNEL10:
-    					  v = __ld_le64(&(paip->imb_payload->channel10));
-    					  break;
-						case CHANNEL11:
-    					  v = __ld_le64(&(paip->imb_payload->channel11));
-    					  break;
-						case CHANNEL12:
-    					  v = __ld_le64(&(paip->imb_payload->channel12));
-    					  break;
-						case CHANNEL13:
-    					  v = __ld_le64(&(paip->imb_payload->channel13));
-    					  break;			
+				case HxxUm6Imb01: 			
+				case HxxUm6Imb02: {
+						BLDImb *imb_payload = (BLDImb *) header+1;
+						switch (paip->attr) {
+							case SUM:
+    						  v = __ld_le64(&(imb_payload->sum));
+    						  break;
+							case XPOS:
+    						  v = __ld_le64(&(imb_payload->xpos));
+    						  break;
+							case YPOS:
+    						  v = __ld_le64(&(imb_payload->ypos));
+    						  break;
+							case CHANNEL10:
+    						  v = __ld_le64(&(imb_payload->channel10));
+    						  break;
+							case CHANNEL11:
+    						  v = __ld_le64(&(imb_payload->channel11));
+    						  break;
+							case CHANNEL12:
+    						  v = __ld_le64(&(imb_payload->channel12));
+    						  break;
+							case CHANNEL13:
+    						  v = __ld_le64(&(imb_payload->channel13));
+    						  break;			
+						}
 					}
-					break;
+					break;	
 			}
 		}
 
@@ -232,8 +233,8 @@ static long read_ai(struct aiRecord *pai) {
 		if(pai->tse == epicsTimeEventDeviceTime) {
     	  /* do timestamp by device support */
 	  /* scondam: PCD swapped nsec/sec fields on all BLDS on 25-Jun-2014 */
-    	  pai->time.nsec  = __ld_le32(&(paip->header->tv_sec));
-    	  pai->time.secPastEpoch   = __ld_le32(&(paip->header->tv_nsec));
+    	  pai->time.nsec  = __ld_le32(&(header->tv_sec));
+    	  pai->time.secPastEpoch   = __ld_le32(&(header->tv_nsec));
 		}
 	
     epicsMutexUnlock(paip->receiver->mutex);		

@@ -9,9 +9,6 @@ typedef struct aiBld_s {
   int attr;
   int mc_group;
   BLDMCastReceiver *receiver;
-  BLDHeader *header; 
-  BLDPhaseCavity *pcav_payload; 
-  BLDImb *imb_payload; 
 } aiBld_t;
 
 typedef struct aiBldDpvt_s {

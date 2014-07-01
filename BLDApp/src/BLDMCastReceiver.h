@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.h,v 1.7 2014/06/25 00:59:15 scondam Exp $ */
+/* $Id: BLDMCastReceiver.h,v 1.8 2014/06/26 01:46:49 scondam Exp $ */
 
 #ifndef _BLDMCASTRECEIVER_H_
 #define _BLDMCASTRECEIVER_H_
@@ -25,12 +25,6 @@ struct BLDMCastReceiver {
 
   /** Port number */
   int port;
-
-  /** Latest BLD header - passed to recvmsg */
-  BLDHeader *bld_header_recv; 
-
-  /** Latest BLD payload - contiguous memory after bld_header */
-  void *bld_payload_recv; 
 
   /**
    * Copy of the latest BLD header, used by the BSA device support
@@ -62,15 +56,6 @@ struct BLDMCastReceiver {
   
     /** Count missed BLDs. There was no match within the last 2800 fiducials for a missed pulseid. May be it came too late? */
   long miss_bld_pulse;
-  
-    /** Last BLD pulseid received */
-  Uint32_LE last_bld_pulse;    
-
-	/* last BLD packet received time */
-  epicsTimeStamp	bld_recv_time;  
-  
-	/* previous (one before last) BLD packet received time */	   
-  epicsTimeStamp	previous_bld_time;
   
 	/* difference between  previous_bld_time and bld_recv_time */	  
   double			bld_diffus;
