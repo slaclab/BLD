@@ -1,5 +1,23 @@
-/* $Id: BLDData.h,v 1.4 2014/06/25 19:03:16 scondam Exp $ */
+/* $Id: BLDData.h,v 1.5 2014/06/26 01:46:49 scondam Exp $ */
+/*=============================================================================
 
+  Name: BLDData.h
+
+  Abs:  BLD Data header definition for all MCAST BLD data sent to or received from PCD.
+
+  Auth: Sheng Peng (pengs)
+  Mod:	Till Straumann (strauman)
+  		Luciano Piccoli (lpiccoli)
+  		Shantha Condamoor (scondam)
+
+  Mod:  22-Sep-2009 - S.Peng - Initial Release
+		18-May-2010 - T.Straumann: BLD-R2-0-0-BR - Cleanup and modifications
+		12-May-2011 - L.Piccoli	- Modifications
+		11-Jun-2013 - L.Piccoli	- BLD-R2-2-0 - 	Addition of BLD receiver - phase cavity  
+		30-Sep-2013 - L.Piccoli - BLD-R2-3-0 - Addition of Fast Undulator Launch feedback states, version 0x4000f
+		28-Feb-2014 - L.Piccoli - BLD-R2-4-0 - Merged BLD-R2-0-0-BR branch with MAIN_TRUNK. Addition of TCAV/DMP1 PVs to BLD. Version 0x5000f
+		25-Jun-2014 - S.Condamoor - BLD-R2-5-0 - Swapped ts_nsec and ts_sec fields in BLDHeader per PCD (M.Browne) request.
+-----------------------------------------------------------------------------*/
 #ifndef _BLDDATA_H_
 #define _BLDDATA_H_
 
@@ -22,10 +40,9 @@
 typedef struct BLDHeader {
   /* scondam: 25-Jun-2014: PCD swapped the tv_nsec and tv_sec fields for several BLDs on this PAMM day */
   /*                       BldSender and BldRcvr apps share this file */
-  /*                       Left the order unchanged here so as not to affect e-beam data */
-  /*                       but swapped sec/nsec in device support  for receiver */
+
+  Uint32_LE tv_nsec;  
   Uint32_LE tv_sec;    
-  Uint32_LE tv_nsec;
   Uint32_LE mbz1; /* must be zero */
   Uint32_LE fiducialId;
   Uint32_LE mbz2; /* must be zero */
