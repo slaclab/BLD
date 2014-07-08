@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.c,v 1.17 2014/07/01 16:59:24 scondam Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.18 2014/07/08 18:57:52 scondam Exp $ */
 /*=============================================================================
 
   Name: BLDMCastReceiver.c
@@ -114,7 +114,7 @@ static void bld_hook_function(initHookState state) {
   switch (state) {
   case initHookAtBeginning:
     fid_mutex    = epicsMutexMustCreate(); 
-    /* bld_fid_process_install(); */
+    bld_fid_process_install();
     bld_receivers_start();
     break;
   default:
