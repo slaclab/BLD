@@ -1,4 +1,25 @@
-/* $Id: BLDMCast.c,v 1.61 2014/06/20 21:44:40 scondam Exp $ */
+/* $Id: BLDMCast.c,v 1.62 2014/07/01 16:59:24 scondam Exp $ */
+/*=============================================================================
+
+  Name: BLDMCast.c
+
+  Abs:  BLDMCast driver for eBeam MCAST BLD data sent to PCD.
+
+  Auth: Sheng Peng (pengs)
+  Mod:	Till Straumann (strauman)
+  		Luciano Piccoli (lpiccoli)
+  		Shantha Condamoor (scondam)
+
+  Mod:  22-Sep-2009 - S.Peng - Initial Release
+		18-May-2010 - T.Straumann: BLD-R2-0-0-BR - Cleanup and modifications
+		12-May-2011 - L.Piccoli	- Modifications
+		11-Jun-2013 - L.Piccoli	- BLD-R2-2-0 - 	Addition of BLD receiver - phase cavity  
+		30-Sep-2013 - L.Piccoli - BLD-R2-3-0 - Addition of Fast Undulator Launch feedback states, version 0x4000f
+		28-Feb-2014 - L.Piccoli - BLD-R2-4-0 - Merged BLD-R2-0-0-BR branch with MAIN_TRUNK. Addition of TCAV/DMP1 PVs to BLD. Version 0x5000f
+		12-Mar-2014 - L.Piccoli - BLD-R2-5-4, BLD-R2-5-3, BLD-R2-5-2, BLD-R2-5-1, BLD-R2-5-0, BLD-R2-4-6 - Prevents BLDCast task on all iocs except ioc-sys0-bd01
+		20-Jun-2014 - S.Condamoor - BLD-R2-5-5 - BLDSender and BLDReceiver apps have been split. bld_receivers_report() not needed for Sender	   
+		7-Jul-2014  - S.Condamoor - BLD-R2-6-0 - Added Photon Energy Calculation to eBeam BLD MCAST data . Version 0x6000f
+-----------------------------------------------------------------------------*/
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +65,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.61 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.62 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -75,14 +96,17 @@
 
 #define BSPTIMER    0       /* Timer instance -- use first timer */
 
-
 /* We monitor static PVs and update their value upon modification */
 enum STATICPVSINDEX
 {
     DSPR1=0,
     DSPR2,
     E0BDES,
-    FMTRX
+    FMTRX,
+/* Shantha Condamoor: 7-Jul-2014: The following 3 are for matlab PVs that are used in shot-to-shot photon energy calculations*/	
+	PHOTONEV,
+	X450AVE,
+	X250AVE
 };/* the definition here must match the PV definition below */
 
 /* We use caget to read pulse by pulse PVs when EVR triggers */
@@ -150,6 +174,10 @@ enum PULSEPVSINDEX
 #define AVAIL_DMPCHARGE    0x100000
 #define AVAIL_XTCAVRF      0x200000
 
+/* Shantha Condamoor: 7-Jul-2014: The following are for matlab PVs that are used in shot-to-shot photon energy calculations*/
+#define AVAIL_PHOTONEV     0x400000
+#define AVAIL_X450AVE      0x800000
+#define AVAIL_X250AVE     0x1000000
 
 /* Structure representing one PV (= channel) */
 typedef struct BLDPV {
@@ -184,8 +212,13 @@ BLDPV bldStaticPVs[]=
     [DSPR1]  = {"BLD:SYS0:500:DSPR1",  1, AVAIL_DSPR1,  NULL, NULL},	/* For Energy */
     [DSPR2]  = {"BLD:SYS0:500:DSPR2",  1, AVAIL_DSPR2,  NULL, NULL},	/* For Energy */
     [E0BDES] = {"BEND:LTU0:125:BDES",  1, AVAIL_E0BDES, NULL, NULL},	/* Energy in MeV */
-    [FMTRX]  = {"BLD:SYS0:500:FMTRX", 32, AVAIL_FMTRX,  NULL, NULL}	/* For Position */
+    [FMTRX]  = {"BLD:SYS0:500:FMTRX", 32, AVAIL_FMTRX,  NULL, NULL},		/* For Position */
+/* Shantha Condamoor: 7-Jul-2014: The following are for matlab PVs that are used in shot-to-shot photon energy calculations*/	
+	[PHOTONEV]={"SIOC:SYS0:ML00:AO627",1, AVAIL_PHOTONEV,  NULL, NULL},	/* For shot-to-shot Photon Energy */
+	[X450AVE]= {"SIOC:SYS0:ML02:AO041",1, AVAIL_X450AVE,  NULL, NULL},	/* Average of last few hundred data points of X POS in LTU BPM x450 */		
+	[X250AVE]= {"SIOC:SYS0:ML02:AO040",1, AVAIL_X250AVE,  NULL, NULL},	/* Average of last few hundred data points of X POS in LTU BPM x250 */	
 };
+
 #define N_STATIC_PVS (sizeof(bldStaticPVs)/sizeof(bldStaticPVs[0]))
 
 #ifdef USE_PULSE_CA
@@ -255,6 +288,7 @@ BLDBLOB bldPulseBlobs[] = {
    * XTCAV Voltage and Phase
    */
   [XTCAVRF]  = { name: "TCAV:DMP1:360:AV", blob: 0, aMsk: AVAIL_XTCAVRF},
+  
 };
 
 
@@ -339,7 +373,6 @@ struct timeval now;
 
 	return (epicsUInt32)now.tv_usec;
 }
-
 
 static void evr_timer_isr(void *arg);
 static int BLDMCastTask(void * parg);
@@ -802,13 +835,13 @@ epicsUInt32     this_time;
 
 	bldEbeamInfo.uLogicalId  = __le32(0x06000000);
 	bldEbeamInfo.uPhysicalId = __le32(0);
-	bldEbeamInfo.uDataType   = __le32(EBEAMINFO_VERSION_3);
-	bldEbeamInfo.uExtentSize = __le32(EBEAMINFO_VERSION_3_SIZE);
+	bldEbeamInfo.uDataType   = __le32(EBEAMINFO_VERSION_4);
+	bldEbeamInfo.uExtentSize = __le32(EBEAMINFO_VERSION_4_SIZE);
 
 	bldEbeamInfo.uLogicalId2 = __le32(0x06000000);
 	bldEbeamInfo.uPhysicalId2= __le32(0);
-	bldEbeamInfo.uDataType2  = __le32(EBEAMINFO_VERSION_3);
-	bldEbeamInfo.uExtentSize2= __le32(EBEAMINFO_VERSION_3_SIZE);		
+	bldEbeamInfo.uDataType2  = __le32(EBEAMINFO_VERSION_4);
+	bldEbeamInfo.uExtentSize2= __le32(EBEAMINFO_VERSION_4_SIZE);		
 
 	while(bldAllPVsConnected)
 	{
@@ -953,6 +986,7 @@ passed:
 			/* Calculate beam energy */
 			if( AVAIL_L3ENERGY == (AVAIL_L3ENERGY & dataAvailable ) ) {
 				double tempD;
+								
 				if (bldStaticPVs[DSPR1].pTD->value != 0)
 					tempD = bldPulseBlobs[BMENERGY1X].blob->fcbl_bpm_X/(1000.0 * bldStaticPVs[DSPR1].pTD->value);
 				if (bldStaticPVs[DSPR2].pTD->value != 0)
@@ -960,10 +994,12 @@ passed:
 				tempD = tempD/2.0 + 1.0;
 				tempD *= bldStaticPVs[E0BDES].pTD->value * 1000.0;
 				__st_le64(&bldEbeamInfo.ebeamL3Energy, tempD);
+					
+				
 			} else {
 				bldEbeamInfo.uDamageMask |= __le32(0x2);
 			}
-
+			
 #define AVAIL_LTUPOS ( AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y | \
 		AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y | \
 		AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y | \
@@ -1111,9 +1147,100 @@ passed:
 			if ( __ld_le32( &bldEbeamInfo.uDamageMask ) ) {
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
 			} else {
+				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(0);								
+			}
+			
+			/* 	Shantha Condamoor: 7-Jul-2014: Calculate shot-to-shot photon energy */			
+			/* Algorithm from J.Welch and H.Loos */
+
+			/* function eV = photonEnergyeV_BLD(x450, x250)
+
+				calculates the accurate shot to shot SASE central photon energy given the
+				shot to shot bpm positions in DL2
+				x450 corresponds to the bpm x position data  from BPMS:LTU1:450:X
+				x250 corresponds to the bpm x position data  from BPMS:LTU1:250:X
+
+				BPMS:LTU1:450:X and BPMS:LTU1:250:X both arrive on every pulse over FCOM.
+	
+				eVave = SIOC:SYS0:ML00:AO627;      % a single number - Slow update (1 sec or so) over CA from matlab and from subroutine record
+				
+				% Slow update (1 sec or so) over CA from matlab - typically there should be the last few hundred data points in x450 or x250
+				x450ave = SIOC:SYS0:ML02:AO041;    % from subroutine record
+				x250ave = SIOC:SYS0:ML02:AO040;	   % from subroutine record
+				x450 = BPMS:LTU1:450:X;
+                x250 = BPMS:LTU1:250:X;
+	
+				etax = .125 ;       %  [m] +/- design value for dispersion at bpms in dogleg
+	
+        		eVdelta = eVave * ( (x450 - x450ave) - (x250 - x250ave))/ (etax); % The two BPM positions get subtracted, not added, as they have opposite dispersion.
+		
+				eV = eVave + eVdelta;  % Send out on eBeam BLD data on every pulse in 'ebeamPhotonEnergy' field in eV */
+
+#define AVAIL_PHOTONENERGY (AVAIL_BMENERGY1X | AVAIL_BMENERGY2X | AVAIL_PHOTONEV | AVAIL_X450AVE | AVAIL_X250AVE)	
+
+			/* Calculate shot-to-shot photon energy */
+			if( AVAIL_PHOTONENERGY == (AVAIL_PHOTONENERGY & dataAvailable ) ) {			
+								
+				double etax = .125; 
+				/* shot-to-shot photon energy is calculated using following variables which arrive via CA from matlab */
+				double eVave = bldStaticPVs[PHOTONEV].pTD->value;	/* SIOC:SYS0:ML00:AO627 - a single number - Slow update (1 sec or so) over CA from matlab */
+				double x450ave = bldStaticPVs[X450AVE].pTD->value;	/* SIOC:SYS0:ML02:AO041 - Slow update (1 sec or so) over CA from matlab - typically there should be the last few hundred data points in x450 */												
+				double x250ave = bldStaticPVs[X250AVE].pTD->value;	/* SIOC:SYS0:ML02:AO040 - Slow update (1 sec or so) over CA from matlab - typically there should be the last few hundred data points in x250 */
+
+				/* following variables arrive on every pulse via FCOM */
+				double x450 = bldPulseBlobs[BMENERGY2X].blob->fcbl_bpm_X;	/* BPMS:LTU1:450:X */
+				double x250 = bldPulseBlobs[BMENERGY1X].blob->fcbl_bpm_X;	/* BPMS:LTU1:250:X */
+				double eVdelta =  eVave * ( (x450 - x450ave) - (x250 - x250ave))/ (etax); /* The two BPM positions get subtracted, not added, as they have opposite	dispersion. */
+				
+				double eV =  eVave + eVdelta;
+				
+				__st_le64(&bldEbeamInfo.ebeamPhotonEnergy, eV);					
+				
+			} else {
+				bldEbeamInfo.uDamageMask |= __le32(0x400000);
+			}	
+			
+			if ( __ld_le32( &bldEbeamInfo.uDamageMask ) ) {
+				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+			} else {
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(0);
+			}				
+
+			/* Shantha Condamoor: 7-Jul-2014: shot-to-shot values of X positions of LTU1 BPMS 250 and 450 sent in eBeam BLD data */
+
+			/* BPM LTU1 450 and 250 X positions */ 
+			
+			if( AVAIL_BMENERGY2X & dataAvailable )
+			{
+			  __st_le64(&bldEbeamInfo.ebeamLTU450PosX, (double)bldPulseBlobs[BMENERGY2X].blob->fcbl_bpm_X);
+			}
+			else
+			{
+				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+				bldEbeamInfo.uDamageMask |= __le32(0x800000);
 			}
 
+			if ( __ld_le32( &bldEbeamInfo.uDamageMask ) ) {
+				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+			} else {
+				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(0);
+			}						
+			
+			if( AVAIL_BMENERGY1X & dataAvailable )
+			{
+			  __st_le64(&bldEbeamInfo.ebeamLTU250PosX, (double)bldPulseBlobs[BMENERGY1X].blob->fcbl_bpm_X);
+			}
+			else
+			{
+				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+				bldEbeamInfo.uDamageMask |= __le32(0x1000000);
+			}
+
+			if ( __ld_le32( &bldEbeamInfo.uDamageMask ) ) {
+				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+			} else {
+				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(0);
+			}
 
 			epicsMutexUnlock(bldMutex);
 		}
@@ -1491,6 +1618,10 @@ static long BLD_report_EBEAMINFO() {
   printf("ebeamXTCAVAmpl: %f MeV\n", __ld_le64(&bldEbeamInfo.ebeamXTCAVAmpl));
   printf("ebeamXTCAVPhase: %f deg\n", __ld_le64(&bldEbeamInfo.ebeamXTCAVPhase));
   printf("ebeamDMP502Charge: %f Nel\n", __ld_le64(&bldEbeamInfo.ebeamDMP502Charge));
+  
+  printf("ebeamPhotonEnergy: %f eV\n", __ld_le64(&bldEbeamInfo.ebeamPhotonEnergy));
+  printf("ebeamLTU450PosX: %f deg\n", __ld_le64(&bldEbeamInfo.ebeamLTU450PosX));
+  printf("ebeamLTU250PosX: %f Nel\n", __ld_le64(&bldEbeamInfo.ebeamLTU250PosX));  
 
   printf("Data Available Mask: %x\n", dataAvailable);
 
