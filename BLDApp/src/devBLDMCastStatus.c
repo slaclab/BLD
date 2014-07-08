@@ -1,4 +1,28 @@
-/* $Id: devBLDMCastStatus.c,v 1.10.2.5 2013/09/30 18:31:35 lpiccoli Exp $ */
+/* $Id: devBLDMCastStatus.c,v 1.12 2014/02/27 23:53:02 lpiccoli Exp $ */
+
+
+/*=============================================================================
+
+  Name: devBLDMCastWfRecv.c
+
+  Abs:  BLDMCast driver for eBeam MCAST BLD data sent to PCD.
+
+  Auth: Sheng Peng (pengs)
+  Mod:	Till Straumann (strauman)
+  		Luciano Piccoli (lpiccoli)
+  		Shantha Condamoor (scondam)
+
+  Mod:  22-Sep-2009 - S.Peng - Initial Release
+		18-May-2010 - T.Straumann: BLD-R2-0-0-BR - Cleanup and modifications
+		12-May-2011 - L.Piccoli	- Modifications
+		11-Jun-2013 - L.Piccoli	- BLD-R2-2-0 - 	Addition of BLD receiver - phase cavity  
+		30-Sep-2013 - L.Piccoli - BLD-R2-3-0 - Addition of Fast Undulator Launch feedback states, version 0x4000f
+		27-Feb-2014 - L.Piccoli - Merged R2-0-0-BR with MAIN_TRUNK; HEAD, BLD-R2-5-5, BLD-R2-5-4, BLD-R2-5-3, BLD-R2-5-2, BLD-R2-5-1,
+								 BLD-R2-5-0, BLD-R2-4-6, BLD-R2-4-5, BLD-R2-4-4, BLD-R2-4-3, BLD-R2-4-2, BLD-R2-4-1, BLD-R2-4-0 	   
+		7-Jul-2014  - S.Condamoor - BLD-R2-6-0 - Added PHOTONENERGY, LTU450_POS_X,  LTU250_POS_X. Version 0x6000f
+												Added code to set the 0x20000 damage bit if the EPICS variables become disconnected, or
+												    if the BPM data is unavailable.		
+-----------------------------------------------------------------------------*/
 
 #include <string.h>
 #include <stdlib.h>
@@ -36,6 +60,9 @@ typedef enum {
   BLD_AI_UND_POS_Y,
   BLD_AI_UND_ANG_X,
   BLD_AI_UND_ANG_Y,	
+  BLD_AI_PHOTONENERGY,  
+  BLD_AI_LTU450_POS_X,   
+  BLD_AI_LTU250_POS_X,  
 } BLDFUNC;
 
 /*      define parameter check for convinence */
@@ -87,6 +114,10 @@ static long init_ai( struct aiRecord * pai) {
   CHECK_AIPARM("UND_POS_Y",  BLD_AI_UND_POS_Y);
   CHECK_AIPARM("UND_ANG_X",  BLD_AI_UND_ANG_X);
   CHECK_AIPARM("UND_ANG_Y",  BLD_AI_UND_ANG_Y);
+  
+  CHECK_AIPARM("PHOTONENERGY",BLD_AI_PHOTONENERGY);
+  CHECK_AIPARM("LTU450_POS_X",BLD_AI_LTU450_POS_X);  
+  CHECK_AIPARM("LTU250_POS_X",BLD_AI_LTU250_POS_X);   
 
   recGblRecordError(S_db_badField, (void *) pai, "devAiBLD Init_record, bad parm");
   pai->pact = TRUE;
@@ -202,7 +233,25 @@ static long read_ai(struct aiRecord *pai) {
       damage = 1;
     }
     break;
-
+  case BLD_AI_PHOTONENERGY:
+    pai->val = __ld_le64(&bldEbeamInfo.ebeamPhotonEnergy);
+    if(bldEbeamInfo.uDamageMask & __le32(0x20000)) {
+      damage = 1;
+    }
+    break;	
+  case BLD_AI_LTU450_POS_X:
+    pai->val = __ld_le64(&bldEbeamInfo.ebeamLTU450PosX);
+    if(bldEbeamInfo.uDamageMask & __le32(0x20000)) {
+      damage = 1;
+    }
+    break;	
+  case BLD_AI_LTU250_POS_X:
+    pai->val = __ld_le64(&bldEbeamInfo.ebeamLTU250PosX);
+    if(bldEbeamInfo.uDamageMask & __le32(0x20000)) {
+      damage = 1;
+    }
+    break;		
+	
   }
 
   if(pai->tse == epicsTimeEventDeviceTime) {
