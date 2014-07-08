@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.29 2014/06/25 00:57:40 scondam Exp $ */
+/* $Id: BLDMCast.h,v 1.30 2014/07/08 18:34:38 scondam Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.h
@@ -16,7 +16,8 @@
 		11-Jun-2013 - L.Piccoli	- BLD-R2-2-0 - 	Addition of BLD receiver - phase cavity  
 		30-Sep-2013 - L.Piccoli - BLD-R2-3-0 - Addition of Fast Undulator Launch feedback states, version 0x4000f
 		28-Feb-2014 - L.Piccoli - BLD-R2-4-0 - Merged BLD-R2-0-0-BR branch with MAIN_TRUNK. Addition of TCAV/DMP1 PVs to BLD. Version 0x5000f
-		7-Jul-2014  - S.Condamoor - BLD-R2-5-0 - Added Photon Energy Calculation to eBeam BLD MCAST data . Version 0x6000f
+		28-Apr-2014 - S.Condamoor -  BLD-R2-5-2, BLD-R2-5-1, BLD-R2-5-0 - no changes affecting this file.
+		7-Jul-2014  - S.Condamoor - BLD-R2-6-0 - Added Photon Energy Calculation to eBeam BLD MCAST data . Version 0x6000f
 											   - Swapped ts_nsec and ts_sec fields in EBEAMINFO per PCD (M.Browne) request.
 -----------------------------------------------------------------------------*/
 #ifndef _BLD_MCAST_H_
