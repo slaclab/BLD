@@ -1,3 +1,16 @@
+/*=============================================================================
+
+  Name: devBLDMCastReceiver.c
+
+  Abs:  BLDMCast Receiver device support for data received from PCD.
+
+  Auth: Luciano Piccoli (lpiccoli)
+  Mod:	Shantha Condamoor (scondam)
+
+  Mod:  24-Jun-2014 - S.Condamoor: Replaced mcast-group-specific device support (PCAV/IMB etc.) with generic one.
+  		25-Jun-2014 - S.Condamoor: BLD-R2-5-5 - swap back nsec/sec fields per PCD.
+
+============================================================================= */
 #include <string.h>
 #include <stdlib.h>
 
@@ -233,8 +246,8 @@ static long read_ai(struct aiRecord *pai) {
 		if(pai->tse == epicsTimeEventDeviceTime) {
     	  /* do timestamp by device support */
 	  /* scondam: PCD swapped nsec/sec fields on all BLDS on 25-Jun-2014 */
-    	  pai->time.nsec  = __ld_le32(&(header->tv_sec));
-    	  pai->time.secPastEpoch   = __ld_le32(&(header->tv_nsec));
+    	  pai->time.nsec  = __ld_le32(&(header->tv_nsec));
+    	  pai->time.secPastEpoch   = __ld_le32(&(header->tv_sec));
 		}
 	
     epicsMutexUnlock(paip->receiver->mutex);		
