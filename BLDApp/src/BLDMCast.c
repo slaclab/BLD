@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.62 2014/07/01 16:59:24 scondam Exp $ */
+/* $Id: BLDMCast.c,v 1.63 2014/07/08 18:32:49 scondam Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -19,6 +19,8 @@
 		12-Mar-2014 - L.Piccoli - BLD-R2-5-4, BLD-R2-5-3, BLD-R2-5-2, BLD-R2-5-1, BLD-R2-5-0, BLD-R2-4-6 - Prevents BLDCast task on all iocs except ioc-sys0-bd01
 		20-Jun-2014 - S.Condamoor - BLD-R2-5-5 - BLDSender and BLDReceiver apps have been split. bld_receivers_report() not needed for Sender	   
 		7-Jul-2014  - S.Condamoor - BLD-R2-6-0 - Added Photon Energy Calculation to eBeam BLD MCAST data . Version 0x6000f
+												Added code to set the 0x20000 damage bit if the EPICS variables become disconnected, or
+												    if the BPM data is unavailable.
 -----------------------------------------------------------------------------*/
 #include <stddef.h>
 #include <stdlib.h>
@@ -65,7 +67,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.62 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.63 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -1197,7 +1199,7 @@ passed:
 				__st_le64(&bldEbeamInfo.ebeamPhotonEnergy, eV);					
 				
 			} else {
-				bldEbeamInfo.uDamageMask |= __le32(0x400000);
+				bldEbeamInfo.uDamageMask |= __le32(0x20000);
 			}	
 			
 			if ( __ld_le32( &bldEbeamInfo.uDamageMask ) ) {
@@ -1217,7 +1219,7 @@ passed:
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x800000);
+				bldEbeamInfo.uDamageMask |= __le32(0x20000);
 			}
 
 			if ( __ld_le32( &bldEbeamInfo.uDamageMask ) ) {
@@ -1233,7 +1235,7 @@ passed:
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x1000000);
+				bldEbeamInfo.uDamageMask |= __le32(0x20000);
 			}
 
 			if ( __ld_le32( &bldEbeamInfo.uDamageMask ) ) {
