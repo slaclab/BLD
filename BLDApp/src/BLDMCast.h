@@ -1,4 +1,24 @@
-/* $Id: BLDMCast.h,v 1.28 2014/06/05 19:51:32 scondam Exp $ */
+/* $Id: BLDMCast.h,v 1.29 2014/06/25 00:57:40 scondam Exp $ */
+/*=============================================================================
+
+  Name: BLDMCast.h
+
+  Abs:  BLDMCast driver header for eBeam MCAST BLD data sent to PCD.
+
+  Auth: Sheng Peng (pengs)
+  Mod:	Till Straumann (strauman)
+  		Luciano Piccoli (lpiccoli)
+  		Shantha Condamoor (scondam)
+
+  Mod:  22-Sep-2009 - S.Peng - Initial Release
+		18-May-2010 - T.Straumann: BLD-R2-0-0-BR - Cleanup and modifications
+		12-May-2011 - L.Piccoli	- Modifications
+		11-Jun-2013 - L.Piccoli	- BLD-R2-2-0 - 	Addition of BLD receiver - phase cavity  
+		30-Sep-2013 - L.Piccoli - BLD-R2-3-0 - Addition of Fast Undulator Launch feedback states, version 0x4000f
+		28-Feb-2014 - L.Piccoli - BLD-R2-4-0 - Merged BLD-R2-0-0-BR branch with MAIN_TRUNK. Addition of TCAV/DMP1 PVs to BLD. Version 0x5000f
+		7-Jul-2014  - S.Condamoor - BLD-R2-5-0 - Added Photon Energy Calculation to eBeam BLD MCAST data . Version 0x6000f
+											   - Swapped ts_nsec and ts_sec fields in EBEAMINFO per PCD (M.Browne) request.
+-----------------------------------------------------------------------------*/
 #ifndef _BLD_MCAST_H_
 #define _BLD_MCAST_H_
 
@@ -26,6 +46,11 @@ extern "C" {
 /* Addition of BPMS:LTU1:[250/450]:X and BPMS:DMP1:502:TMIT */
 #define EBEAMINFO_VERSION_3 0x5000f
 
+/* Shantha Condamoor: 7-Jul-2014 */
+/* shot-to-shot Photon Energy Calculation added */
+/* Addition of shot-to-shot X position of BPMS:LTU1:[250/450]:X  */
+#define EBEAMINFO_VERSION_4 0x6000f
+
 /* Size of original data packet */
 #define EBEAMINFO_VERSION_0_SIZE 80
 
@@ -38,13 +63,17 @@ extern "C" {
 /* Addition of 3 more floats */
 #define EBEAMINFO_VERSION_3_SIZE (EBEAMINFO_VERSION_2_SIZE + sizeof(Flt64_LE) * 3)
 
+/* Addition of 3 more floats */
+#define EBEAMINFO_VERSION_4_SIZE (EBEAMINFO_VERSION_3_SIZE + sizeof(Flt64_LE) * 3)
+
 /**
  * Structure defined in this document:
  * https://confluence.slac.stanford.edu/download/attachments/10256639/bldicd.pdf
  */
   typedef struct EBEAMINFO {
-    Uint32_LE     ts_sec;
-    Uint32_LE     ts_nsec;
+  /* Shantha Condamoor: 7-Jul-2014: Swapped sec and nsec fields per PCD request (M.Browne and C.O.Grady) */
+    Uint32_LE     ts_nsec;   
+    Uint32_LE     ts_sec;  
     Uint32_LE     uMBZ1;
     Uint32_LE     uFiducialId;
     Uint32_LE     uMBZ2;
@@ -90,7 +119,15 @@ extern "C" {
     Flt64_LE      ebeamXTCAVAmpl; /* in MeV */
     Flt64_LE      ebeamXTCAVPhase; /* in deg */
     Flt64_LE      ebeamDMP502Charge; /* in Nel */
-    /* Flt64_LE      ebeamPhotonEnergy; *//* in eV */	
+	
+    /* Added in VERSION_4 */	
+	/* Shantha Condamoor: 7-Jul-2014 */
+	/* shot-to-shot Photon Energy Calculation added */
+	/* Addition of shot-to-shot X position of BPMS:LTU1:[250/450]:X  */	
+    Flt64_LE      ebeamPhotonEnergy;/* in eV */	
+    Flt64_LE      ebeamLTU450PosX;  /* in mm */
+    Flt64_LE      ebeamLTU250PosX;  /* in mm */             
+	
 } EBEAMINFO;
 
 #define EBEAM_INFO_ERROR 0x4000
