@@ -207,6 +207,43 @@ record(ai, "BLD:SYS0:$(LOCA):UND_ANG_Y") {
   field(PRIO, "HIGH")
 }
 
+# Shantha Condamoor: 7-Jul-2014: Added PHOTONENERGY,LTU450_POS_X and LTU250_POS_X
+
+record(ai, "BLD:SYS0:$(LOCA):PHOTONENERGY") {
+  field(DESC, "Photon Energy")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_SNDR")
+  field(INP,  "@PHOTONENERGY")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "eV")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFPHOTONENERGY")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):LTU450_POS_X") {
+  field(DESC, "Beam Position X")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_SNDR")
+  field(INP,  "@LTU450_POS_X")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "mm")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFLTU450_POS_X")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:SYS0:$(LOCA):LTU250_POS_X") {
+  field(DESC, "Beam Position X")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_SNDR")
+  field(INP,  "@LTU250_POS_X")
+  field(PREC, "5")
+  field(TSE,  "-2")
+  field(EGU,  "mm")
+  field(FLNK, "BLD:SYS0:$(LOCA):EFLTU250_POS_X")
+  field(PRIO, "HIGH")
+}
 
 record(longin, "BLD:SYS0:$(LOCA):TMITLATEERRS") {
 	field(DESC, "Timestamp Mismatch Cnt")
