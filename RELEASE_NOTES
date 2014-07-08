@@ -1,7 +1,13 @@
 # Put your release notes or change log information
 # in here.
 
-BLD-R2-5-5: Shantha Condamoor: 25-Jun-2014 (AOMM)
+BLD-R2-6-0: Shantha Condamoor: 9-Jul-2014 (PAMM)
+	eBeam MCAST BLD version 6
+	Replaced Receiver message queue with double buffer scheme recommended by T.straumann
+	Swapped nsec/sec fields for both Receiver and Sends apps per PCD Request
+	Added Shot-to-shot photon energy to eBeam data.	
+
+BLD-R2-5-5: Shantha Condamoor: 25-Jun-2014 (POMM)
 	Cleaned up BLDSender and BLDRcvr applications..
 	Timestamp for Receiver device support from BLD packet header->tv_nsec and header->tv_sec fields.
 	PCD swapped nsec/sec fields - accommodate this change.
