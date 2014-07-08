@@ -64,9 +64,9 @@ free(malloc(1024*1024*32))
 bspExtVerbosity=0
 
 # Prod: Init PMC EVR
-#ErConfigure(0, 0, 0, 0, 1)			# PMC EVR:SYS0:BD02
+ErConfigure(0, 0, 0, 0, 1)			# PMC EVR:SYS0:BD02
 # Lab: Init PMC EVR
-ErConfigure( 0,0x300000,0x60,4,0)   # VME EVR:SYS0:BD02
+#ErConfigure( 0,0x300000,0x60,4,0)   # VME EVR:SYS0:BD02
 
 evrInitialize()
 bspExtVerbosity = 1
@@ -100,7 +100,7 @@ dbLoadRecords("db/IOC-SYS0-BD02trig.db")	# has only one EVRs' triggers
 
 # Load BLDReceiver databases
 # scondam: 24-Jun-2014: EVG Timestamps now obtained via Fiducial processing - hence BLDMCastReceiver unneeded 
-# dbLoadRecords("db/BLDMCastReceiver.db","DEVICE=BLD:SYS0:500")
+#dbLoadRecords("db/BLDMCastReceiver.db","DEVICE=BLD:SYS0:500")
 dbLoadRecords("db/BLDMCastReceiverPcavs.db","DEVICE=BLD:SYS0:500")
 dbLoadRecords("db/BLDMCastReceiverImbs.db","DEVICE=BLD:SYS0:500")
 
