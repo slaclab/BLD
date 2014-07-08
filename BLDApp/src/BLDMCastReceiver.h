@@ -1,4 +1,29 @@
-/* $Id: BLDMCastReceiver.h,v 1.8 2014/06/26 01:46:49 scondam Exp $ */
+/* $Id: BLDMCastReceiver.h,v 1.9 2014/07/01 16:59:24 scondam Exp $ */
+/*=============================================================================
+
+  Name: BLDMCastReceiver.h
+
+  Abs:  BLDMCast Receiver header for data sent from PCD.
+
+  Auth: Luciano Piccoli (lpiccoli)
+  Mod:	Shantha Condamoor (scondam)
+
+  Mod:  24-May-2013 - L.Piccoli	- BLD-R2-0-0-BR - partial implementation of bld receiver
+		11-Jun-2013 - L.Piccoli	- BLD-R2-3-0, BLD-R2-2-0 - Addition of BLD receiver - phase cavity
+		27-Feb-2014 - L.Piccoli - BLD-R2-4-1, BLD-R2-4-0  - Merged back R2-0-0-BR
+		3-Mar-2014  - L.Piccoli - BLD-R2-4-2 - Fixed wrong BLD IP address in multicast BLD receiver - dbior bug fix
+		6-Mar-2014 -  L.Piccoli - BLD-R2-4-5 - BLD-R2-4-4, BLD-R2-4-3 - adding code for preventing multicast if host is not ioc-sys0-bd01 or ioc-b34-bd01
+		12-Mar-2014 - L.Piccoli - BLD-R2-4-6 - Addition of code that prevents BLDCast task from being spawned if the code is not running on ioc-sys0-bd01
+		28-Apr-2014 - S.Condamoor - BLD-R2-5-0 - IMB support added
+		27-May-2014 - S.Condamoor - BLD-R2-5-1 - More Diagnostics for BLD Receiver Packets. Release BLD-R2-5-1
+		28-May-2014 - S.Condamoor - BLD-R2-5-2 - Get timestamp from EVR
+		10-Jun-2014 - S.Condamoor - BLD-R2-5-3  - Added support for multiple IMB devices; 
+		17-Jun-2014 - S.Condamoor - BLD-R2-5-4  - Split Sender and Receiver apps
+		7-Jul-2014  - S.Condamoor - BLD-R2-6-0 - Message Queue removed. Use Double buffering scheme per T.Straumann's recommendation.
+												Fiducial Processing added for obtaining timestamps for matching pulseids.
+												nsec/sec fields swapped.
+												Code for ignoring duplicate BLDs, counting lost and late BLD packets added.											   
+-----------------------------------------------------------------------------*/
 
 #ifndef _BLDMCASTRECEIVER_H_
 #define _BLDMCASTRECEIVER_H_
@@ -57,11 +82,11 @@ struct BLDMCastReceiver {
     /** Count missed BLDs. There was no match within the last 2800 fiducials for a missed pulseid. May be it came too late? */
   long miss_bld_pulse;
   
-	/* difference between  previous_bld_time and bld_recv_time */	  
-  double			bld_diffus;
-  double			bld_diffus_max;
-  double			bld_diffus_min;
-  double			bld_diffus_avg; 
+	/* difference between  previous_bld_time and bld_recv_time in uS */	  
+  long			bld_diffus;
+  long			bld_diffus_max;
+  long			bld_diffus_min;
+  long			bld_diffus_avg;
   
   /** Print status information (dbior command) */
   void (*report)(void *bld_receiver, int level); 
