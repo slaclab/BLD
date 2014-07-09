@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.30 2014/07/08 18:34:38 scondam Exp $ */
+/* $Id: BLDMCast.h,v 1.31 2014/07/08 18:56:57 scondam Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.h
@@ -126,8 +126,8 @@ extern "C" {
 	/* shot-to-shot Photon Energy Calculation added */
 	/* Addition of shot-to-shot X position of BPMS:LTU1:[250/450]:X  */	
     Flt64_LE      ebeamPhotonEnergy;/* in eV */	
-    Flt64_LE      ebeamLTU450PosX;  /* in mm */
-    Flt64_LE      ebeamLTU250PosX;  /* in mm */             
+    Flt64_LE      ebeamLTU250PosX;  /* in mm */  	
+    Flt64_LE      ebeamLTU450PosX;  /* in mm */           
 	
 } EBEAMINFO;
 
