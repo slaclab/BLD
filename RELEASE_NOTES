@@ -1,6 +1,10 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-6-1: Shantha Condamoor: 10-Jul-2014
+	Photon Energy Calc: etax changed from 0.125 to 125 per PCD
+	Added 10 more BLD data to waveform device support BLDApp/src/devBLDMCastWfRecv.c
+
 BLD-R2-6-0: Shantha Condamoor: 9-Jul-2014 (PAMM)
 	eBeam MCAST BLD version 6
 	Replaced Receiver message queue with double buffer scheme recommended by T.straumann
