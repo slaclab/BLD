@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.63 2014/07/08 18:32:49 scondam Exp $ */
+/* $Id: BLDMCast.c,v 1.64 2014/07/08 19:46:06 scondam Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -67,7 +67,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.63 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.64 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -980,7 +980,7 @@ passed:
 			if( (dataAvailable & AVAIL_BMCHARGE) ) {
 				__st_le64(&bldEbeamInfo.ebeamCharge, (double)bldPulseBlobs[BMCHARGE].blob->fcbl_bpm_T * 1.602e-10);
 			} else {
-				bldEbeamInfo.uDamageMask |= __le32(0x1);
+				bldEbeamInfo.uDamageMask |= __le32(EBEAMCHARGE_DAMAGEMASK);
 			}
 
 #define AVAIL_L3ENERGY (AVAIL_BMENERGY1X | AVAIL_BMENERGY2X | AVAIL_DSPR1 | AVAIL_DSPR2 | AVAIL_E0BDES)
@@ -999,7 +999,7 @@ passed:
 					
 				
 			} else {
-				bldEbeamInfo.uDamageMask |= __le32(0x2);
+				bldEbeamInfo.uDamageMask |= __le32(EBEAML3ENERGY_DAMAGEMASK);
 			}
 			
 #define AVAIL_LTUPOS ( AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y | \
@@ -1040,7 +1040,7 @@ passed:
 				__st_le64(&bldEbeamInfo.ebeamLTUAngX, tempDA[2]);
 				__st_le64(&bldEbeamInfo.ebeamLTUAngY, tempDA[3]);
 			} else {
-				bldEbeamInfo.uDamageMask |= __le32(0x3C);
+				bldEbeamInfo.uDamageMask |= __le32(EBEAMLTUPOSX_DAMAGEMASK | EBEAMLTUPOSY_DAMAGEMASK | EBEAMLTUANGX_DAMAGEMASK | EBEAMLTUANGY_DAMAGEMASK);
 			}
 
 			/* Copy BC2 Charge */
@@ -1051,7 +1051,7 @@ passed:
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x40);
+				bldEbeamInfo.uDamageMask |= __le32(EBEAMBC2CURRENT_DAMAGEMASK);
 			}
 
 			/* Copy BC2 Energy */
@@ -1062,7 +1062,7 @@ passed:
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x80);
+				bldEbeamInfo.uDamageMask |= __le32(EBEAMBC2ENERGY_DAMAGEMASK);
 			}
 
 			/* BC1 Charge */
@@ -1073,7 +1073,7 @@ passed:
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x100);
+				bldEbeamInfo.uDamageMask |= __le32(EBEAMBC1CURRENT_DAMAGEMASK);
 			}
 
 			/* BC1 Energy */
@@ -1084,7 +1084,7 @@ passed:
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x200);
+				bldEbeamInfo.uDamageMask |= __le32(EBEAMBC1ENERGY_DAMAGEMASK);
 			}
 
 
@@ -1105,7 +1105,7 @@ passed:
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x3C00);
+				bldEbeamInfo.uDamageMask |= __le32(EBEAMUNDPOSX_DAMAGEMASK | EBEAMUNDPOSY_DAMAGEMASK | EBEAMUNDANGX_DAMAGEMASK | EBEAMUNDANGY_DAMAGEMASK);
 			}
 
 			/* XTCAV Phase & Amplitude */ 
@@ -1122,8 +1122,8 @@ passed:
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x4000);
-				bldEbeamInfo.uDamageMask |= __le32(0x8000);
+				bldEbeamInfo.uDamageMask |= __le32(EBEAMXTCAVAMPL_DAMAGEMASK);
+				bldEbeamInfo.uDamageMask |= __le32(EBEAMXTCAVPHASE_DAMAGEMASK);
 			}
 
 
@@ -1142,7 +1142,7 @@ passed:
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x10000);
+				bldEbeamInfo.uDamageMask |= __le32(EBEAMDMP502CHARGE_DAMAGEMASK);
 			}
 
 
@@ -1183,7 +1183,7 @@ passed:
 			/* Calculate shot-to-shot photon energy */
 			if( AVAIL_PHOTONENERGY == (AVAIL_PHOTONENERGY & dataAvailable ) ) {			
 								
-				double etax = .125; 
+				double etax = 125; 
 				/* shot-to-shot photon energy is calculated using following variables which arrive via CA from matlab */
 				double eVave = bldStaticPVs[PHOTONEV].pTD->value;	/* SIOC:SYS0:ML00:AO627 - a single number - Slow update (1 sec or so) over CA from matlab */
 				double x450ave = bldStaticPVs[X450AVE].pTD->value;	/* SIOC:SYS0:ML02:AO041 - Slow update (1 sec or so) over CA from matlab - typically there should be the last few hundred data points in x450 */												
@@ -1199,7 +1199,7 @@ passed:
 				__st_le64(&bldEbeamInfo.ebeamPhotonEnergy, eV);					
 				
 			} else {
-				bldEbeamInfo.uDamageMask |= __le32(0x20000);
+				bldEbeamInfo.uDamageMask |= __le32(EBEAMPHTONENERGY_DAMAGEMASK);
 			}	
 			
 			if ( __ld_le32( &bldEbeamInfo.uDamageMask ) ) {
@@ -1219,7 +1219,7 @@ passed:
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x20000);
+				bldEbeamInfo.uDamageMask |= __le32(EBEAMLTU250POSX_DAMAGEMASK);
 			}
 
 			if ( __ld_le32( &bldEbeamInfo.uDamageMask ) ) {
@@ -1235,7 +1235,7 @@ passed:
 			else
 			{
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
-				bldEbeamInfo.uDamageMask |= __le32(0x20000);
+				bldEbeamInfo.uDamageMask |= __le32(EBEAMLTU450POSX_DAMAGEMASK);
 			}
 
 			if ( __ld_le32( &bldEbeamInfo.uDamageMask ) ) {

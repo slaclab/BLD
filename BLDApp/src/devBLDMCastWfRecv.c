@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastWfRecv.c,v 1.5.2.2 2012/03/20 20:48:30 lpiccoli Exp $ */
+/* $Id: devBLDMCastWfRecv.c,v 1.6 2014/02/27 23:53:02 lpiccoli Exp $ */
 
 /* Device support for a waveform record to receive
  * BLD multicast data and store all items in a waveform
@@ -34,7 +34,7 @@
 #include <time.h>
 
 #define QUEUE_DEPTH 20
-#define N_INFO_VALS 10 /* 3 more vals -> changed from 7 to 10 */
+#define N_INFO_VALS 20 /* 3 more vals -> changed from 10 to 20 */
 #define __STR__(arg) #arg
 
 
@@ -248,16 +248,28 @@ uint32_t   dmg;
 
 			dmg      = __ld_le32( &p_info->uDamageMask  );
 
-			p_dbl[0] = (dmg & (1<<0) ) ? thisIsNan : __ld_le64( &p_info->ebeamCharge   );
-			p_dbl[1] = (dmg & (1<<1) ) ? thisIsNan : __ld_le64( &p_info->ebeamL3Energy );
-			p_dbl[2] = (dmg & (1<<2) ) ? thisIsNan : __ld_le64( &p_info->ebeamLTUPosX  );
-			p_dbl[3] = (dmg & (1<<3) ) ? thisIsNan : __ld_le64( &p_info->ebeamLTUPosY  );
-			p_dbl[4] = (dmg & (1<<4) ) ? thisIsNan : __ld_le64( &p_info->ebeamLTUAngX  );
-			p_dbl[5] = (dmg & (1<<5) ) ? thisIsNan : __ld_le64( &p_info->ebeamLTUAngY  );
-			p_dbl[6] = (dmg & (1<<6) ) ? thisIsNan : __ld_le64( &p_info->ebeamBC2Current );
-			p_dbl[7] = (dmg & (1<<7) ) ? thisIsNan : __ld_le64( &p_info->ebeamBC2Energy );
-			p_dbl[8] = (dmg & (1<<8) ) ? thisIsNan : __ld_le64( &p_info->ebeamBC1Current );
-			p_dbl[9] = (dmg & (1<<9) ) ? thisIsNan : __ld_le64( &p_info->ebeamBC1Energy );
+			p_dbl[0] = (dmg & (EBEAMCHARGE_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamCharge   );
+			p_dbl[1] = (dmg & (EBEAML3ENERGY_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamL3Energy );
+			p_dbl[2] = (dmg & (EBEAMLTUPOSX_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamLTUPosX  );
+			p_dbl[3] = (dmg & (EBEAMLTUPOSY_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamLTUPosY  );
+			p_dbl[4] = (dmg & (EBEAMLTUANGX_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamLTUAngX  );
+			p_dbl[5] = (dmg & (EBEAMLTUANGY_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamLTUAngY  );
+			p_dbl[6] = (dmg & (EBEAMBC2CURRENT_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamBC2Current );
+			p_dbl[7] = (dmg & (EBEAMBC2ENERGY_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamBC2Energy );
+			p_dbl[8] = (dmg & (EBEAMBC1CURRENT_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamBC1Current );
+			p_dbl[9] = (dmg & (EBEAMBC1ENERGY_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamBC1Energy );
+			
+			p_dbl[10] = (dmg & (EBEAMUNDPOSX_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamUndPosX   );
+			p_dbl[11] = (dmg & (EBEAMUNDPOSY_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamUndPosY );
+			p_dbl[12] = (dmg & (EBEAMUNDANGX_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamUndAngX  );
+			p_dbl[13] = (dmg & (EBEAMUNDANGY_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamUndAngY  );
+			p_dbl[14] = (dmg & (EBEAMXTCAVAMPL_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamXTCAVAmpl  );
+			p_dbl[15] = (dmg & (EBEAMXTCAVPHASE_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamXTCAVPhase  );
+			p_dbl[16] = (dmg & (EBEAMDMP502CHARGE_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamDMP502Charge );
+			p_dbl[17] = (dmg & (EBEAMPHTONENERGY_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamPhotonEnergy );
+			p_dbl[18] = (dmg & (EBEAMLTU250POSX_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamLTU250PosX );
+			p_dbl[19] = (dmg & (EBEAMLTU450POSX_DAMAGEMASK) ) ? thisIsNan : __ld_le64( &p_info->ebeamLTU450PosX );
+						
 		} else {
 			/* Nothing received */
 			p_info = 0;
