@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.c,v 1.18 2014/07/08 18:57:52 scondam Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.19 2014/07/08 20:01:24 scondam Exp $ */
 /*=============================================================================
 
   Name: BLDMCastReceiver.c
@@ -413,8 +413,12 @@ void bld_receiver_run(BLDMCastReceiver *this) {
   	struct sockaddr_in src; // Socket name source machine  
 
 	BLDHeader *rcv_buf = (BLDHeader *) malloc(sizeof(BLDHeader) + this->payload_size );
-
+    void *payload_buf = rcv_buf+1;
+	
 	BLDHeader *header = NULL;	
+	BLDPhaseCavity *pcav1 = NULL;
+	BLDImb *imb4 = NULL;	
+	BLDImb *imb5 = NULL;		
 	
     printf("BLD_RECEIVER_RUN()\n");
   
@@ -477,17 +481,33 @@ void bld_receiver_run(BLDMCastReceiver *this) {
 
 		    			/* scan only if not a duplicate packet */
 						/* double-buffer per T.Straumann's recommendation */
-    					header = rcv_buf;	
-						rcv_buf = this->bld_header_bsa;		
+    					header = rcv_buf;
+						
+  	  					if (strcmp(this->multicast_group,"239.255.24.1")== 0)  {
+						   pcav1 = (BLDPhaseCavity *) payload_buf;				   			   
+						}
+  	  					else if (strcmp(this->multicast_group,"239.255.24.4")== 0)   {  
+						   imb4 = (BLDImb *) payload_buf;			   			   
+						}
+  	  					else if (strcmp(this->multicast_group,"239.255.24.5")== 0) { 	
+						   imb5 = (BLDImb *) payload_buf;					   			   
+						}	
+													
+						rcv_buf = this->bld_header_bsa;
+						payload_buf = this->bld_payload_bsa;													
+												
 						this->bld_header_bsa = header;
 
   	  					if (strcmp(this->multicast_group,"239.255.24.1")== 0)  {
+						   this->bld_payload_bsa = pcav1;
 						   scanIoRequest(bldPhaseCavityIoscan);					   			   
 						}
   	  					else if (strcmp(this->multicast_group,"239.255.24.4")== 0)   {  
+						   this->bld_payload_bsa = imb4;						
 						   scanIoRequest(bldHxxUm6Imb01Ioscan);				   			   
 						}
-  	  					else if (strcmp(this->multicast_group,"239.255.24.5")== 0) { 	
+  	  					else if (strcmp(this->multicast_group,"239.255.24.5")== 0) { 
+						   this->bld_payload_bsa = imb5;							
 						   scanIoRequest(bldHxxUm6Imb02Ioscan); 				   			   
 						}	
 						

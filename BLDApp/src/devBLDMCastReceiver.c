@@ -186,7 +186,7 @@ static long read_ai(struct aiRecord *pai) {
 					
 			switch (paip->mc_group) {	
 				case PhaseCavity: {
-						BLDPhaseCavity *pcav_payload = (BLDPhaseCavity *) header+1;
+						BLDPhaseCavity *pcav_payload = (BLDPhaseCavity *) paip->receiver->bld_payload_bsa;	
 						switch (paip->attr) {
 							case CHARGE1:
     			  				v = __ld_le64(&(pcav_payload->charge1));
@@ -205,7 +205,7 @@ static long read_ai(struct aiRecord *pai) {
 					break;	
 				case HxxUm6Imb01: 			
 				case HxxUm6Imb02: {
-						BLDImb *imb_payload = (BLDImb *) header+1;
+						BLDImb *imb_payload = (BLDImb *) paip->receiver->bld_payload_bsa;	
 						switch (paip->attr) {
 							case SUM:
     						  v = __ld_le64(&(imb_payload->sum));
