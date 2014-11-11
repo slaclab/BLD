@@ -1,8 +1,11 @@
 # Put your release notes or change log information
 # in here.
 
-BLD-R2-6-2: Shantha Condamoor: 18-Jul-2014
-	Bug fix for Receiver ioc-sys0-bd02; Payload packets were not getting populated.
+BLD-R2-6-2:
+	Shantha Condamoor: 11-Nov-2014
+		L.Piccoli moved Und Launch Feeback to FB05:RF05. FBCK:FB03:TR05:STATES changed to FBCK:FB05:TR05:STATES
+	Shantha Condamoor: 18-Jul-2014
+		Bug fix for Receiver ioc-sys0-bd02; Payload packets were not getting populated.
 	
 BLD-R2-6-1: Shantha Condamoor: 10-Jul-2014
 	Photon Energy Calc: etax changed from 0.125 to 125 per PCD

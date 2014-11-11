@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.64 2014/07/08 19:46:06 scondam Exp $ */
+/* $Id: BLDMCast.c,v 1.65 2014/07/10 21:01:04 scondam Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -21,6 +21,7 @@
 		7-Jul-2014  - S.Condamoor - BLD-R2-6-0 - Added Photon Energy Calculation to eBeam BLD MCAST data . Version 0x6000f
 												Added code to set the 0x20000 damage bit if the EPICS variables become disconnected, or
 												    if the BPM data is unavailable.
+		11-Nov-2014: S.Condamoor - L.Piccoli moved Und Launch Feeback to FB05:RF05. FBCK:FB03:TR05:STATES changed to FBCK:FB05:TR05:STATES										
 -----------------------------------------------------------------------------*/
 #include <stddef.h>
 #include <stdlib.h>
@@ -67,7 +68,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.64 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.65 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -278,8 +279,10 @@ BLDBLOB bldPulseBlobs[] = {
   
   /**
    * Undulator Launch 120Hz Feedback States X, X', Y, Y' (running on FB03:TR05)
+   * scondam: 11-Nov-2014: L.Piccoli moved Und Launch Feeback to FB05:TR05
+   * [UNDSTATE]     = { name: "FBCK:FB03:TR05:STATES", blob: 0, aMsk: AVAIL_UNDSTATE},    
    */
-  [UNDSTATE]     = { name: "FBCK:FB03:TR05:STATES", blob: 0, aMsk: AVAIL_UNDSTATE}, 
+  [UNDSTATE]     = { name: "FBCK:FB05:TR05:STATES", blob: 0, aMsk: AVAIL_UNDSTATE}, 
 
   /**
    * Charge at the DMP
