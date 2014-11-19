@@ -2,6 +2,9 @@
 # in here.
 
 BLD-R2-6-2:
+	Shantha Condamoor: 18-Nov-2014:
+		Fix for typo in INP field for UND_ANG_X, UND_ANG_Y, UND_POS_X, UN_POS_Y reported by Jim Turner
+		Modified file: BLDApp/Db/BLDMCast.db
 	Shantha Condamoor: 11-Nov-2014
 		L.Piccoli moved Und Launch Feeback to FB05:RF05. FBCK:FB03:TR05:STATES changed to FBCK:FB05:TR05:STATES
 		configure/RELEASE: Use latest event, udpComm, fcom, fcomUtil modules:
