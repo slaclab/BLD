@@ -1,6 +1,10 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-6-3:
+	Shantha Condamoor: 2-Feb-2015:
+		Fix for etax in Photon Energy Calculation per PCD request. Version bumped to 0x7000f		
+		but no change to BL MCAST data structures.
 BLD-R2-6-2:
 	Shantha Condamoor: 18-Nov-2014:
 		Fix for typo in INP field for UND_ANG_X, UND_ANG_Y, UND_POS_X, UN_POS_Y reported by Jim Turner

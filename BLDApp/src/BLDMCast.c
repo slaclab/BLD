@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.65 2014/07/10 21:01:04 scondam Exp $ */
+/* $Id: BLDMCast.c,v 1.66 2014/11/11 23:50:15 scondam Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -21,7 +21,8 @@
 		7-Jul-2014  - S.Condamoor - BLD-R2-6-0 - Added Photon Energy Calculation to eBeam BLD MCAST data . Version 0x6000f
 												Added code to set the 0x20000 damage bit if the EPICS variables become disconnected, or
 												    if the BPM data is unavailable.
-		11-Nov-2014: S.Condamoor - L.Piccoli moved Und Launch Feeback to FB05:RF05. FBCK:FB03:TR05:STATES changed to FBCK:FB05:TR05:STATES										
+		11-Nov-2014: S.Condamoor - BLD-R2-6-2 L.Piccoli moved Und Launch Feeback to FB05:RF05. FBCK:FB03:TR05:STATES changed to FBCK:FB05:TR05:STATES	
+		2-Feb-2015  - S.Condamoor - BLD-R2-6-3 - Fix for etax in Photon Energy Calculation per PCD request. Version 0x7000f												
 -----------------------------------------------------------------------------*/
 #include <stddef.h>
 #include <stdlib.h>
@@ -68,7 +69,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.65 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.66 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -840,13 +841,13 @@ epicsUInt32     this_time;
 
 	bldEbeamInfo.uLogicalId  = __le32(0x06000000);
 	bldEbeamInfo.uPhysicalId = __le32(0);
-	bldEbeamInfo.uDataType   = __le32(EBEAMINFO_VERSION_4);
-	bldEbeamInfo.uExtentSize = __le32(EBEAMINFO_VERSION_4_SIZE);
+	bldEbeamInfo.uDataType   = __le32(EBEAMINFO_VERSION_5);
+	bldEbeamInfo.uExtentSize = __le32(EBEAMINFO_VERSION_5_SIZE);
 
 	bldEbeamInfo.uLogicalId2 = __le32(0x06000000);
 	bldEbeamInfo.uPhysicalId2= __le32(0);
-	bldEbeamInfo.uDataType2  = __le32(EBEAMINFO_VERSION_4);
-	bldEbeamInfo.uExtentSize2= __le32(EBEAMINFO_VERSION_4_SIZE);		
+	bldEbeamInfo.uDataType2  = __le32(EBEAMINFO_VERSION_5);
+	bldEbeamInfo.uExtentSize2= __le32(EBEAMINFO_VERSION_5_SIZE);		
 
 	while(bldAllPVsConnected)
 	{
@@ -1175,7 +1176,7 @@ passed:
 				x450 = BPMS:LTU1:450:X;
                 x250 = BPMS:LTU1:250:X;
 	
-				etax = .125 ;       %  [m] +/- design value for dispersion at bpms in dogleg
+				etax = -125 ;       %  [mm] +/- design value for dispersion at bpms in dogleg
 	
         		eVdelta = eVave * ( (x450 - x450ave) - (x250 - x250ave))/ (etax); % The two BPM positions get subtracted, not added, as they have opposite dispersion.
 		
@@ -1186,7 +1187,7 @@ passed:
 			/* Calculate shot-to-shot photon energy */
 			if( AVAIL_PHOTONENERGY == (AVAIL_PHOTONENERGY & dataAvailable ) ) {			
 								
-				double etax = 125; 
+				double etax = -125; 
 				/* shot-to-shot photon energy is calculated using following variables which arrive via CA from matlab */
 				double eVave = bldStaticPVs[PHOTONEV].pTD->value;	/* SIOC:SYS0:ML00:AO627 - a single number - Slow update (1 sec or so) over CA from matlab */
 				double x450ave = bldStaticPVs[X450AVE].pTD->value;	/* SIOC:SYS0:ML02:AO041 - Slow update (1 sec or so) over CA from matlab - typically there should be the last few hundred data points in x450 */												

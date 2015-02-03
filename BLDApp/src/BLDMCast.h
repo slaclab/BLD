@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.32 2014/07/09 02:13:22 scondam Exp $ */
+/* $Id: BLDMCast.h,v 1.33 2014/07/10 21:01:04 scondam Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.h
@@ -19,6 +19,7 @@
 		28-Apr-2014 - S.Condamoor -  BLD-R2-5-2, BLD-R2-5-1, BLD-R2-5-0 - no changes affecting this file.
 		7-Jul-2014  - S.Condamoor - BLD-R2-6-0 - Added Photon Energy Calculation to eBeam BLD MCAST data . Version 0x6000f
 											   - Swapped ts_nsec and ts_sec fields in EBEAMINFO per PCD (M.Browne) request.
+		2-Feb-2015  - S.Condamoor - BLD-R2-6-3 - Fix for etax in Photon Energy Calculation . Version 0x7000f											   
 -----------------------------------------------------------------------------*/
 #ifndef _BLD_MCAST_H_
 #define _BLD_MCAST_H_
@@ -52,6 +53,22 @@ extern "C" {
 /* Addition of shot-to-shot X position of BPMS:LTU1:[250/450]:X  */
 #define EBEAMINFO_VERSION_4 0x6000f
 
+/* Shantha Condamoor: 2-Feb-2015 */
+/* Correction for Photon Energy Calculation */
+/* Sign-error error was discovered in the calculation of the photon energy that goes into the ebeam bld
+   This resulted in negative correlation or negative slope to L3, i.e., lower L3 energies yield higher photon energies, 
+   which cannot be the case. The overall magnitude of the photon energy is ok, however.
+   
+   eVdelta = eVave * ( (x450 - x450ave) - (x250 - x250ave))/ (etax)
+   
+   In the formula above, etax must be -125 mm instead of +125 mm.
+   The dispersion for the first BPM (BPMS:LTU1:250) is positive, the one for the second BPM (BPMS:LTU1:450) is negative,
+   So the fix is to define etax=-125 mm
+
+   Increment the ebeam bld version number per PCD request, so the data is clearly marked as changed
+*/
+#define EBEAMINFO_VERSION_5 0x7000f
+
 /* Size of original data packet */
 #define EBEAMINFO_VERSION_0_SIZE 80
 
@@ -66,6 +83,10 @@ extern "C" {
 
 /* Addition of 3 more floats */
 #define EBEAMINFO_VERSION_4_SIZE (EBEAMINFO_VERSION_3_SIZE + sizeof(Flt64_LE) * 3)
+
+/* Shantha Condamoor: 2-Feb-2015 
+   No change to data structures - same as previous version */
+#define EBEAMINFO_VERSION_5_SIZE EBEAMINFO_VERSION_4_SIZE
 
 /**
  * Structure defined in this document:
