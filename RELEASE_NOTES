@@ -1,9 +1,14 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-6-4:
+	Shantha Condamoor: 1-Apr-2015:
+        Added support for PhaseCavityTest MCAST address 239.255.24.254 to test Bruce Hill's new BAT2 algorithim
+            that runs on VME/RTEMS
+
 BLD-R2-6-3:
 	Shantha Condamoor: 2-Feb-2015:
-		Fix for etax in Photon Energy Calculation per PCD request. Version bumped to 0x7000f		
+		Fix for etax in Photon Energy Calculation per PCD request. Version bumped to 0x7000f
 		but no change to BL MCAST data structures.
 BLD-R2-6-2:
 	Shantha Condamoor: 18-Nov-2014:
@@ -18,7 +23,7 @@ BLD-R2-6-2:
 			fcomUtil-R1-1-29
 	Shantha Condamoor: 18-Jul-2014
 		Bug fix for Receiver ioc-sys0-bd02; Payload packets were not getting populated.
-	
+
 BLD-R2-6-1: Shantha Condamoor: 10-Jul-2014
 	Photon Energy Calc: etax changed from 0.125 to 125 per PCD
 	Added 10 more BLD data to waveform device support BLDApp/src/devBLDMCastWfRecv.c
@@ -27,7 +32,7 @@ BLD-R2-6-0: Shantha Condamoor: 9-Jul-2014 (PAMM)
 	eBeam MCAST BLD version 6
 	Replaced Receiver message queue with double buffer scheme recommended by T.straumann
 	Swapped nsec/sec fields for both Receiver and Sends apps per PCD Request
-	Added Shot-to-shot photon energy to eBeam data.	
+	Added Shot-to-shot photon energy to eBeam data.
 
 BLD-R2-5-5: Shantha Condamoor: 25-Jun-2014 (POMM)
 	Cleaned up BLDSender and BLDRcvr applications..
@@ -41,20 +46,20 @@ BLD-R2-5-4: Shantha Condamoor: 18-Jun-2014 (POMM)
 	Added late_bld_pulse counter. Keeps track of time wrt to EVG time and network received time.
 
 BLD-R2-5-3: Shantha Condamoor: 10-Jun-2014 (POMM)
-	Added generic scripts in iocBoot 
+	Added generic scripts in iocBoot
 	Added ioc-sys0-bd02
 	Added one more multicasting IMB packet receiver support
 
 BLD-R2-5-2: Shantha Condamoor: 28-May-2014 (PAMM)
 	Added ai and sub records to get the pulseid and corresponding timestamp from PATT:SYS0:1:PULSEID for diagnostics.
-	Set the latest received BLD packet header's timestamp to above timestamp for the matching pulseid.	
+	Set the latest received BLD packet header's timestamp to above timestamp for the matching pulseid.
 
 BLD-R2-5-1: Shantha Condamoor: 27-May-2014
 	Added more diagnostics records
 	Set the BLD header timestamp to when the BLD packet was received
 	Reset the TSE fields to -1 for BSA.
 	Priority of Imb and PhaseCavity Receiver threads set to epicsThreadPriorityHigh-1
-	
+
 BLD-R2-5-0: Shantha Condamoor: 28-Apr-2014
 	Added IMB BLD Packet receiver support
 
@@ -69,7 +74,7 @@ BLD-R2-4-5:
 
 BLD-R2-4-4:
   o Fix for XTCAV Phase/Ampl - previous code requested one blob for
-    each, but both properties arrive in the same blob	
+    each, but both properties arrive in the same blob
 
 BLD-R2-4-3:
   o Added check that enables BLD broadcast only if the hostname is
@@ -122,7 +127,7 @@ BLD-R2-2-0: (BLD-R2-0-0-BR branch)
     up correctly.
 
 BLD-R2-1-1: (BLD-R2-0-0-BR branch)
-  o Addition of Db file with BSA records 
+  o Addition of Db file with BSA records
 
   o Change in startup script to allow individual PVs
     (e.g. BLD:SYS0:500:CHARGE) to be updated on
