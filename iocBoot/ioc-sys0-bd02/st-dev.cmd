@@ -65,9 +65,9 @@ free(malloc(1024*1024*32))
 bspExtVerbosity=0
 
 # Prod: Init PMC EVR
-ErConfigure(0, 0, 0, 0, 1)			# PMC EVR:SYS0:BD02
+# ErConfigure(0, 0, 0, 0, 1)			# PMC EVR:SYS0:BD02
 # Lab: Init PMC EVR
-#ErConfigure( 0,0x300000,0x60,4,0)   # VME EVR:SYS0:BD02
+ErConfigure( 0,0x300000,0x60,4,0)   # VME EVR:SYS0:BD02
 
 evrInitialize()
 bspExtVerbosity = 1
