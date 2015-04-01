@@ -9,6 +9,7 @@
 
   Mod:  24-Jun-2014 - S.Condamoor: Replaced mcast-group-specific device support (PCAV/IMB etc.) with generic one.
   		25-Jun-2014 - S.Condamoor: BLD-R2-5-5 - swap back nsec/sec fields per PCD.
+		31-Mar-2015 - S.Condamoor: Added support for PhaseCavityTestReceiver
 
 ============================================================================= */
 #include <string.h>
@@ -37,10 +38,12 @@ extern int BLD_MCAST_DEBUG;
 extern IOSCANPVT bldPhaseCavityIoscan;
 extern IOSCANPVT bldHxxUm6Imb01Ioscan;
 extern IOSCANPVT bldHxxUm6Imb02Ioscan;
+extern IOSCANPVT bldPhaseCavityTestIoscan;
 
 extern BLDMCastReceiver *bldPhaseCavityReceiver;
 extern BLDMCastReceiver *bldHxxUm6Imb01Receiver;
 extern BLDMCastReceiver *bldHxxUm6Imb02Receiver;
+extern BLDMCastReceiver *bldPhaseCavityTestReceiver;
 
 #ifdef DEBUG_PRINT
 int devAiBldRecvrFlag = 2;
@@ -102,7 +105,10 @@ static long init_ai( struct aiRecord * pai) {
 			  break;
 		  case HxxUm6Imb02: 
   			  paip->receiver = bldHxxUm6Imb02Receiver;																																		
-			  break;				  
+			  break;	
+		  case PhaseCavityTest: 
+			  paip->receiver = bldPhaseCavityTestReceiver;
+			  break;				  			  
 	  }
 
 	  break;
@@ -146,7 +152,8 @@ static long ai_ioint_info(int cmd,aiRecord *pai,IOSCANPVT *iopvt) {
 	switch ( mc_group ) {	
 			  case PhaseCavity: *iopvt = bldPhaseCavityIoscan;	break;
 			  case HxxUm6Imb01: *iopvt = bldHxxUm6Imb01Ioscan;	break;
-			  case HxxUm6Imb02: *iopvt = bldHxxUm6Imb02Ioscan;	break;			  
+			  case HxxUm6Imb02: *iopvt = bldHxxUm6Imb02Ioscan;	break;	
+			  case PhaseCavityTest: *iopvt = bldPhaseCavityTestIoscan;	break;			  		  
 	}		
 		
   	return 0;
@@ -185,7 +192,8 @@ static long read_ai(struct aiRecord *pai) {
 		else {												/* BLD Payload data */
 					
 			switch (paip->mc_group) {	
-				case PhaseCavity: {
+				case PhaseCavity:
+				case PhaseCavityTest: {
 						BLDPhaseCavity *pcav_payload = (BLDPhaseCavity *) paip->receiver->bld_payload_bsa;	
 						switch (paip->attr) {
 							case CHARGE1:
