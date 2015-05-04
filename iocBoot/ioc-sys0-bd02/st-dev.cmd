@@ -37,6 +37,8 @@ padProtoDebug=0
 lsmod()
 
 epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES","1000000")
+# MCAST traffic shared with CA traffic on ETH0 network port
+epicsEnvSet("MCASTETHPORT","DEV_IPADDR0")
 
 ## Register all support components
 dbLoadDatabase("dbd/BLDReceiver.dbd")
@@ -105,6 +107,8 @@ dbLoadRecords("db/IOC-SYS0-BD02trig.db")	# has only one EVRs' triggers
 # PhaseCavityTest added
 dbLoadRecords("db/BLDMCastReceiverPcavs.db","DEVICE=BLD:SYS0:500")
 dbLoadRecords("db/BLDMCastReceiverImbs.db","DEVICE=BLD:SYS0:500")
+dbLoadRecords("db/BLDMCastReceiverGdets.db","DEVICE=BLD:SYS0:500")
+
 # PhaseCavityTest
 
 # END: Loading the record databases
