@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.8 2014/06/25 01:00:22 scondam Exp $ */
+/* $Id: BLDMCastReceiverPhaseCavity.c,v 1.9 2015/04/01 16:39:03 scondam Exp $ */
 
 #include <stdio.h>
 #include <string.h>
@@ -10,12 +10,6 @@
 
 IOSCANPVT bldPhaseCavityIoscan;
 IOSCANPVT bldPhaseCavityTestIoscan;
-
-double bld_min_recv_delay_us = 0.;
-double bld_max_recv_delay_us = 0.;
-
-volatile unsigned bldPCAVReceiverMaxDelayUs = 0;
-volatile unsigned bldPCAVReceiverMinDelayUs = 0;
 
 int phase_cavity_create(BLDMCastReceiver **bld_receiver, char *multicast_group) {
   int status = bld_receiver_create(bld_receiver, sizeof(BLDPhaseCavity) * 10,

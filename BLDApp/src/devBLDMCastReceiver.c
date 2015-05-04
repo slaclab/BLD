@@ -10,7 +10,7 @@
   Mod:  24-Jun-2014 - S.Condamoor: Replaced mcast-group-specific device support (PCAV/IMB etc.) with generic one.
   		25-Jun-2014 - S.Condamoor: BLD-R2-5-5 - swap back nsec/sec fields per PCD.
 		31-Mar-2015 - S.Condamoor: Added support for PhaseCavityTestReceiver
-
+		4-May-2015 - S.Condamoor: Added support for FEEGasDetEnergyReceiver
 ============================================================================= */
 #include <string.h>
 #include <stdlib.h>
@@ -31,6 +31,7 @@
 #include "BLDMCastReceiver.h"
 #include "BLDMCastReceiverImb.h"
 #include "BLDMCastReceiverPhaseCavity.h"
+#include "BLDMCastReceiverGdet.h"
 #include "devBLDMCastReceiver.h"
 
 extern int BLD_MCAST_DEBUG;
@@ -39,11 +40,13 @@ extern IOSCANPVT bldPhaseCavityIoscan;
 extern IOSCANPVT bldHxxUm6Imb01Ioscan;
 extern IOSCANPVT bldHxxUm6Imb02Ioscan;
 extern IOSCANPVT bldPhaseCavityTestIoscan;
+extern IOSCANPVT bldFEEGasDetEnergyIoscan;
 
 extern BLDMCastReceiver *bldPhaseCavityReceiver;
 extern BLDMCastReceiver *bldHxxUm6Imb01Receiver;
 extern BLDMCastReceiver *bldHxxUm6Imb02Receiver;
 extern BLDMCastReceiver *bldPhaseCavityTestReceiver;
+extern BLDMCastReceiver *bldFEEGasDetEnergyReceiver;
 
 #ifdef DEBUG_PRINT
 int devAiBldRecvrFlag = 2;
@@ -99,7 +102,10 @@ static long init_ai( struct aiRecord * pai) {
 	  switch (paip->mc_group) {	
 		  case PhaseCavity: 
 			  paip->receiver = bldPhaseCavityReceiver;
-			  break;			  
+			  break;		
+		  case FEEGasDetEnergy: 
+			  paip->receiver = bldFEEGasDetEnergyReceiver;
+			  break;					  	  
 		  case HxxUm6Imb01: 
 			  paip->receiver = bldHxxUm6Imb01Receiver;								
 			  break;
@@ -151,6 +157,7 @@ static long ai_ioint_info(int cmd,aiRecord *pai,IOSCANPVT *iopvt) {
 	
 	switch ( mc_group ) {	
 			  case PhaseCavity: *iopvt = bldPhaseCavityIoscan;	break;
+			  case FEEGasDetEnergy: *iopvt = bldFEEGasDetEnergyIoscan;	break;			  
 			  case HxxUm6Imb01: *iopvt = bldHxxUm6Imb01Ioscan;	break;
 			  case HxxUm6Imb02: *iopvt = bldHxxUm6Imb02Ioscan;	break;	
 			  case PhaseCavityTest: *iopvt = bldPhaseCavityTestIoscan;	break;			  		  
@@ -211,6 +218,31 @@ static long read_ai(struct aiRecord *pai) {
 						}
 					}
 					break;	
+				case FEEGasDetEnergy: {
+						BLDGdet *gdet_payload = (BLDGdet *) paip->receiver->bld_payload_bsa;	
+						switch (paip->attr) {
+							case ENRC_11:
+    			  				v = __ld_le64(&(gdet_payload->f_ENRC_11));
+    			 				 break;
+							case ENRC_12:
+    			  				v = __ld_le64(&(gdet_payload->f_ENRC_12));
+    			  				break;
+							case ENRC_21:
+    			  				v = __ld_le64(&(gdet_payload->f_ENRC_21));
+    			  				break;
+							case ENRC_22:
+    			  				v = __ld_le64(&(gdet_payload->f_ENRC_22));
+    			  				break;	
+							case ENRC_63:
+    			  				v = __ld_le64(&(gdet_payload->f_ENRC_63));
+    			  				break;
+							case ENRC_64:
+    			  				v = __ld_le64(&(gdet_payload->f_ENRC_64));
+    			  				break;									
+						}
+					}
+					break;						
+					
 				case HxxUm6Imb01: 			
 				case HxxUm6Imb02: {
 						BLDImb *imb_payload = (BLDImb *) paip->receiver->bld_payload_bsa;	

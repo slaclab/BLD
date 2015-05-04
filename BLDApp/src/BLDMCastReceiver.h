@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.h,v 1.10 2014/07/08 19:02:00 scondam Exp $ */
+/* $Id: BLDMCastReceiver.h,v 1.11 2015/04/01 16:39:03 scondam Exp $ */
 /*=============================================================================
 
   Name: BLDMCastReceiver.h
@@ -23,6 +23,7 @@
 												Fiducial Processing added for obtaining timestamps for matching pulseids.
 												nsec/sec fields swapped.
 												Code for ignoring duplicate BLDs, counting lost and late BLD packets added.
+		4-May-2015 - S.Condamoor: - BLD-R2-6-5 - Added support for FEEGasDetEnergyReceiver												
 -----------------------------------------------------------------------------*/
 
 #ifndef _BLDMCASTRECEIVER_H_
@@ -108,13 +109,75 @@ void bld_receivers_start();
 void bld_receivers_report(int level);
 
 #define BLD_PhaseCavity_GROUP "239.255.24.1"
+#define BLD_FEEGasDetEnergy_GROUP "239.255.24.2"
 /*XRT */
 #define BLD_HxxUm6Imb01_GROUP "239.255.24.4"
 #define BLD_HxxUm6Imb02_GROUP "239.255.24.5"
 
 /* scondam: 31-Mar-2015: Bruce Hill added a test MCAST address that sends PCAV BLD data on address 239.255.24.254 */
 #define BLD_PhaseCavityTest_GROUP "239.255.24.254"
-
+/*
+    enum Type { EBeam            = 0,   // Global
+                PhaseCavity      = 1,
+                FEEGasDetEnergy  = 2,
+                Nh2Sb1Ipm01      = 3,   // XPP + downstream
+                HxxUm6Imb01      = 4,   // XRT
+                HxxUm6Imb02      = 5,
+                HfxDg2Imb01      = 6,
+                HfxDg2Imb02      = 7,
+                XcsDg3Imb03      = 8,
+                XcsDg3Imb04      = 9,
+                HfxDg3Imb01      = 10,
+                HfxDg3Imb02      = 11,
+                HxxDg1Cam        = 12,
+                HfxDg2Cam        = 13,
+                HfxDg3Cam        = 14,
+                XcsDg3Cam        = 15,
+                HfxMonCam        = 16,
+                HfxMonImb01      = 17,
+                HfxMonImb02      = 18,
+                HfxMonImb03      = 19,
+                MecLasEm01       = 20,  // MEC Local
+                MecTctrPip01     = 21,
+                MecTcTrDio01     = 22,
+                MecXt2Ipm02      = 23,
+                MecXt2Ipm03      = 24,
+                MecHxmIpm01      = 25,
+                GMD              = 26,  // SXR Local
+                CxiDg1Imb01      = 27,  // CXI Local
+                CxiDg2Imb01      = 28,
+                CxiDg2Imb02      = 29,
+                CxiDg4Imb01      = 30,
+                CxiDg1Pim        = 31,
+                CxiDg2Pim        = 32,
+                CxiDg4Pim        = 33,
+                XppMonPim0       = 34,
+                XppMonPim1       = 35,
+                XppSb2Ipm        = 36,
+                XppSb3Ipm        = 37,
+                XppSb3Pim        = 38,
+                XppSb4Pim        = 39,
+                XppEndstation0   = 40,
+                XppEndstation1   = 41,
+                MecXt2Pim02      = 42,
+                MecXt2Pim03      = 43,
+                CxiDg3Spec       = 44,
+                Nh2Sb1Ipm02      = 45,   // XPP + downstream
+                FeeSpec0         = 46,
+                SxrSpec0         = 47,
+                XppSpec0         = 48,
+                XcsUsrIpm01      = 49,
+                XcsUsrIpm02      = 50,
+                XcsUsrIpm03      = 51,
+                XcsUsrIpm04      = 52,
+                XcsSb1Ipm01      = 53,
+                XcsSb1Ipm02      = 54,
+                XcsSb2Ipm01      = 55,
+                XcsSb2Ipm02      = 56,
+                XcsGonIpm01      = 57,
+                XcsLamIpm01      = 58,
+                NumberOf };
+*/
 typedef enum {
 	EBeam,					/* 239.255.24.0 Global */
 	PhaseCavity,			/* 239.255.24.1 Global */
@@ -165,6 +228,17 @@ typedef enum {
 	FeeSpec0,				/* 239.255.24.46 */
 	SxrSpec0,				/* 239.255.24.47 */
 	XppSpec0,				/* 239.255.24.48 */
+	XcsUsrIpm01,			/* 239.255.24.49 */
+	XcsUsrIpm02,			/* 239.255.24.50 */
+	XcsUsrIpm03,			/* 239.255.24.51 */
+	XcsUsrIpm04,			/* 239.255.24.52 */
+	XcsSb1Ipm01,			/* 239.255.24.53 */
+	XcsSb1Ipm02,			/* 239.255.24.54 */
+	XcsSb2Ipm01,			/* 239.255.24.55 */
+	XcsSb2Ipm02,			/* 239.255.24.56 */
+	XcsGonIpm01,			/* 239.255.24.57 */
+	XcsLamIpm01,			/* 239.255.24.58 */
+  	
 	PhaseCavityTest=254,	/* 239.255.24.254 PCAV Test address */
 } BLDMCGroup;
 

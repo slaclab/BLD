@@ -3,6 +3,7 @@
 
 #define BLD_PHASE_CAVITY_PORT 10148
 #define BLD_IMB_PORT 10148
+#define BLD_GDET_PORT 10148
 
 /* ************************************************************************ */
 typedef struct aiBld_s {
@@ -39,6 +40,15 @@ typedef enum {
   	CHANNEL12,			/* 7 */
   	CHANNEL13,			/* 8 */      
 } BLDImbAttributes;
+
+typedef enum {
+  ENRC_11=2,			/* 2 */
+  ENRC_12,				/* 3 */
+  ENRC_21,				/* 4 */
+  ENRC_22,				/* 5 */
+  ENRC_63,				/* 6 */
+  ENRC_64,				/* 7 */  
+} BLDGdetAttributes;
 
 /* ************************************************************************ */
 

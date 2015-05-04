@@ -51,6 +51,7 @@ bldRcvrSupport_SRCS += BLDMCastReceiver.c
 bldRcvrSupport_SRCS += BLDMCastReceiverPhaseCavity.c
 bldRcvrSupport_SRCS += devBLDMCastReceiver.c
 bldRcvrSupport_SRCS += BLDMCastReceiverImb.c
+bldRcvrSupport_SRCS += BLDMCastReceiverGdet.c
 
 bldRcvrSupport_LIBS_DEFAULT += -nil-
 bldRcvrSupport_LIBS_RTEMS   += -nil-

@@ -5,10 +5,37 @@
 
 #define BLD_IMB_PORT 10148
 
-/**
+/*
  * Imb Data
    Everything that has "Imb" has the following payload structure
- */
+   
+class BldDataIpimbV1 {
+public:
+  enum { TypeId = Pds::TypeId::Id_SharedIpimb /**< XTC type ID value (from Pds::TypeId class)  };
+  enum { Version = 1 /**< XTC type version number  };
+  BldDataIpimbV1() {}
+  BldDataIpimbV1(const BldDataIpimbV1& other) {
+    const char* src = reinterpret_cast<const char*>(&other);
+    std::copy(src, src+other._sizeof(), reinterpret_cast<char*>(this));
+  }
+  BldDataIpimbV1& operator=(const BldDataIpimbV1& other) {
+    const char* src = reinterpret_cast<const char*>(&other);
+    std::copy(src, src+other._sizeof(), reinterpret_cast<char*>(this));
+    return *this;
+  }
+  const Ipimb::DataV2& ipimbData() const { return _ipimbData; }
+  const Ipimb::ConfigV2& ipimbConfig() const { return _ipimbConfig; }
+  const Lusi::IpmFexV1& ipmFexData() const { return _ipmFexData; }
+  static uint32_t _sizeof() { return ((((((0+(Ipimb::DataV2::_sizeof()))+(Ipimb::ConfigV2::_sizeof()))+(Lusi::IpmFexV1::_sizeof()))+4)-1)/4)*4; }
+private:
+  Ipimb::DataV2	_ipimbData;
+  Ipimb::ConfigV2	_ipimbConfig;
+  Lusi::IpmFexV1	_ipmFexData;
+};
+
+
+*/
+   
 typedef struct BLDImb {
 
   /* IPIMB Raw data */

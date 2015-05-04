@@ -1,4 +1,4 @@
-/* $Id: BLDMCastReceiver.c,v 1.20 2014/07/18 23:31:40 scondam Exp $ */
+/* $Id: BLDMCastReceiver.c,v 1.21 2015/04/01 16:39:03 scondam Exp $ */
 /*=============================================================================
 
   Name: BLDMCastReceiver.c
@@ -23,6 +23,7 @@
 												Fiducial Processing added for obtaining timestamps for matching pulseids.
 												nsec/sec fields swapped.
 												Code for ignoring duplicate BLDs, counting lost and late BLD packets added.
+		4-May-2015 - S.Condamoor: - BLD-R2-6-5 - Added support for FEEGasDetEnergyReceiver													
 -----------------------------------------------------------------------------*/
 
 #include <stdlib.h>
@@ -56,13 +57,40 @@
 #include "BLDMCastReceiver.h"
 #include "BLDMCastReceiverPhaseCavity.h"
 #include "BLDMCastReceiverImb.h"
+#include "BLDMCastReceiverGdet.h"
 
-#define BLD_BD02_ETH0 "172.27.2.203"
-#define BLD_IOC_ETH0 "172.27.2.162"
-#define BLD_B34_IOC_ETH0 "134.79.219.145"
-#define BLD_B34_IOC1_ETH0 "134.79.218.187"
+/* node			ipnum			name				network_name	ethernet			dhcp
+-------------	-------------	------------------	------------	-----------------	----
+PROD
+-----
+IOC-SYS0-BD02	172.27.29.100	IOC-SYS0-BD02-FNET	LCLSFNET		00:01:af:2c:6d:f4	Yes
+"				172.27.2.203	IOC-SYS0-BD02		LCLSIOC			00:01:af:2c:6d:f3	"
+"				172.27.225.22	IOC-SYS0-BD02-BLD	LCLSBLD			-					No
+DEV
+-----
+IOC-B34-BD02	172.25.160.76	IOC-B34-BD02-BLD	B034-LCLSBLD	-					No
+"				172.25.160.29	IOC-B34-BD02-FNET	B034-LCLSFBCK	"					"
+"				134.79.218.187	IOC-B34-BD02		LCLSDEV			"					"
+----
+*/
+/* scondam: 8-Apr-2015: Separate port and subnet for BLD traffic */
+
+/* ioc-sys0-bd01 and ioc-b34-bd01 */
+#define BLD_PROD_SNDR_IOC1_ETH0 "172.27.2.162"
+#define BLD_DEV_SNDR_IOC1_ETH0 "134.79.219.145"
+
+/* ioc-sys0-bd02 and ioc-b34-bd02 */
+#define BLD_PROD_RCVR_IOC1_ETH0 "172.27.2.203"
+#define BLD_DEV_RCVR_IOC1_ETH0 "134.79.219.145"
+/* ioc-sys0-bd02-fnet and ioc-b34-bd02-fnet */
+#define BLD_PROD_RCVR_IOC1_ETH1 "172.27.29.100"
+#define BLD_DEV_RCVR_IOC1_ETH1 "172.25.160.23"
+/* ioc-sys0-bd02-bld and ioc-b34-bd02-bld */
+#define BLD_PROD_RCVR_IOC1_ETH2 "172.27.225.22"
+#define BLD_DEV_RCVR_IOC1_ETH2 "172.25.160.75"
 
 extern IOSCANPVT bldPhaseCavityIoscan;
+extern IOSCANPVT bldFEEGasDetEnergyIoscan;
 extern IOSCANPVT bldHxxUm6Imb01Ioscan;
 extern IOSCANPVT bldHxxUm6Imb02Ioscan;
 /* scondam: 31-Mar-2015: Test BLD PCAV */
@@ -127,7 +155,7 @@ static int create_socket(unsigned int address, unsigned int port, int receive_bu
 		 &reuse, sizeof(reuse)) == -1) {
     printf("ERROR: Failed to set socket reuse address option (errno=%d)\n", errno);
     return -1;
-  }
+  }  
 
   struct timeval timeout;
   timeout.tv_sec = 60;
@@ -173,26 +201,55 @@ static int register_multicast(int sock, unsigned int address) {
   unsigned int interface;
 
   int name_len = 100;
-  char name[name_len];
+  char name[name_len];  
 
   char *interface_string;
 
   int rtncode = gethostname(name, name_len);
+
   if (rtncode == 0) {
-    if (strcmp("ioc-sys0-bd01", name) == 0) {
-      interface_string = BLD_IOC_ETH0;
+  
+    printf("Hostname: %s Eth: %s\n",name,getenv("MCASTETHPORT"));
+	
+	if (strcmp("PROD_IPADDR0", getenv("MCASTETHPORT")) == 0) {
+		interface_string = BLD_PROD_RCVR_IOC1_ETH0;
+	}	
+	else if (strcmp("DEV_IPADDR0", getenv("MCASTETHPORT")) == 0) {
+		interface_string = BLD_DEV_RCVR_IOC1_ETH0;
+	}		
+	else if (strcmp("PROD_IPADDR1", getenv("MCASTETHPORT")) == 0) {
+		interface_string = BLD_PROD_RCVR_IOC1_ETH1;
+	}
+	else if (strcmp("DEV_IPADDR1", getenv("MCASTETHPORT")) == 0) {
+		interface_string = BLD_DEV_RCVR_IOC1_ETH1;
+	}	
+	else if (strcmp("PROD_IPADDR2", getenv("MCASTETHPORT")) == 0) {
+		interface_string = BLD_PROD_RCVR_IOC1_ETH2;
+	}	
+	else if (strcmp("DEV_IPADDR2", getenv("MCASTETHPORT")) == 0) {
+		interface_string = BLD_DEV_RCVR_IOC1_ETH2;
+	}		
+	else {
+	  	printf("ERROR: BLD code running on unknown ethernet Port\n");
+	  	return -1;
+	}
+	
+    printf("Hostname: %s Eth: %s Addr: %s\n",name,getenv("MCASTETHPORT"),interface_string);	
+    
+    /* if (strcmp("ioc-sys0-bd01", name) == 0) {
+      interface_string = BLD_PROD_SNDR_IOC1_ETH0;
     }
     else {
       if (strcmp("ioc-b34-bd01", name) == 0) {
-	interface_string = BLD_B34_IOC_ETH0;
+	interface_string = BLD_DEV_SNDR_IOC1_ETH0;
       }
       else {
 		if (strcmp("ioc-sys0-bd02", name) == 0) {
-	  		interface_string = BLD_BD02_ETH0;
+			interface_string = BLD_PROD_RCVR_IOC1_ETH1;
 		}
 		else {
-			if (strcmp("ioc-b34-bd02", name) == 0) {
-	  			interface_string = BLD_B34_IOC1_ETH0;
+			if (strcmp("ioc-b34-bd01", name) == 0) {		
+	  			interface_string = BLD_DEV_RCVR_IOC1_ETH1;				
 			}
 			else {
 	  			printf("ERROR: BLD code running on unknown IOC\n");
@@ -200,14 +257,14 @@ static int register_multicast(int sock, unsigned int address) {
 			}
 		}
       }
-    }
+    } */
   }
   else {
     printf("ERROR: Unable to get hostname (errno=%d, rtncode=%d)\n", errno, rtncode);
     return -1;
   }
 
-  printf("INFO: ETH0 address is %s\n", interface_string);
+  printf("INFO: MCAST ETH address is %s\n", interface_string);
 
   struct in_addr inp;
   if (inet_aton(interface_string, &inp) == 0) {
@@ -271,7 +328,7 @@ static int bld_register_mulitcast(BLDMCastReceiver *this) {
  *
  * @param bld_receiver output parameter with the pointer to the allocated struct
  * @param payload_size size in bytes of the BLD payload (e.g. size of 4 floats
- * for the phase cavity BLD or size of 7 floats for Imb)
+ * for the phase cavity BLD or size of 7 floats for Imb or 6 floats for gdet)
  * @param payload_count number of parameters in the BLD payload (e.g. 4
  * parameters for the phase cavity BLD or 7 parameters for Imb)
  * @param multicast_group BLD multicast group address in dotted string form
@@ -314,6 +371,14 @@ int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_c
 		check("PhaseCavity_late_f", &(*this)->late_bld_pulse);
 		check("PhaseCavity_miss_f", &(*this)->miss_bld_pulse);
 	}
+	if (strcmp(multicast_group,"239.255.24.2")== 0) {
+		check("FEEGasDetEnergy_max_f", &(*this)->bld_diffus_max);
+		check("FEEGasDetEnergy_min_f", &(*this)->bld_diffus_min);
+		check("FEEGasDetEnergy_avg_f", &(*this)->bld_diffus_avg);
+		check("FEEGasDetEnergy_dup_f", &(*this)->packets_duplicates);
+		check("FEEGasDetEnergy_late_f", &(*this)->late_bld_pulse);
+		check("FEEGasDetEnergy_miss_f", &(*this)->miss_bld_pulse);
+	}	
 	else if (strcmp(multicast_group,"239.255.24.4")== 0) {
 		check("HxxUm6Imb01_max_f", &(*this)->bld_diffus_max);
 		check("HxxUm6Imb01_min_f", &(*this)->bld_diffus_min);
@@ -397,6 +462,7 @@ void bld_receiver_run(BLDMCastReceiver *this) {
 
 	BLDHeader *header = NULL;
 	BLDPhaseCavity *pcav1 = NULL;
+	BLDGdet *gdet2 = NULL;	
 	BLDImb *imb4 = NULL;
 	BLDImb *imb5 = NULL;
 
@@ -461,6 +527,9 @@ void bld_receiver_run(BLDMCastReceiver *this) {
   	  					if (strcmp(this->multicast_group,"239.255.24.1")== 0)  {
 						   pcav1 = (BLDPhaseCavity *) payload_buf;
 						}
+  	  					else if (strcmp(this->multicast_group,"239.255.24.2")== 0)   {
+						   gdet2 = (BLDGdet *) payload_buf;
+						}						
   	  					else if (strcmp(this->multicast_group,"239.255.24.4")== 0)   {
 						   imb4 = (BLDImb *) payload_buf;
 						}
@@ -479,6 +548,9 @@ void bld_receiver_run(BLDMCastReceiver *this) {
   	  					if (strcmp(this->multicast_group,"239.255.24.1")== 0)  {
 						   this->bld_payload_bsa = pcav1;
 						}
+  	  					else if (strcmp(this->multicast_group,"239.255.24.2")== 0)   {
+						   this->bld_payload_bsa = gdet2;
+						}						
   	  					else if (strcmp(this->multicast_group,"239.255.24.4")== 0)   {
 						   this->bld_payload_bsa = imb4;
 						}
@@ -513,6 +585,9 @@ void bld_receiver_run(BLDMCastReceiver *this) {
                     if (strcmp(this->multicast_group,"239.255.24.1")== 0)  {
                         scanIoRequest(bldPhaseCavityIoscan);
                     }
+                    else if (strcmp(this->multicast_group,"239.255.24.2")== 0)   {
+                        scanIoRequest(bldFEEGasDetEnergyIoscan);
+                    }					
                     else if (strcmp(this->multicast_group,"239.255.24.4")== 0)   {
                         scanIoRequest(bldHxxUm6Imb01Ioscan);
                     }
@@ -543,6 +618,7 @@ void bld_receiver_run(BLDMCastReceiver *this) {
 }
 
 BLDMCastReceiver *bldPhaseCavityReceiver = NULL;
+BLDMCastReceiver *bldFEEGasDetEnergyReceiver = NULL;
 BLDMCastReceiver *bldHxxUm6Imb01Receiver = NULL;
 BLDMCastReceiver *bldHxxUm6Imb02Receiver = NULL;
 BLDMCastReceiver *bldPhaseCavityTestReceiver = NULL;
@@ -551,6 +627,9 @@ void bld_receivers_report(int level) {
   if (bldPhaseCavityReceiver != NULL) {
     phase_cavity_report(bldPhaseCavityReceiver, level);
   }
+  if (bldFEEGasDetEnergyReceiver != NULL) {
+    gdet_report(bldFEEGasDetEnergyReceiver, level);
+  }  
   if (bldHxxUm6Imb01Receiver != NULL) {
     imb_report(bldHxxUm6Imb01Receiver, level);
   }
@@ -579,6 +658,9 @@ void bld_receivers_start() {
 
   printf("\nINFO: Creating PhaseCavity Receiver... \n");
   phase_cavity_create(&bldPhaseCavityReceiver,BLD_PhaseCavity_GROUP);
+  
+  printf("\nINFO: Creating XRT  FEEGasDetEnergyReceiver... \n");
+  gdet_create(&bldFEEGasDetEnergyReceiver,BLD_FEEGasDetEnergy_GROUP);  
 
   printf("\nINFO: Creating XRT HxxUm6Imb01Imb  Imb Receiver... \n");
   imb_create(&bldHxxUm6Imb01Receiver,BLD_HxxUm6Imb01_GROUP);
@@ -595,6 +677,12 @@ void bld_receivers_start() {
 			(EPICSTHREADFUNC)bld_receiver_run, bldPhaseCavityReceiver);
   printf(" done.\n ");
 
+  printf("\nINFO: Starting FEEGasDetEnergyReceiver Receiver... \n");
+
+  epicsThreadMustCreate("BLDFEEGasDetEnergyProd", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
+			(EPICSTHREADFUNC)bld_receiver_run, bldFEEGasDetEnergyReceiver);
+  printf(" done.\n ");
+  
   printf("\nINFO: Starting XRT Imb Receiver HxxUm6Imb01... \n");
 
   epicsThreadMustCreate("BLDHxxUm6Imb01Prod", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
@@ -615,8 +703,9 @@ void bld_receivers_start() {
 }
 
 void bld_receiver_report(void *this, int level) {
-  BLDMCastReceiver *receiver = this;
 
+  BLDMCastReceiver *receiver = this;
+  
   if (receiver != NULL) {
     epicsMutexMustLock(receiver->mutex);
 

@@ -14,11 +14,13 @@ include $(TOP)/configure/CONFIG
 DB += bsaBLDEdef.db
 DB += bsaBLDReceiverPhaseCavityEdef.db
 DB += bsaBLDReceiverImbEdef.db
+DB += bsaBLDReceiverGdetEdef.db
 
 DB += BLDMCast.db
 DB += BLDMCastWfRecv.db
 DB += BLDMCastReceiverPcavs.db
 DB += BLDMCastReceiverImbs.db
+DB += BLDMCastReceiverGdets.db
 DB += BLDMCastReceiver.db
 
 # BLD Receiver app databases for IOC-SYS0-BD02
