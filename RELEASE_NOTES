@@ -1,6 +1,34 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-6-5:
+	Shantha Condamoor: 4-May-2015:
+        Added support for FEEGasDetEnergyReceiver MCAST address 239.255.24.2
+		
+	M BLDApp/Db/IOC-SYS0-BD02bsa.substitutions
+	M BLDApp/Db/Makefile
+	A BLDApp/Db/BLDMCastReceiverGdet.template
+	A BLDApp/Db/BLDMCastReceiverGdets.substitutions
+	A BLDApp/Db/bsaBLDReceiverGdetEdef.substitutions
+	M BLDApp/src/BLDData.h
+	M BLDApp/src/BLDMCastReceiver.c
+	M BLDApp/src/BLDMCastReceiver.h
+	M BLDApp/src/BLDMCastReceiverImb.h
+	M BLDApp/src/BLDMCastReceiverPhaseCavity.c
+	M BLDApp/src/BLDMCastReceiverPhaseCavity.h
+	M BLDApp/src/Makefile
+	M BLDApp/src/devBLDMCastReceiver.c
+	M BLDApp/src/devBLDMCastReceiver.h
+	A BLDApp/src/BLDMCastReceiverGdet.c
+	A BLDApp/src/BLDMCastReceiverGdet.h
+	M BLDApp/srcDisplay/ads_all_main.edl
+	M BLDApp/srcDisplay/bld_diagnostics.edl
+	M BLDApp/srcDisplay/bld_imb_diag.edl
+	M BLDApp/srcDisplay/bld_pcav_diag.edl
+	A BLDApp/srcDisplay/bld_gdet_diag.edl
+	M iocBoot/ioc-sys0-bd02/st-dev.cmd
+	M iocBoot/ioc-sys0-bd02/st.cmd		
+			
 BLD-R2-6-4:
 	Shantha Condamoor: 1-Apr-2015:
         Added support for PhaseCavityTest MCAST address 239.255.24.254 to test Bruce Hill's new BAT2 algorithim
