@@ -3,8 +3,8 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 237
-y 1121
+x 64
+y 76
 w 800
 h 488
 font "helvetica-medium-r-12.0"
@@ -46,9 +46,9 @@ major 4
 minor 0
 release 0
 x 24
-y 160
-w 232
-h 208
+y 220
+w 240
+h 240
 lineColor index 3
 fill
 fillColor index 3
@@ -309,7 +309,7 @@ major 4
 minor 4
 release 0
 x 280
-y 180
+y 170
 w 144
 h 24
 fgColor index 14
@@ -335,7 +335,7 @@ major 4
 minor 1
 release 1
 x 24
-y 144
+y 205
 w 160
 h 16
 font "helvetica-medium-i-12.0"
@@ -485,29 +485,6 @@ endGroup
 
 endObjectProperties
 
-# (Coef Table)
-object activeCoefTableClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 40
-y 168
-w 200
-h 188
-fgColor index 14
-bgColor index 4
-oddColBgColor index 4
-evenColBgColor index 8
-topShadowColor index 2
-botShadowColor index 11
-pv "IOC:SYS0:BD01:BLDWAV"
-labels "Charge [nC], L3Energy [MeV], LTUPosX [mm], LTUPosY [mm], LTUAngX [mrad], LTUAngY [mrad], BC2Charge [A], BC2Energy [mm], BC1Charge [A], BC1Energy [mm]"
-firstElement 0
-numElements 10
-font "helvetica-medium-r-12.0"
-endObjectProperties
-
 # (Related Display)
 object relatedDisplayClass
 beginObjectProperties
@@ -541,7 +518,7 @@ major 4
 minor 4
 release 0
 x 432
-y 176
+y 170
 w 144
 h 24
 fgColor index 14
@@ -575,14 +552,14 @@ bgColor index 4
 topShadowColor index 1
 botShadowColor index 11
 font "helvetica-medium-r-12.0"
-buttonLabel "BLD PCAV..."
+buttonLabel "BLD PCAV (BAT)..."
 numPvs 4
 numDsps 1
 displayFileName {
   0 "bld_pcav_diag.edl"
 }
 symbols {
-  0 "device=BLD:SYS0:500,mcgroup=PCAV"
+  0 "device=BLD:SYS0:500,mcgroup=PhaseCavity"
 }
 endObjectProperties
 
@@ -832,5 +809,137 @@ endObjectProperties
 
 endGroup
 
+endObjectProperties
+
+# (Coef Table)
+object activeCoefTableClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 30
+y 225
+w 230
+h 230
+fgColor index 14
+bgColor index 4
+oddColBgColor index 4
+evenColBgColor index 8
+topShadowColor index 2
+botShadowColor index 11
+pv "IOC:SYS0:BD01:BLDWAV"
+labels "Charge [nC], L3Energy [MeV], LTUPosX [mm], LTUPosY [mm], LTUAngX [mrad], LTUAngY [mrad], BC2Charge [A], BC2Energy [mm], BC1Charge [A], BC1Energy [mm]"
+firstElement 0
+numElements 10
+font "helvetica-medium-r-12.0"
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 288
+y 216
+w 240
+h 240
+lineColor index 3
+fill
+fillColor index 3
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 288
+y 208
+w 160
+h 16
+font "helvetica-medium-i-12.0"
+fontAlign "center"
+fgColor index 14
+bgColor index 3
+value {
+  "BLD Data via Multicast"
+}
+endObjectProperties
+
+# (Coef Table)
+object activeCoefTableClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 296
+y 224
+w 230
+h 230
+fgColor index 14
+bgColor index 4
+oddColBgColor index 4
+evenColBgColor index 8
+topShadowColor index 2
+botShadowColor index 11
+pv "IOC:SYS0:BD01:BLDWAV"
+labels "UndPosX [mm], UndPosY [mm], UndAngX [mm], UndAngY [mm], XTCAVAmpl [MeV], XTCAVPhase [deg], DMP502Charge [Nel], PhotonEnergy [eV], LTU250PosX [mm], LTU450PosX [mm]"
+firstElement 10
+numElements 10
+font "helvetica-medium-r-12.0"
+endObjectProperties
+
+# (Related Display)
+object relatedDisplayClass
+beginObjectProperties
+major 4
+minor 4
+release 0
+x 120
+y 144
+w 144
+h 24
+fgColor index 14
+bgColor index 4
+topShadowColor index 1
+botShadowColor index 11
+font "helvetica-medium-r-12.0"
+buttonLabel "BLD TEST PCAV (BAT2)"
+numPvs 4
+numDsps 1
+displayFileName {
+  0 "bld_pcav_diag.edl"
+}
+symbols {
+  0 "device=BLD:SYS0:500,mcgroup=PhaseCavityTest"
+}
+endObjectProperties
+
+# (Related Display)
+object relatedDisplayClass
+beginObjectProperties
+major 4
+minor 4
+release 0
+x 592
+y 144
+w 144
+h 24
+fgColor index 14
+bgColor index 4
+topShadowColor index 1
+botShadowColor index 11
+font "helvetica-medium-r-12.0"
+buttonLabel "BLD GDET..."
+numPvs 4
+numDsps 1
+displayFileName {
+  0 "bld_gdet_diag.edl"
+}
+symbols {
+  0 "device=BLD:SYS0:500,mcgroup=FEEGasDetEnergy"
+}
 endObjectProperties
 
