@@ -1,0 +1,25 @@
+#==============================================================================
+#
+# Abs:  Beam Synchronous Acquisition records for the BLD - Gdet
+#
+# Name: bsaBLDReceiverImbEdef.substitutions
+#
+# Note: Must follow the LCLS naming conventions.  
+#
+#==============================================================================
+#
+file bsaATTREdef.db
+{
+#           Device   Attribute  Input          EGU   HOPR  LOPR PREC ADEL  Link
+  pattern { D, 		ATTR, 						I, EG, HO, LO, PR, AD, LNK }
+	  	{ $(DEVICE), GDET2_ENRC_11, $(DEVICE):GDET_FEEGasDetEnergy_ENRC_11, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), GDET2_ENRC_12, $(DEVICE):GDET_FEEGasDetEnergy_ENRC_12, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), GDET2_ENRC_21, $(DEVICE):GDET_FEEGasDetEnergy_ENRC_21, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), GDET2_ENRC_22,	$(DEVICE):GDET_FEEGasDetEnergy_ENRC_22, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), GDET2_ENRC_63,	$(DEVICE):GDET_FEEGasDetEnergy_ENRC_63, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), GDET2_ENRC_64,	$(DEVICE):GDET_FEEGasDetEnergy_ENRC_64, status, 0, 0, 0, .001, "" }
+ 
+	  	{ $(DEVICE), GDET2_PULSEID,	$(DEVICE):GDET_FEEGasDetEnergy_PULSEID, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), GDET2_STATUS,	$(DEVICE):GDET_FEEGasDetEnergy_STATUS, status, 0, 0, 0, .001, "" }      
+}
+
