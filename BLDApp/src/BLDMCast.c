@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.66 2014/11/11 23:50:15 scondam Exp $ */
+/* $Id: BLDMCast.c,v 1.67 2015/02/03 01:36:29 scondam Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -30,6 +30,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include <sys/time.h>
 
@@ -46,6 +47,7 @@
 #include <epicsExport.h>
 #include <epicsEvent.h>
 #include <epicsThread.h>
+#include <epicsTypes.h>
 #include <cadef.h>
 #include <drvSup.h>
 #include <alarm.h>
@@ -63,13 +65,14 @@
 #include <fcomLclsBlen.h>
 #include <fcomLclsLlrf.h>
 
+#if 0
 #include <devBusMapped.h>
-
 #include <bsp/gt_timer.h> /* This is MVME6100/5500 only */
+#endif
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.66 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.67 $/$Name: RT-devel $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -98,7 +101,9 @@
 #endif
 */
 
+#if 0
 #define BSPTIMER    0       /* Timer instance -- use first timer */
+#endif
 
 /* We monitor static PVs and update their value upon modification */
 enum STATICPVSINDEX
@@ -326,8 +331,8 @@ int DELAY_FOR_CA = 0;	/* in seconds */
 epicsExportAddress(int, DELAY_FOR_CA);
 
 /* Share with device support */
-volatile int bldAllPVsConnected   = FALSE;
-volatile int bldConnectAbort      = FALSE;
+volatile int bldAllPVsConnected   = 0;
+volatile int bldConnectAbort      = 0;
 epicsUInt32  bldInvalidAlarmCount[N_PULSE_BLOBS] = {0};
 epicsUInt32  bldUnmatchedTSCount[N_PULSE_BLOBS]  = {0};
 EBEAMINFO    bldEbeamInfo;
@@ -384,7 +389,7 @@ static void evr_timer_isr(void *arg);
 static int BLDMCastTask(void * parg);
 static void BLDMCastTaskEnd(void * parg);
 
-int BLDMCastStart(int enable, const char * NIC)
+void BLDMCastStart(int enable, const char * NIC)
 {/* This function will be called in st.cmd after iocInit() */
     /* Do we need to use RTEMS task priority to get higher priority? */
     BLD_MCAST_ENABLE = enable;
@@ -395,16 +400,19 @@ int BLDMCastStart(int enable, const char * NIC)
     if(mcastIntfIp == (in_addr_t)(-1))
     {
 	errlogPrintf("Illegal MultiCast NIC IP\n");
-	return -1;
+	return;
     }
 
-    /******************************************************************* Setup high resolution timer ***************************************************************/
+#if 0
+    /************Setup high resolution timer ***************************************************************/
     /* you need to setup the timer only once (to connect ISR) */
     BSP_timer_setup( BSPTIMER, evr_timer_isr, 0, 0 /* do not reload timer when it expires */);
+#endif
 
     epicsAtExit(BLDMCastTaskEnd, NULL);
 
-    return (int)(epicsThreadMustCreate("BLDMCast", TASK_PRIORITY, 20480, (EPICSTHREADFUNC)BLDMCastTask, NULL));
+	epicsThreadMustCreate("BLDMCast", TASK_PRIORITY, 20480, (EPICSTHREADFUNC)BLDMCastTask, NULL);
+    return;
 }
 
 static int
@@ -447,7 +455,7 @@ void EVRFire(void *use_sets)
 
 	/* get the current pattern data - check for good status */
 	evrModifier_ta modifier_a;
-	unsigned long  patternStatus; /* see evrPattern.h for values */
+	epicsUInt32  patternStatus; /* see evrPattern.h for values */
 	int status = evrTimeGetFromPipeline(&time_s,  evrTimeCurrent, modifier_a, &patternStatus, 0,0,0);
 	/* This is 120Hz. So printf will screw timing */
 	if(BLD_MCAST_DEBUG >= 4) errlogPrintf("EVR fires (status %i, mod5 0x%08x)\n", status, (unsigned)modifier_a[4]);
@@ -458,7 +466,6 @@ void EVRFire(void *use_sets)
 #endif
 		   )
 		{/* ... do beam-sync rate-limited processing here ... */
-			/* call 'BSP_timer_start()' to set/arm the hardware */
 
 			bldFiducialTime = time_s;
 			gettimeofday( &bldFiducialTimeHires, 0 );
@@ -466,7 +473,10 @@ void EVRFire(void *use_sets)
 			if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Timer Starts\n");
 
 			if ( ! use_sets ) {
+#if 0
+				/* call 'BSP_timer_start()' to set/arm the hardware */
 				BSP_timer_start( BSPTIMER, timer_delay_clicks );
+#endif
 			} else {
 				epicsEventSignal(EVRFireEvent);
 #ifdef SIGNAL_TEST
@@ -490,9 +500,6 @@ static void evr_timer_isr(void *arg)
     epicsEventSignal(EVRFireEventPCAV);
 #endif
   }
-
-    /* This is 30Hz. So printk might screw timing */
-    if(BLD_MCAST_DEBUG >= 3) printk("Timer fires\n");
     return;
 }
 
@@ -648,7 +655,7 @@ static void BLDMCastTaskEnd(void * parg)
 {
     int loop;
 
-    bldAllPVsConnected = FALSE;
+    bldAllPVsConnected = 0;
     epicsThreadSleep(2.0);
 
     epicsMutexLock(bldMutex);
@@ -832,7 +839,7 @@ epicsUInt32     this_time;
 	
 #undef  bldBlobSet
 
-	bldAllPVsConnected       = TRUE;
+	bldAllPVsConnected       = 1;
 	printf("All PVs are successfully connected!\n");
 
 	/* Prefill EBEAMINFO with constant values */
@@ -1367,6 +1374,7 @@ epicsUInt32 cnt2[N_PULSE_BLOBS];
 }
 #endif
 
+#if 0
 /**************************************************************************************************/
 /* Here we supply the access methods for 'devBusMapped'                                           */
 /**************************************************************************************************/
@@ -1401,6 +1409,7 @@ static DevBusMappedAccessRec timer_delay_io = {
 	rd: timer_delay_rd,
 	wr: timer_delay_wr,
 };
+#endif
 
 /**************************************************************************************************/
 /* Here we supply the driver report function for epics                                            */
@@ -1418,9 +1427,11 @@ epicsExportAddress(drvet,drvBLD);
 static void
 check(char *nm, void *ptr)
 {
+#if 0
 	if ( 0 == devBusMappedRegister(nm, ptr) ) {
 		errlogPrintf("WARNING: Unable to register '%s'; related statistics may not work\n", nm);
 	}
+#endif
 }
 
 /* implementation */
@@ -1491,9 +1502,11 @@ static long BLD_EPICS_Init()
 	}
 #endif
 
+#if 0
 	if ( devBusMappedRegisterIO("bld_timer_io", &timer_delay_io) )
 		errlogPrintf("ERROR: Unable to register I/O methods for timer delay\n"
                      "SOFTWARE MAY NOT WORK PROPERLY\n");
+#endif
 					 
 	check("bld_stat_bad_t", &bldUnmatchedTSCount);
 	check("bld_stat_bad_d", &bldInvalidAlarmCount);

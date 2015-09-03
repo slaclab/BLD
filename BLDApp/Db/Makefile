@@ -12,31 +12,21 @@ include $(TOP)/configure/CONFIG
 # databases, templates, substitutions like this
 
 DB += bsaBLDEdef.db
-DB += bsaBLDReceiverPhaseCavityEdef.db
-DB += bsaBLDReceiverImbEdef.db
-DB += bsaBLDReceiverGdetEdef.db
+#DB += bsaBLDReceiverPhaseCavityEdef.db
+#DB += bsaBLDReceiverImbEdef.db
+#DB += bsaBLDReceiverGdetEdef.db
 
 DB += BLDMCast.db
 DB += BLDMCastWfRecv.db
-DB += BLDMCastReceiverPcavs.db
-DB += BLDMCastReceiverImbs.db
-DB += BLDMCastReceiverGdets.db
-DB += BLDMCastReceiver.db
 
 # BLD Receiver app databases for IOC-SYS0-BD02
 # EVR, BSA, Trigger related databases
-DB += IOC-SYS0-BD02evr.db
-DB += IOC-SYS0-BD02bsa.db
-DB += IOC-SYS0-BD02trig.db
-
-DB += IOC-SYS0-BD01evr.db
-DB += IOC-SYS0-BD01bsa.db
-DB += IOC-SYS0-BD01trig.db
+#DB += IOC-SYS0-BD02evr.db
+#DB += IOC-SYS0-BD02bsa.db
+#DB += IOC-SYS0-BD02trig.db
 
 # Measurement and calculation for LCLS IN20 RF04 IOC-IN20-RF04
-DB += IOC-SYS0-BD02access.db
-
-DB += IOC-SYS0-BD01access.db
+#DB += IOC-SYS0-BD02access.db
 
 # LCLS BSA and Timing
 DB += lclsPattern.db

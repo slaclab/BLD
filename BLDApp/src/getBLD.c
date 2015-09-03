@@ -248,7 +248,9 @@ int getBLD(char *interface) {
     return -1;
   }
 
+#if 0
   rtems_bsdnet_show_socket_stats(4);
+#endif
 
   deleteSocket();
 

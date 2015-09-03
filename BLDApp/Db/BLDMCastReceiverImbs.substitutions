@@ -1,7 +1,0 @@
-file BLDMCastReceiverImb.template
-{
-#         Station			MC Group	Stat_Scan    
-pattern { STN			,	MC,			STAT_SCAN	}
-        { "HxxUm6Imb01"	,  	"4"			"5"	}
-        { "HxxUm6Imb02"	,  	"5"			"5"	}
-}

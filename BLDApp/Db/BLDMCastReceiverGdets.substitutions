@@ -1,6 +1,0 @@
-file BLDMCastReceiverGdet.template
-{
-#         Station			MC Group	Stat_Scan    
-pattern { STN			,	MC,			STAT_SCAN	}
-        { "FEEGasDetEnergy"	,  	"2"			"5"	}
-}

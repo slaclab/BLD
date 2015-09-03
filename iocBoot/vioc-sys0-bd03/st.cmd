@@ -1,4 +1,4 @@
-#!../../bin/linuxRT-x86_64/BLDSender
+#!../../bin/linuxRT_glibc-x86_64/BLDSender
 
 ## You may have to change BLDSender to something else
 ## everywhere it appears in this file
