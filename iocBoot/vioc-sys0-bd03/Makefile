@@ -1,5 +1,5 @@
 TOP = ../..
 include $(TOP)/configure/CONFIG
-ARCH = linuxRT-x86_64
+ARCH = linuxRT_glibc-x86_64
 TARGETS = envPaths
 include $(TOP)/configure/RULES.ioc

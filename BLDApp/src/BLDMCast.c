@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.67 2015/02/03 01:36:29 scondam Exp $ */
+/* $Id: BLDMCast.c,v 1.67.2.1 2015/09/03 05:40:59 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -64,6 +64,8 @@
 #include <fcomLclsBpm.h>
 #include <fcomLclsBlen.h>
 #include <fcomLclsLlrf.h>
+#include "debugPrint.h"
+extern int	fcomUtilFlag;
 
 #if 0
 #include <devBusMapped.h>
@@ -72,7 +74,7 @@
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.67 $/$Name: RT-devel $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.67.2.1 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -1445,7 +1447,7 @@ static long BLD_EPICS_Init()
   rtncode = gethostname(name, name_len);
   if (rtncode == 0) {
     printf("INFO: BLD hostname is %s\n", name);
-    if ((strcmp("ioc-sys0-bd01", name) == 0) || (strcmp("ioc-b34-bd01", name)== 0)) {
+    if ((strcmp("ioc-sys0-bd01", name) == 0) || (strcmp("cpu-b34-bd03", name)== 0)) {
       enable_broadcast = 1;
       printf("INFO: *** Enabling Multicast ***\n");
     }
@@ -1462,14 +1464,15 @@ static long BLD_EPICS_Init()
 #ifndef USE_PULSE_CA
 	{
 	int loop;
+	/* fcomUtilFlag = DP_DEBUG; */
 	for ( loop=0; loop < N_PULSE_BLOBS; loop++) {
-		errlogPrintf("INFO: Subscribing to %s (%d)\n",
-			     bldPulseBlobs[loop].name, loop);
+		printf( "INFO: Looking up fcom ID for %s\n", bldPulseBlobs[loop].name );
 		if ( FCOM_ID_NONE == (bldPulseID[loop] = fcomLCLSPV2FcomID(bldPulseBlobs[loop].name)) ) {
-			errlogPrintf("FATAL ERROR: Unable to determine FCOM ID for PV %s (%d)\n",
-				     bldPulseBlobs[loop].name,loop);
+			errlogPrintf("FATAL ERROR: Unable to determine FCOM ID for PV %s\n",
+				     bldPulseBlobs[loop].name );
 			return -1;
 		}
+		/* printf( "INFO: Subscribing to %s, fcom ID 0x%X\n", bldPulseBlobs[loop].name, bldPulseID[loop] ); */
 		rtncode = fcomSubscribe( bldPulseID[loop], FCOM_ASYNC_GET );
 		if ( 0 != rtncode ) {
 			errlogPrintf("FATAL ERROR: Unable to subscribe %s (0x%08"PRIx32") to FCOM: %s\n",
@@ -1478,9 +1481,9 @@ static long BLD_EPICS_Init()
 					fcomStrerror(rtncode));
 			return -1;
 		}
-		errlogPrintf("INFO: Subscribed to %s (0x%x)\n",
-			     bldPulseBlobs[loop].name, bldPulseID[loop]);
+		printf( "INFO: Subscribed  to %s, fcom ID 0x%X\n", bldPulseBlobs[loop].name, bldPulseID[loop] );
 	}
+	/* fcomUtilFlag = DP_ERROR; */
 	}
 
 	/* Allocate blob set here so that the flag that is read

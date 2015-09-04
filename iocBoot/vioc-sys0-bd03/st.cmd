@@ -3,32 +3,10 @@
 ## You may have to change BLDSender to something else
 ## everywhere it appears in this file
 
-# Network configuration in $IOC/ioc-b34-bd03/kernel-modules.cmd
-# ===================================================
-# node			ipnum			name				network_name
-# ------------	--------------	-----------------	-------------
-# IOC-B34-BD03	172.25.160.78	IOC-B34-BD03-BLD	B034-LCLSBLD
-# "				134.79.218.198	IOC-B34-BD03		LCLSDEV
-# "             172.25.160.32	IOC-B34-BD03-FNET	B034-LCLSFBCK
-# "				134.79.218.200	IOC-B34-BD03-MGT	LCLSDEV
-# ===================================================
-# Let's activate the first ethernet port ioc-b34-bd03:
-# 134.79.218.198 IOC-B34-BD03      LCLSDEV
-# HWaddr 0C:C4:7A:33:09:46 inet addr:134.79.218.198  Bcast:134.79.219.255  Mask:255.255.252.0
-# ifconfig eth4 134.79.218.198 netmask 255.255.255.0
-
-# Let's activate the second network chip for Fast Feedback. ioc-b34-bd03-fnet
-# 172.25.160.32 IOC-B34-BD03-FNET B034-LCLSFBCK
-# HWaddr 0C:C4:7A:33:09:47 
-# ifconfig eth5 172.25.160.32 netmask 255.255.252.0
-
-# Let's activate the third network chip for BLD MCAST. ioc-b34-bd03-bld
-# HWaddr 0c:c4:7a:50:3d:d8 inet addr:172.25.160.78 IOC-B34-BD03-BLD  B034-LCLSBLD
-# 
-# ifconfig eth0 172.25.160.78 netmask 255.255.255.0
-# ===================================================
-
-# Startup script for LCLS BLD production vioc-sys0-bd03
+# Network configuration for this IOC
+# 134.79.218.198	LCLSDEV
+# 172.25.160.32		B034-LCLSFBCK
+# 172.25.160.78		B034-LCLSBLD
 
 # For iocAdmin
 epicsEnvSet("LOCN","B005-2930")
@@ -73,7 +51,7 @@ epicsEnvSet("EPICS\_IOC\_LOG_CLIENT_INET","${IOC}")
 # =====================================================================
 # Override the TOP variable set by envPaths:
 # This is now past in via $IOC/<cpuName>/<epicsIOCName>/iocStartup.cmd
-epicsEnvSet(TOP,"${IOC_APP}")
+# epicsEnvSet(TOP,"${IOC_APP}")
 
 # ============================================
 # Set MACROS for EVRs
@@ -88,13 +66,6 @@ epicsEnvSet("EVR_DEV1","EVR:SYS0:BD03")
 epicsEnvSet("UNIT","BD03")
 epicsEnvSet("FAC","SYS0")
 # ===========================================
-
-# Need this path to EPICS BASE so that caRepeater can be started:
-# Let's figure out a way to pass this one in via the IOC's
-# initial startup.cmd: another job for hookIOC.py :)
-# Not needed caRepeater is started up by laci for all IOCs at
-# CPU boot up.
-#epicsEnvSet(PATH,"${EPICS_BASE}/bin/linuxRT-x86_64")
 
 # ========================================================
 # Support Large Arrays/Waveforms; Number in Bytes
@@ -134,7 +105,6 @@ epicsEnvSet("LOCATION",getenv("LOCN"),1)
 # END: Additional environment variables
 # ====================================================================
 
-cd ${TOP}
 # ====================================================
 ## Register all support components
 dbLoadDatabase("dbd/BLDSender.dbd",0,0)
@@ -195,17 +165,10 @@ ErConfigure(0, 0, 0, 0, 1)       # PMC EVR:SYS0:BD03
 # For Industrial PCs, these desired.
 #ErConfigure(0, 0, 0, 0, 4)
 
-# Add evrInitialize (after ErConfigure) if a fiducial routine will be
-# registered before iocInit driver initialization:
-#evrInitialize()
-# evrInitialize() is not registered with EPICS ioc shell.
-# So, we will need to use cexpsh() to execute it. Like so,:
-# cexpsh("-c",'evrInitialize()')
-
 # ======= EVR Setup Complete ============================================
 
-#initialize FCOM now to work around RTEMS bug #2068
-cexpsh("-c",'fcomInit(getenv("FCOM_MC_PREFIX",0),1000)')
+# Initialize FCOM
+fcomInit( ${FCOM_MC_PREFIX}, 1000 )
 
 ##############################################################################
 # BEGIN: Load the record databases
@@ -375,17 +338,12 @@ iocInit()
 # caPutLogShow(2)
 # =====================================================
 
-## Start any sequence programs
-#seq sncExample,"user=scondamHost"
-
 
 ## =========================================================================
 ## Start autosave routines to save our data
 ## =========================================================================
 # optional, needed if the IOC takes a very long time to boot.
 # epicsThreadSleep( 1.0)
-
-# cd("/data/${IOC}/autosave-req")
 
 # The following command makes the autosave request files 'info_settings.req',
 # and 'info_positions.req', from information (info nodes) contained in all of
@@ -396,16 +354,10 @@ iocInit()
 
 # ===========================================================================
 
-# cd ${START_UP}
+epicsThreadShowAll()
 
-cexpsh("-c",'epicsThreadShowAll()')
-
-cd ${IOC_BOOT}
 # ===========================================================================
 # Setup Real-time priorities after iocInit for driver threads
 # ===========================================================================
-system("/bin/su root -c `pwd`/rtPrioritySetup.cmd")
-
-# An example of using the CEXP Shell:
-# cexpsh("-c",'printf("hello\n")')
+# system("/bin/su root -c `pwd`/rtPrioritySetup.cmd")
 
