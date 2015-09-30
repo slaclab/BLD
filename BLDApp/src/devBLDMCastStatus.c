@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastStatus.c,v 1.12 2014/02/27 23:53:02 lpiccoli Exp $ */
+/* $Id: devBLDMCastStatus.c,v 1.13 2014/07/08 19:58:19 scondam Exp $ */
 
 
 /*=============================================================================
@@ -11,6 +11,7 @@
   Mod:	Till Straumann (strauman)
   		Luciano Piccoli (lpiccoli)
   		Shantha Condamoor (scondam)
+  		Bruce Hill (bhill)
 
   Mod:  22-Sep-2009 - S.Peng - Initial Release
 		18-May-2010 - T.Straumann: BLD-R2-0-0-BR - Cleanup and modifications
@@ -21,7 +22,8 @@
 								 BLD-R2-5-0, BLD-R2-4-6, BLD-R2-4-5, BLD-R2-4-4, BLD-R2-4-3, BLD-R2-4-2, BLD-R2-4-1, BLD-R2-4-0 	   
 		7-Jul-2014  - S.Condamoor - BLD-R2-6-0 - Added PHOTONENERGY, LTU450_POS_X,  LTU250_POS_X. Version 0x6000f
 												Added code to set the 0x20000 damage bit if the EPICS variables become disconnected, or
-												    if the BPM data is unavailable.		
+												    if the BPM data is unavailable.
+		18-Sep-2015 - B.Hill - Modified for linux compatibility
 -----------------------------------------------------------------------------*/
 
 #include <string.h>
@@ -35,13 +37,15 @@
 #include <devSup.h>
 #include <alarm.h>
 #include <aiRecord.h>
+#include <errlog.h>
 
 #include "BLDMCast.h"
 
 extern int BLD_MCAST_DEBUG;
 
 /* define function flags */
-typedef enum {
+typedef enum
+{
   BLD_AI_CHARGE,
   BLD_AI_ENERGY,
   BLD_AI_POS_X,
@@ -72,7 +76,8 @@ typedef enum {
                 return (0);\
         }
 
-static long init_ai( struct aiRecord * pai) {
+static long init_ai( struct aiRecord * pai)
+{
   pai->dpvt = NULL;
     pai->dpvt = NULL;
 
@@ -94,7 +99,8 @@ static long init_ai( struct aiRecord * pai) {
     CHECK_AIPARM("BC1CHARGE",  BLD_AI_BC1CHARGE)
     CHECK_AIPARM("BC1ENERGY",  BLD_AI_BC1ENERGY)
 
-  if (pai->inp.type!=INST_IO) {
+  if (pai->inp.type!=INST_IO)
+  {
     recGblRecordError(S_db_badField, (void *)pai, "devAiBLD Init_record, Illegal INP");
     pai->pact=TRUE;
     return (S_db_badField);
@@ -127,26 +133,28 @@ static long init_ai( struct aiRecord * pai) {
 
 
 /** for sync scan records  **/
-static long ai_ioint_info(int cmd,aiRecord *pai,IOSCANPVT *iopvt) {
+static long ai_ioint_info(int cmd,aiRecord *pai,IOSCANPVT *iopvt)
+{
   *iopvt = bldIoscan;
   return 0;
 }
 
-static long read_ai(struct aiRecord *pai) {
+static long read_ai(struct aiRecord *pai)
+{
   int damage = 0;
 
   if(bldMutex) epicsMutexLock(bldMutex);
 
-  switch ((int)pai->dpvt) {
+  long int	tyData = (long int) pai->dpvt;
+  switch ( tyData ) {
   case BLD_AI_CHARGE:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamCharge);
     if(bldEbeamInfo.uDamageMask & __le32(0x1)) {
       damage = 1;
     }
-    if (BLD_MCAST_DEBUG == 1) {
-      epicsUInt32 idcmp;
-      idcmp = bldEbeamInfo.ts_nsec & 0x0001FFFF;
-      printf ("%d\n", idcmp);
+    if (BLD_MCAST_DEBUG == 4) {
+      unsigned int	fid = bldEbeamInfo.ts_nsec & 0x0001FFFF;
+      errlogPrintf( "devBLDMCastStatus.c:read_ai charge=%1.3e fid=%u\n", pai->val, fid );
     }
     break;
   case BLD_AI_ENERGY:
@@ -273,7 +281,8 @@ static long read_ai(struct aiRecord *pai) {
   return 2;
 }
 
-struct BLD_DEV_SUP_SET {
+struct BLD_DEV_SUP_SET
+{
   long            number;
   DEVSUPFUN       report;
   DEVSUPFUN       init;
@@ -289,12 +298,14 @@ struct BLD_DEV_SUP_SET devAiBLD = {6, NULL, NULL, init_ai, ai_ioint_info, read_a
 #include <registryFunction.h>
 #include <epicsExport.h>
 
-long subInit(struct subRecord *psub) {
-  printf("subInit was called\n");
+long subInit(struct subRecord *psub)
+{
+  errlogPrintf("subInit was called\n");
   return 0;
 }
 
-long subProcess(struct subRecord *psub) {
+long subProcess(struct subRecord *psub)
+{
   psub->val = (int)(psub->time.nsec & 0x1FFFF);
   return 0;
 }

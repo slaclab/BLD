@@ -25,7 +25,7 @@ USR_CPPFLAGS =
 # several facilities (evr, micro, ...) for this to work.
 #BUILDFOR=_RTEMS
 
-LIBRARY_IOC		+= devBLDMCastWfRecv
+#LIBRARY_IOC		+= devBLDMCastWfRecv
 #LIBRARY_IOC$(BUILDFOR) += bldSndrSupport
 #LIBRARY_IOC$(BUILDFOR)	+= bldRcvrSupport
 
@@ -36,7 +36,7 @@ DBD += devBLDSndr.dbd
 
 #=============================
 # The following are compiled and added to the Support library for devBLDMCastWfRecv
-devBLDMCastWfRecv_SRCS = devBLDMCastWfRecv.c
+#devBLDMCastWfRecv_SRCS = devBLDMCastWfRecv.c
 
 # The following are compiled and added to the Support library for BLD Sender
 
@@ -61,18 +61,20 @@ BLDSender_DBD += evrSupport.dbd
 BLDSender_DBD += devMrfEr.dbd
 BLDSender_DBD += autosaveSupport.dbd
 BLDSender_DBD += iocAdmin.dbd
+BLDSender_DBD += diagTimer.dbd
 BLDSender_DBD += fcomUtil.dbd
 BLDSender_DBD += fcomIocshSupport.dbd
-BLDSender_DBD_RTEMS += devBusMapped.dbd
+BLDSender_DBD += devBusMapped.dbd
 BLDSender_DBD += devBLDSndr.dbd
-BLDSender_DBD += devBLDMCastWfRecv.dbd
+#BLDSender_DBD += devBLDMCastWfRecv.dbd
 
 #=============================
 
 # Add all the support libraries needed by this IOC for BLDSender app
 BLDSender_LIBS += autosave
 BLDSender_LIBS += devIocStats
-BLDSender_LIBS += devBLDMCastWfRecv
+BLDSender_LIBS += diagTimer
+#BLDSender_LIBS += devBLDMCastWfRecv
 BLDSender_LIBS += fcom
 BLDSender_LIBS += fcomIocshSupport
 BLDSender_LIBS += fcomUtil
@@ -80,7 +82,7 @@ BLDSender_LIBS += evrSupport
 BLDSender_LIBS += devMrfEr
 BLDSender_LIB_RTEMS  += mrfVme64x.dbd
 BLDSender_LIBS_Linux += drvMrf
-BLDSender_LIBS_RTEMS += devBusMapped
+BLDSender_LIBS += devBusMapped
 BLDSender_LIBS_RTEMS += udpComm
 BLDSender_LIBS_Linux += udpCommBSD 
 BLDSender_LIBS += $(EPICS_BASE_IOC_LIBS)

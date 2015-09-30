@@ -1,20 +1,23 @@
 #!../../bin/linuxRT_glibc-x86_64/BLDSender
 
+## You may have to change BLDSender to something else
+## everywhere it appears in this file
+
 # Network configuration for this IOC
-# 172.27.3.78   	LCLSIOC
-# 172.27.29.101		LCLSFNET
-# 172.27.225.23		LCLSBLD
+# 134.79.218.198	LCLSDEV
+# 172.25.160.32		B034-LCLSFBCK
+# 172.25.160.78		B034-LCLSBLD
 
 # For iocAdmin
-epicsEnvSet("LOCN","B005-2918")
+epicsEnvSet("LOCN","B005-2930")
 
-epicsEnvSet("IPADDR1","172.27.29.101",0)	# LCLS LinuxRT BD03 ETH? - cpu-sys0-bd03-fnet on LCLSFNET subnet
+# epicsEnvSet("IPADDR1","172.27.28.14",0)	# LCLS LinuxRT BD03 IOC ETH2 (ETH5) - ioc-sys0-bd03-fnet on LCLSFNET subnet
+epicsEnvSet("IPADDR1","172.25.160.32",0)	# LCLS LinuxRT BD03 IOC ETH2 (ETH5) - ioc-b34-bd03-fnet on B034-LCLSFBCK subnet
 epicsEnvSet("NETMASK1","255.255.252.0",0)
 
-epicsEnvSet("EPICS_CAS_INTF_ADDR_LIST","172.27.3.78")
-#epicsEnvSet("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
-#??? epicsEnvSet("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
-epicsEnvSet("EPICS_CAS_AUTO_BEACON_ADDR_LIST","YES")
+epicsEnvSet("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
+epicsEnvSet("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
+epicsEnvSet("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 
 < envPaths
 # =====================================================================
@@ -24,9 +27,8 @@ epicsEnvSet("EPICS_CAS_AUTO_BEACON_ADDR_LIST","YES")
 # Set common fnet variables
 epicsEnvSet("NETMASK1","255.255.252.0",0)
 # For the LCLS stations
-# Production 
-epicsEnvSet("FCOMMCGRP", "mc-lcls-fcom",1)      #  239.219.8.0 on  MCAST-LCLS-FCOM subnet
-# Development epicsEnvSet("FCOMMCGRP", "mc-b034-fcom",1)      #  on  MCAST-B034-FCOM subnet
+# Production epicsEnvSet("FCOMMCGRP", "mc-lcls-fcom",1)      #  239.219.8.0 on  MCAST-LCLS-FCOM subnet
+epicsEnvSet("FCOMMCGRP", "mc-b034-fcom",1)      #  on  MCAST-B034-FCOM subnet
 
 # execute generic part
 < "../st.linuxgeneric.cmd"
@@ -60,15 +62,10 @@ epicsEnvSet("EPICS_IOC_LOG_CLIENT_INET","${IOC}")
 
 # System Location:
 epicsEnvSet("LOCA","SYS0")
-epicsEnvSet("UNIT","BD03")
-epicsEnvSet("FAC", "SYS0")
-# Should be epicsEnvSet("NMBR","500")
-epicsEnvSet("NMBR","501")
 
-epicsEnvSet("EVR_DEV1","EVR:${LOCA}:BD03")
-# Not till linux version is tested and we retire ioc-sys0-bd01
-#epicsEnvSet("BSA_DEV1","BLD:${LOCA}:${NMBR}")
-epicsEnvSet("BSA_DEV1","BLD:${LOCA}:${NMBR}")
+epicsEnvSet("EVR_DEV1","EVR:SYS0:BD03")
+epicsEnvSet("UNIT","BD03")
+epicsEnvSet("FAC","SYS0")
 # ===========================================
 
 # ========================================================
@@ -90,15 +87,15 @@ epicsEnvSet("BSA_DEV1","BLD:${LOCA}:${NMBR}")
 
 epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES","1000000")
 
-#set fcom multicast prefix
-epicsEnvSet( "FCOM_MC_PREFIX", "${FCOMMCGRP}" )
+#set fcom multicast prefix to mc-lcls-fcom for LCLS
+epicsEnvSet ("FCOM_MC_PREFIX", "239.219.8.0")
 
 # Set IOC Shell Prompt as well:
 epicsEnvSet("IOCSH_PS1","vioc-sys0-bd03>")
 
-epicsEnvSet("IOC_NAME","IOC=IOC:${LOCA}:BD03")
+epicsEnvSet("IOC_NAME","IOC=IOC:SYS0:BD03")
 
-epicsEnvSet("AUTOSAVE_MACRO","P=IOC:${LOCA}:BD03:")
+epicsEnvSet("AUTOSAVE_MACRO","P=IOC:SYS0:BD03:")
 # ====================================================================
 # Setup some additional environment variables
 # ====================================================================
@@ -165,7 +162,7 @@ var BLD_MCAST_DEBUG 1
 
 # PMC-based EVR (EVR230)
 # These are the most popular
-ErConfigure(0, 0, 0, 0, 1)       # PMC EVR
+ErConfigure(0, 0, 0, 0, 1)       # PMC EVR:SYS0:BD03
 
 # PCIe-based EVR (EVR300)
 # For Industrial PCs, these desired.
@@ -212,28 +209,33 @@ dbLoadRecords("db/save_restoreStatus.db", "P=${IOC_NAME}:")
 dbLoadRecords("db/Pattern.db","IOC=${IOC_NAME},SYS=${FAC}")
 
 # Databases for the PMC EVR230
+# Note the first instance of an EVR will inherit the unit number of the parent IOC.
+# All additional EVR instances will have its unit number incremented by one.
+# Hence,
+# EVR device number one ==> EVR=EVR:B34:EV07
+# EVR device number two ==> EVR=EVR:B34:EV08
 dbLoadRecords("db/EvrPmc.db","EVR=${EVR_DEV1},CRD=0,SYS=${FAC}")
 dbLoadRecords("db/PMC-trig.db","IOC=${IOC_NAME},LOCA=${LOCA},UNIT=${UNIT},SYS=${FAC}")
 
 # Support for Beam Synchronous Acquisition (BSA)
 # BSA Database for each data source from above
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=CHARGE, EGU=nC")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=ENERGY, EGU=MeV")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=POS_X, EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=POS_Y, EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=ANG_X, EGU=mrad")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=ANG_Y, EGU=mrad")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=BC2CHARGE, EGU=Amps")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=BC2ENERGY, EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=BC1CHARGE, EGU=Amps")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=BC1ENERGY, EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_POS_X, EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_POS_Y, EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_ANG_X, EGU=mrad")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_ANG_Y, EGU=mrad")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=PHOTONENERGY, EGU=eV")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU450_POS_X, EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU250_POS_X, EGU=mm")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=CHARGE, EGU=nC")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=ENERGY, EGU=MeV")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=POS_X, EGU=mm")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=POS_Y, EGU=mm")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=ANG_X, EGU=mrad")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=ANG_Y, EGU=mrad")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=BC2CHARGE, EGU=Amps")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=BC2ENERGY, EGU=mm")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=BC1CHARGE, EGU=Amps")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=BC1ENERGY, EGU=mm")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=UND_POS_X, EGU=mm")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=UND_POS_Y, EGU=mm")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=UND_ANG_X, EGU=mrad")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=UND_ANG_Y, EGU=mrad")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=PHOTONENERGY, EGU=eV")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=LTU450_POS_X, EGU=mm")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:500, ATRB=LTU250_POS_X, EGU=mm")
 
 # ========================================================
 
@@ -241,7 +243,7 @@ dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU250_POS_X, EGU=mm")
 #Load Additional databases:
 # =====================================================================
 ## Load record instances
-dbLoadRecords("db/access.db","DEV=${BSA_DEV1}:, MANAGE=IOCMANAGERS")
+dbLoadRecords("db/access.db","DEV=BLD:SYS0:500:, MANAGE=IOCMANAGERS")
 
 ## Load record instances
 # 5 = '2 second'
@@ -250,20 +252,20 @@ dbLoadRecords("db/access.db","DEV=${BSA_DEV1}:, MANAGE=IOCMANAGERS")
 # the BLDMcastWfRecv waveform should be used instead)
 # to 'Passive' to effectively disable them.
 
-dbLoadRecords("db/BLDMCast.db","LOCA=${NMBR}, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+dbLoadRecords("db/BLDMCast.db","LOCA=500, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.
 # We scan with event 146 (beam + .5Hz)
 #
-# NOTE: There must be one of the erevent
+# NOTE: There must be one of the EVR:IOC:SYS0:BD03:EVENTxyCTRL
 #       records holding the event number we use here and it
 #       must have VME interrupts (.VME field) enabled.
 #
 #       Furthermore, you cannot use any event but only 
 #       such ones for which an event record has been
 #       instantiated with MRF ER device support -- this
-#       is thanks to the event module software design, yeah!
+#       is thanks to the great MRF software design, yeah!
 #
 # The erEvent record enables interrupts for an event
 # the interrupt handler calls scanIoRequest(lists[event]) and
@@ -273,7 +275,7 @@ dbLoadRecords("db/BLDMCast.db","LOCA=${NMBR}, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 # which would be faster, simpler and more flexible)
 # 
 
-dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:${LOCA}:BD03:BLDWAV, scan=Event, evnt=146, rarm=2")
+dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:BD03:BLDWAV, scan=Event, evnt=146, rarm=2")
 
 # END: Loading the record databases
 ########################################################################

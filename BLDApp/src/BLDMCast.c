@@ -1,14 +1,15 @@
-/* $Id: BLDMCast.c,v 1.67.2.1 2015/09/03 05:40:59 bhill Exp $ */
+/* $Id: BLDMCast.c,v 1.67.2.2 2015/09/04 08:45:36 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
 
-  Abs:  BLDMCast driver for eBeam MCAST BLD data sent to PCD.
+  Abs:  BLDMCast driver for eBeam MCAST BLD data sent to PCDS.
 
   Auth: Sheng Peng (pengs)
   Mod:	Till Straumann (strauman)
   		Luciano Piccoli (lpiccoli)
   		Shantha Condamoor (scondam)
+  		Bruce Hill (bhill)
 
   Mod:  22-Sep-2009 - S.Peng - Initial Release
 		18-May-2010 - T.Straumann: BLD-R2-0-0-BR - Cleanup and modifications
@@ -22,7 +23,8 @@
 												Added code to set the 0x20000 damage bit if the EPICS variables become disconnected, or
 												    if the BPM data is unavailable.
 		11-Nov-2014: S.Condamoor - BLD-R2-6-2 L.Piccoli moved Und Launch Feeback to FB05:RF05. FBCK:FB03:TR05:STATES changed to FBCK:FB05:TR05:STATES	
-		2-Feb-2015  - S.Condamoor - BLD-R2-6-3 - Fix for etax in Photon Energy Calculation per PCD request. Version 0x7000f												
+		2-Feb-2015  - S.Condamoor - BLD-R2-6-3 - Fix for etax in Photon Energy Calculation per PCDS request. Version 0x7000f												
+		18-Sep-2015 - B.Hill - Modified for linux compatibility
 -----------------------------------------------------------------------------*/
 #include <stddef.h>
 #include <stdlib.h>
@@ -55,26 +57,27 @@
 #include <errlog.h>
 #include <epicsExit.h>
 
-#include <evrTime.h>
-#include <evrPattern.h>
+#include "HiResTime.h"
+#include "evrTime.h"
+#include "evrPattern.h"
 
-#include <fcom_api.h>
-#include <fcomUtil.h>
-#include <udpComm.h>
-#include <fcomLclsBpm.h>
-#include <fcomLclsBlen.h>
-#include <fcomLclsLlrf.h>
+#include "fcom_api.h"
+#include "fcomUtil.h"
+#include "udpComm.h"
+#include "fcomLclsBpm.h"
+#include "fcomLclsBlen.h"
+#include "fcomLclsLlrf.h"
 #include "debugPrint.h"
 extern int	fcomUtilFlag;
 
-#if 0
-#include <devBusMapped.h>
+#include "devBusMapped.h"
+#ifdef RTEMS
 #include <bsp/gt_timer.h> /* This is MVME6100/5500 only */
 #endif
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.67.2.1 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.67.2.2 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -85,7 +88,7 @@ extern int	fcomUtilFlag;
 
 #define MCAST_TTL	8
 
-#undef  FETCH_PULSE_PVS     /* Otherwise we monitor pulse PVs */
+#define	CONNECT_PV
 #undef  USE_CA_ADD_EVENT    /* ca_create_subscription seems buggy */
 #undef  USE_PULSE_CA        /* Use CA for obtaining pulse PVs; use FCOM otherwise */
 /* T.S: I doubt that ca_create_subscription works any different. 
@@ -103,9 +106,23 @@ extern int	fcomUtilFlag;
 #endif
 */
 
-#if 0
 #define BSPTIMER    0       /* Timer instance -- use first timer */
-#endif
+
+#ifndef FID_DIFF
+/*
+ *  A few fiducial helper definitions.
+ *  FID_ROLL(a, b) is true if we have rolled over from fiducial a to fiducial b.  (That is, a
+ *  is large, and b is small.)
+ *  FID_GT(a, b) is true if fiducial a is greater than fiducial b, accounting for rollovers.
+ *  FID_DIFF(a, b) is the difference between two fiducials, accounting for rollovers.
+ */
+#define FID_MAX        0x1ffe0
+#define FID_ROLL_LO    0x00200
+#define FID_ROLL_HI    (FID_MAX-FID_ROLL_LO)
+#define FID_ROLL(a,b)  ((b) < FID_ROLL_LO && (a) > FID_ROLL_HI)
+#define FID_GT(a,b)    (FID_ROLL(b, a) || ((a) > (b) && !FID_ROLL(a, b)))
+#define FID_DIFF(a,b)  ((FID_ROLL(b, a) ? FID_MAX : 0) + (int)(a) - (int)(b) - (FID_ROLL(a, b) ? FID_MAX : 0))
+#endif	/* FID_DIFF */
 
 /* We monitor static PVs and update their value upon modification */
 enum STATICPVSINDEX
@@ -191,11 +208,12 @@ enum PULSEPVSINDEX
 #define AVAIL_X250AVE     0x1000000
 
 /* Structure representing one PV (= channel) */
-typedef struct BLDPV {
+typedef struct BLDPV
+{
   const char *	         name;
   unsigned long	         nElems; /* type is always DOUBLE */
   
-  long         availMask;
+  unsigned int	         availMask;
 
   chid		             pvChId;
 
@@ -211,31 +229,35 @@ typedef struct BLDPV {
 \* No need to hold type, always double */
 } BLDPV;
 
-typedef struct BLDBLOB {
+typedef struct BLDBLOB
+{
 	const char *            name;
 	FcomBlobRef             blob;
 	long                    aMsk;
 } BLDBLOB;
 
 
+#undef IGNORE_UNAVAIL_PVS
 BLDPV bldStaticPVs[]=
 {
     [DSPR1]  = {"BLD:SYS0:500:DSPR1",  1, AVAIL_DSPR1,  NULL, NULL},	/* For Energy */
     [DSPR2]  = {"BLD:SYS0:500:DSPR2",  1, AVAIL_DSPR2,  NULL, NULL},	/* For Energy */
+#ifndef IGNORE_UNAVAIL_PVS
     [E0BDES] = {"BEND:LTU0:125:BDES",  1, AVAIL_E0BDES, NULL, NULL},	/* Energy in MeV */
+#endif /* IGNORE_UNAVAIL_PVS */
     [FMTRX]  = {"BLD:SYS0:500:FMTRX", 32, AVAIL_FMTRX,  NULL, NULL},		/* For Position */
 /* Shantha Condamoor: 7-Jul-2014: The following are for matlab PVs that are used in shot-to-shot photon energy calculations*/	
+#ifndef IGNORE_UNAVAIL_PVS
 	[PHOTONEV]={"SIOC:SYS0:ML00:AO627",1, AVAIL_PHOTONEV,  NULL, NULL},	/* For shot-to-shot Photon Energy */
+#endif /* IGNORE_UNAVAIL_PVS */
 	[X450AVE]= {"SIOC:SYS0:ML02:AO041",1, AVAIL_X450AVE,  NULL, NULL},	/* Average of last few hundred data points of X POS in LTU BPM x450 */		
 	[X250AVE]= {"SIOC:SYS0:ML02:AO040",1, AVAIL_X250AVE,  NULL, NULL},	/* Average of last few hundred data points of X POS in LTU BPM x250 */	
 };
 
 #define N_STATIC_PVS (sizeof(bldStaticPVs)/sizeof(bldStaticPVs[0]))
 
-#ifdef USE_PULSE_CA
-#else
-
-BLDBLOB bldPulseBlobs[] = {
+BLDBLOB bldPulseBlobs[] =
+{
   /**
    * Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
    */
@@ -311,16 +333,15 @@ FcomID bldPulseID[N_PULSE_BLOBS] = { 0 };
 
 FcomBlobSetRef  bldBlobSet = 0;
 
-#endif
 
 static epicsInt32 bldUseFcomSet = 0;
 
-static long dataAvailable = 0;
+static unsigned int dataAvailable = 0;
 
 int BLD_MCAST_ENABLE = 1;
 epicsExportAddress(int, BLD_MCAST_ENABLE);
 
-int BLD_MCAST_DEBUG = 0;
+int BLD_MCAST_DEBUG = 1;
 epicsExportAddress(int, BLD_MCAST_DEBUG);
 
 int BLD_XTCAV_DEBUG = 0;
@@ -334,7 +355,8 @@ epicsExportAddress(int, DELAY_FOR_CA);
 
 /* Share with device support */
 volatile int bldAllPVsConnected   = 0;
-volatile int bldConnectAbort      = 0;
+volatile int bldConnectAbort      = 1;
+epicsExportAddress(int, bldConnectAbort);
 epicsUInt32  bldInvalidAlarmCount[N_PULSE_BLOBS] = {0};
 epicsUInt32  bldUnmatchedTSCount[N_PULSE_BLOBS]  = {0};
 EBEAMINFO    bldEbeamInfo;
@@ -355,17 +377,12 @@ static in_addr_t mcastIntfIp = 0;
 
 static epicsEventId EVRFireEvent = NULL;
 
-#ifdef SIGNAL_TEST
-epicsEventId EVRFireEventPCAV = NULL;
-int pcavPulseId = 0;
-#endif
-
 /* EPICS time has pulse ID in lower bits of nanoseconds;
  * for measuring high-resolution delays we also need
  * the real nano- or at least microseconds.
  */
 epicsTimeStamp  bldFiducialTime;
-struct timeval  bldFiducialTimeHires;
+t_HiResTime		bldFiducialTsc = 0LL;	/* 64 bit hi-res cpu timestamp counter */
 
 int      tsCatch = -1;
 uint32_t tsMismatch[4];
@@ -373,39 +390,34 @@ uint32_t tsMismatch[4];
 static epicsUInt32
 usSinceFiducial(void)
 {
-struct timeval now;
-
-	gettimeofday( &now, 0 );
-
-	if ( now.tv_usec < bldFiducialTimeHires.tv_usec ) {
-		now.tv_usec += 1000000;
-		now.tv_sec--;	
-	}
-	now.tv_usec  = now.tv_usec - bldFiducialTimeHires.tv_usec;
-	now.tv_usec += now.tv_sec  - bldFiducialTimeHires.tv_sec;
-
-	return (epicsUInt32)now.tv_usec;
+	/* Note: The hi-res fiducial timestamp is only set on beam fiducials */
+	t_HiResTime		curTick		= GetHiResTicks();
+	epicsUInt32		usSinceFid	= HiResTicksToSeconds( curTick - bldFiducialTsc ) * 1e6;
+	return usSinceFid;
 }
 
+#ifdef RTEMS
 static void evr_timer_isr(void *arg);
+#endif
 static int BLDMCastTask(void * parg);
 static void BLDMCastTaskEnd(void * parg);
 
 void BLDMCastStart(int enable, const char * NIC)
-{/* This function will be called in st.cmd after iocInit() */
-    /* Do we need to use RTEMS task priority to get higher priority? */
+{
+	/* This function will be called in st.cmd after iocInit() */
+    printf( "BLDMCastStart: %s %s\n", (enable ? "enable" : "disable"), NIC );
     BLD_MCAST_ENABLE = enable;
-		
+
     if(NIC && NIC[0] != 0)
         mcastIntfIp = inet_addr(NIC);
-			
+
     if(mcastIntfIp == (in_addr_t)(-1))
     {
 	errlogPrintf("Illegal MultiCast NIC IP\n");
 	return;
     }
 
-#if 0
+#ifdef RTEMS
     /************Setup high resolution timer ***************************************************************/
     /* you need to setup the timer only once (to connect ISR) */
     BSP_timer_setup( BSPTIMER, evr_timer_isr, 0, 0 /* do not reload timer when it expires */);
@@ -420,28 +432,17 @@ void BLDMCastStart(int enable, const char * NIC)
 static int
 pvTimePulseIdMatches(
 	epicsTimeStamp *p_ref,
-#ifdef USE_PULSE_CA
-#else
 	FcomBlobRef p_cmp
-#endif
 )
 {
 epicsUInt32 idref, idcmp, diff;
 
 	idref = PULSEID((*p_ref));
-#ifdef USE_PULSE_CA
-#else
 	idcmp = p_cmp->fc_tsLo & LOWER_17_BIT_MASK;
-#endif
 
 	if ( idref == idcmp && idref != PULSEID_INVALID ) {
 		/* Verify that seconds match to less that a few minutes */
-		diff = abs(p_ref->secPastEpoch -
-#ifdef USE_PULSE_CA
-#else
-		           p_cmp->fc_tsHi
-#endif
-		       );
+		diff = abs( p_ref->secPastEpoch - p_cmp->fc_tsHi );
 		if ( diff < 4*60 )
 			return 0;
 	}
@@ -449,10 +450,13 @@ epicsUInt32 idref, idcmp, diff;
 	return -1;
 }
 
+/*
+ * This function will be registered with EVR for callback each fiducial at 360hz
+ * The argument is the bldBlobSet ptr allocated by fcomAllocBlobSet()
+ */
 void EVRFire(void *use_sets)
-{/* This function will be registered with EVR callback */
-#ifdef USE_PULSE_CA
-#endif
+{
+	/* evrRWMutex is locked while calling these user functions so don't do anything that might block. */
 	epicsTimeStamp time_s;
 
 	/* get the current pattern data - check for good status */
@@ -461,49 +465,53 @@ void EVRFire(void *use_sets)
 	int status = evrTimeGetFromPipeline(&time_s,  evrTimeCurrent, modifier_a, &patternStatus, 0,0,0);
 	/* This is 120Hz. So printf will screw timing */
 	if(BLD_MCAST_DEBUG >= 4) errlogPrintf("EVR fires (status %i, mod5 0x%08x)\n", status, (unsigned)modifier_a[4]);
-	if (!status)
-	{/* check for LCLS beam and rate-limiting */
-		if (    (modifier_a[4] & MOD5_BEAMFULL_MASK)
-#ifdef USE_PULSE_CA
-#endif
-		   )
-		{/* ... do beam-sync rate-limited processing here ... */
-
-			bldFiducialTime = time_s;
-			gettimeofday( &bldFiducialTimeHires, 0 );
-			/* This is 30Hz. So printf might screw timing */
-			if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Timer Starts\n");
-
-			if ( ! use_sets ) {
-#if 0
-				/* call 'BSP_timer_start()' to set/arm the hardware */
-				BSP_timer_start( BSPTIMER, timer_delay_clicks );
-#endif
-			} else {
-				epicsEventSignal(EVRFireEvent);
-#ifdef SIGNAL_TEST
-				epicsEventSignal(EVRFireEventPCAV);
-#endif
-			}
-
-		}
-	} else {
+	if ( status != 0 )
+	{
+		/* Error from evrTimeGetFromPipeline! */
 		bldFiducialTime.nsec = PULSEID_INVALID;
+		return;
 	}
 
+#ifndef RTEMS
+	int curFid	= PULSEID( time_s );
+	int beamFid	= PULSEID( bldFiducialTime );
+	if ( FID_DIFF( curFid, beamFid ) == 2 )
+	{
+		/* No BSP timer, so we fire fCom collection 2 fids after beam */
+		epicsEventSignal( EVRFireEvent);
+	}
+#endif
+
+	/* check for LCLS beam and rate-limiting */
+	if ( (modifier_a[4] & MOD5_BEAMFULL_MASK) == 0 )
+	{
+		/* No beam */
+		return;
+	}
+
+	/* Get timestamps for beam fiducial */
+	bldFiducialTime = time_s;
+	bldFiducialTsc	= GetHiResTicks();
+
+#ifdef RTEMS
+	if ( use_sets == NULL ) {
+		BSP_timer_start( BSPTIMER, timer_delay_clicks );
+	}
+#endif
 	return;
 }
 
+#ifdef RTEMS
+/* Invoked by BSP_timer on 5ms timeout after fiducial */
+/* Wakes up BLDMCast thread which calls fcomGetBlobSet() */
 static void evr_timer_isr(void *arg)
 {/* post event/release sema to wakeup worker task here */
   if(EVRFireEvent) { 
     epicsEventSignal(EVRFireEvent);
-#ifdef SIGNAL_TEST
-    epicsEventSignal(EVRFireEventPCAV);
-#endif
   }
     return;
 }
+#endif
 
 static void printChIdInfo(chid pvChId, char *message)
 {
@@ -530,7 +538,7 @@ static void eventCallback(struct event_handler_args args)
 {
     BLDPV * pPV = args.usr;
 
-    if(BLD_MCAST_DEBUG >= 2) errlogPrintf("Event Callback: %s, status %d\n", ca_name(args.chid), args.status);
+    if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Event Callback: %s, status %d\n", ca_name(args.chid), args.status);
 
     epicsMutexLock(bldMutex);
     if (args.status == ECA_NORMAL)
@@ -541,7 +549,7 @@ static void eventCallback(struct event_handler_args args)
         else
 			dataAvailable |=   pPV->availMask;
 
-        if(BLD_MCAST_DEBUG >= 2)
+        if(BLD_MCAST_DEBUG >= 3)
         {
             errlogPrintf("Event Callback: %s, copy type %ld, elements %ld, bytes %d, severity %d\n",
                 ca_name(args.chid), args.type, args.count, dbr_size_n(args.type, args.count), pPV->pTD->severity);
@@ -556,6 +564,7 @@ static void eventCallback(struct event_handler_args args)
 }
 
 
+#ifdef CONNECT_PV
 static int
 connectCaPv(const char *name, chid *p_chid)
 {
@@ -567,28 +576,26 @@ int rtncode;
 
 		/* No need for connectionCallback since we want to wait till connected */
 		if ( BLD_MCAST_DEBUG >= 1 ) {
-			printf("creating channel..."); fflush(stdout);
+			printf("creating channel for %s ...\n", name ); fflush(stdout);
 		}
 
 		SEVCHK(ca_create_channel(name, NULL/*connectionCallback*/, NULL, CA_PRIORITY , p_chid), "ca_create_channel");
 
-		if ( BLD_MCAST_DEBUG >= 1 ) {
-			printf(" done\n");
+		if ( BLD_MCAST_DEBUG >= 2 ) {
+			printf(" ca_create_channel successful for %s\n", name );
+			fflush(stdout);
 		}
 
 		/* Not very necessary */
 		/* SEVCHK(ca_replace_access_rights_event(bldStaticPVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event"); */
 
 		/* We could do subscription in connetion callback. But in this case, better to enforce all connection */
-		if ( BLD_MCAST_DEBUG >= 1 ) {
-			printf("pending for IO ..."); fflush(stdout);
+		if ( BLD_MCAST_DEBUG >= 2 ) {
+			printf("pending for IO ...\n");
+			fflush(stdout);
 		}
 
 		rtncode = ca_pend_io(10.0);
-
-		if ( BLD_MCAST_DEBUG >= 1 ) {
-			printf(" done\n");
-		}
 
 		if ( ECA_NORMAL != rtncode ) {
 
@@ -598,9 +605,9 @@ int rtncode;
 			if (rtncode == ECA_TIMEOUT) {
 
 				errlogPrintf("Channel connect timed out: '%s' not found.\n", name);
-				errlogPrintf("Continue to try -- set variable 'bldConnectAbort' to nonzero for aborting within 10s\n");
-
+				fflush(stdout);
 				if ( ! bldConnectAbort ) {
+					errlogPrintf("Continuing to try -- set bldConnectAbort nonzero to abort\n");
 					continue;
 				}
 			} else {
@@ -613,19 +620,36 @@ int rtncode;
 
 	return 0;
 }
+#endif /* CONNECT_PV */
 
 static int
 init_pvarray(BLDPV *p_pvs, int n_pvs, int subscribe)
 {
 int           loop;
 unsigned long cnt;
+unsigned int	nFailedConnections = 0;
+
+	int nSecDelay = 0;
+	if ( nSecDelay > 0 )
+	{
+		printf(	"**** HACK ****\n"
+				"missing RTEMS BSP timer\n"
+				"workaround is to sleep for %d seconds ...\n"
+				"Fix me!\n"
+				"**** HACK ****\n"
+				, nSecDelay );
+		printf("TODO: Try InitHookRegister here!\n" );
+		epicsThreadSleep( nSecDelay );
+	}
 
 	for(loop=0; loop<n_pvs; loop++)
 	{
-
+#ifndef CONNECT_PV
+		printf( "init_pvarray disabled.  Not connecting to PV %s\n", p_pvs[loop].name );
+#else
 		if ( connectCaPv( p_pvs[loop].name, &p_pvs[loop].pvChId ) ) {
-			errlogPrintf("FATAL: connection attempts aborted!\n");
-			return -1;
+			nFailedConnections++;
+			continue;
 		}
 
 		if ( p_pvs[loop].nElems != (cnt = ca_element_count(p_pvs[loop].pvChId)) ) {
@@ -648,6 +672,12 @@ unsigned long cnt;
 			SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, p_pvs[loop].nElems, p_pvs[loop].pvChId, DBE_VALUE|DBE_ALARM, eventCallback, &(p_pvs[loop]), NULL), "ca_create_subscription");
 #endif
 		}
+#endif
+	}
+
+	if ( nFailedConnections > 5 ) {
+		errlogPrintf("init_pvarray error: %d failed connection attempts!\n", nFailedConnections );
+		return -1;
 	}
 
 	return 0;
@@ -675,8 +705,6 @@ static void BLDMCastTaskEnd(void * parg)
         }
     }
 
-#ifdef USE_PULSE_CA
-#endif
     epicsMutexUnlock(bldMutex);
     printf("BLDMCastTaskEnd\n");
 
@@ -696,9 +724,7 @@ unsigned char mcastTTL;
 #endif
 epicsTimeStamp *p_refTime;
 
-#ifndef USE_PULSE_CA
 FcomBlobSetMask got_mask;
-#endif
 
 epicsUInt32     this_time;
 
@@ -809,6 +835,7 @@ epicsUInt32     this_time;
 
 	if ( DELAY_FOR_CA > 0 ) {
 		printf("Delay %d seconds to wait CA ready!\n", DELAY_FOR_CA);
+		printf("TODO: Try InitHookRegister here!\n" );
 		for(loop=DELAY_FOR_CA;loop>0;loop--) {
 			printf("\r%d seconds left!\n", loop);
 			epicsThreadSleep(1.0);
@@ -828,18 +855,11 @@ epicsUInt32     this_time;
 	ca_flush_io();
 	/* ca_pend_event(2.0); */		
 
-#ifdef USE_PULSE_CA
-#endif
-
 	/* All ready to go, create event and register with EVR */
 	EVRFireEvent = epicsEventMustCreate(epicsEventEmpty);
 		
 	/* Register EVRFire */
-#ifdef USE_PULSE_CA
-#endif
 	evrTimeRegister(EVRFire, bldBlobSet);
-	
-#undef  bldBlobSet
 
 	bldAllPVsConnected       = 1;
 	printf("All PVs are successfully connected!\n");
@@ -880,26 +900,39 @@ epicsUInt32     this_time;
 			}
 		}
 
-		/* This is 30Hz. So printf might screw timing */
-		if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Do work!\n");
+		/* Use FCOM to obtain pulse-by-pulse data */
+		if ( bldBlobSet )
+		{
+			/* This is 30Hz. So printf might screw timing */
+			if(BLD_MCAST_DEBUG >= 4) errlogPrintf("Calling fcomGetBlobSet w/ timeout %u ms\n", (unsigned int) timer_delay_ms );
 
-#ifdef USE_PULSE_CA
-#else /* USE_PULSE_CA */
-		/* Use FCOM to obtaine pulse-by-pulse data */
-		if ( bldBlobSet ) {
+			/* Get all the blobs w/ timeout timer_delay_ms */
 			status = fcomGetBlobSet( bldBlobSet, &got_mask, (1<<N_PULSE_BLOBS) - 1, FCOM_SET_WAIT_ALL, timer_delay_ms );
-			if ( status && FCOM_ERR_TIMEDOUT != status ) {
+			if ( status && FCOM_ERR_TIMEDOUT != status )
+			{
 				errlogPrintf("fcomGetBlobSet failed: %s; sleeping for 2 seconds\n", fcomStrerror(status));
 				for ( loop = 0; loop < N_PULSE_BLOBS; loop++ )
 					bldFcomGetErrs[loop]++;
 				epicsThreadSleep( 2.0 );
 				continue;
 			}
-			/* If a timeout happened then fall through; there still might be good
-			 * blobs...
-			 */
+			if ( status == FCOM_ERR_TIMEDOUT )
+			{
+				/* If a timeout happened then fall through; there still might be good
+				 * blobs...
+				 */
+				if(BLD_MCAST_DEBUG >= 3) errlogPrintf("fcomGetBlobSet %u ms timeout!\n", (unsigned int) timer_delay_ms );
+			}
+			else
+			{
+				if(BLD_MCAST_DEBUG >= 4) errlogPrintf("fcomGetBlobSet succeeeded.\n");
+			}
 		}
-			
+		else
+		{
+			errlogPrintf( "fcomGetBlobSet failed: %s; sleeping for 2 seconds\n", fcomStrerror(status));
+		}
+
 		this_time = usSinceFiducial();
 
 		if ( this_time > bldMaxFcomDelayUs )
@@ -985,9 +1018,6 @@ passed:
 			__st_le32(&bldEbeamInfo.ts_sec,      p_refTime->secPastEpoch);
 			__st_le32(&bldEbeamInfo.ts_nsec,     p_refTime->nsec);
 			__st_le32(&bldEbeamInfo.uFiducialId, PULSEID((*p_refTime)));
-#ifdef SIGNAL_TEST
-			pcavPulseId = PULSEID(*p_refTime);
-#endif
 
 			/* Calculate beam charge */
 			if( (dataAvailable & AVAIL_BMCHARGE) ) {
@@ -1000,7 +1030,7 @@ passed:
 
 			/* Calculate beam energy */
 			if( AVAIL_L3ENERGY == (AVAIL_L3ENERGY & dataAvailable ) ) {
-				double tempD;
+				double tempD = 0.0;
 								
 				if (bldStaticPVs[DSPR1].pTD->value != 0)
 					tempD = bldPulseBlobs[BMENERGY1X].blob->fcbl_bpm_X/(1000.0 * bldStaticPVs[DSPR1].pTD->value);
@@ -1259,7 +1289,6 @@ passed:
 
 			epicsMutexUnlock(bldMutex);
 		}
-#endif /* USE_PULSE_CA */
 
 		scanIoRequest(bldIoscan);
 
@@ -1270,13 +1299,13 @@ passed:
 #ifdef MULTICAST_UDPCOMM
 			rtncode = udpCommSend( sFd, &bldEbeamInfo, sizeof(bldEbeamInfo) );
 			if ( rtncode < 0 ) {
-				if ( BLD_MCAST_DEBUG )
+				if ( BLD_MCAST_DEBUG >= 1 )
 					errlogPrintf("Sending multicast packet failed: %s\n", strerror(-rtncode));
 			}
 #else
 			if(-1 == sendto(sFd, (void *)&bldEbeamInfo, sizeof(struct EBEAMINFO), 0, (const struct sockaddr *)&sockaddrDst, sizeof(struct sockaddr_in)))
 			{
-				if(BLD_MCAST_DEBUG) perror("Multicast sendto failed\n");
+				if ( BLD_MCAST_DEBUG >= 1 ) perror("Multicast sendto failed\n");
 			}
 #endif
 			bldMcastMsgSent++;
@@ -1289,7 +1318,6 @@ passed:
 		/* Running average: fn+1 = 127/128 * fn + 1/128 * x = fn - 1/128 fn + 1/128 x */
 		bldAvgPostDelayUs += ((int) (- bldAvgPostDelayUs + this_time)) >> 8;
 
-#ifndef USE_PULSE_CA
 		if ( ! bldBlobSet ) {
 			for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
 				if ( bldPulseBlobs[loop].blob ) {
@@ -1303,7 +1331,6 @@ passed:
 				}
 			}
 		}
-#endif
 	}
 
 #ifdef MULTICAST
@@ -1314,7 +1341,6 @@ passed:
 #endif
 #endif
 
-#ifndef USE_PULSE_CA
 	if ( bldBlobSet ) {
 		rtncode = fcomFreeBlobSet( bldBlobSet );
 		if ( rtncode )
@@ -1327,21 +1353,19 @@ passed:
 		if ( rtncode )
 			fprintf(stderr, "Unable to unsubscribe %s from FCOM: %s\n", bldPulseBlobs[loop].name, fcomStrerror(rtncode));
 	}
-#endif
 
 	/*Should never return from following call*/
 	/*SEVCHK(ca_pend_event(0.0),"ca_pend_event");*/
 	return(0);
 }
 
-#ifndef USE_PULSE_CA
 void
 dumpTsMismatchStats(FILE *f, int reset)
 {
-int      i;
-epicsUInt32 cnt [N_PULSE_BLOBS];
-epicsUInt32 cnt1[N_PULSE_BLOBS];
-epicsUInt32 cnt2[N_PULSE_BLOBS];
+	int      i;
+	epicsUInt32 cnt [N_PULSE_BLOBS];
+	epicsUInt32 cnt1[N_PULSE_BLOBS];
+	epicsUInt32 cnt2[N_PULSE_BLOBS];
 
 	if ( bldMutex ) epicsMutexLock( bldMutex );
 		memcpy(cnt,  bldUnmatchedTSCount,  sizeof(cnt));
@@ -1374,42 +1398,57 @@ epicsUInt32 cnt2[N_PULSE_BLOBS];
 		if ( bldMutex ) epicsMutexUnlock( bldMutex );
 	}
 }
-#endif
 
-#if 0
+#if 1
 /**************************************************************************************************/
-/* Here we supply the access methods for 'devBusMapped'                                           */
+/* Here we supply the access methods for BSP_timer devBusMappedIO                                  */
 /**************************************************************************************************/
 
 static int
-timer_delay_rd(DevBusMappedPvt pvt, epicsUInt32 *pvalue, dbCommon *prec)
+timer_delay_rd(DevBusMappedPvt pvt, unsigned *pvalue, dbCommon *prec)
 {
-uint64_t us;
+	uint64_t us;
+	uint64_t clockRate;
+#ifdef RTEMS
+	/* BSP_timer_clock_get(BSPTIMER) returns the BSP clock rate in hz */
+	clockRate = (uint64_t)BSP_timer_clock_get(BSPTIMER);
+#else
+	clockRate = HiResTicksPerSecond();
+#endif
 
 	us = 1000000ULL * (uint64_t)timer_delay_clicks;
-	us = us / (uint64_t)BSP_timer_clock_get(BSPTIMER);
+	us = us / clockRate;
 	*pvalue = (epicsUInt32)us;
 
 	return 0;
 }
 
 static int
-timer_delay_wr(DevBusMappedPvt pvt, epicsUInt32 value, dbCommon *prec)
+timer_delay_wr(DevBusMappedPvt pvt, unsigned value, dbCommon *prec)
 {
 uint64_t clicks;
 
+	/* Convert timer delay in us to ms for fcom polling timeout */
 	if ( (timer_delay_ms     = (unsigned)value/1000) < 1 )
 		timer_delay_ms = 1;
 
-	clicks = (uint64_t)BSP_timer_clock_get(BSPTIMER) * (uint64_t)value;	/* delay from fiducial in us */
+#ifdef RTEMS
+	/* BSP_timer_clock_get(BSPTIMER) returns the BSP clock rate in hz */
+	clicks = (uint64_t)BSP_timer_clock_get(BSPTIMER);
+#else
+	clicks = HiResTicksPerSecond();
+#endif
+	clicks *= (uint64_t)value;	/* delay from fiducial in us */
+
+	/* timer_delay_clicks is set to timer delay in clock ticks */
 	timer_delay_clicks = (uint32_t) (clicks / 1000000ULL);
 
 	return 0;
 }
 
 static DevBusMappedAccessRec timer_delay_io = {
-	rd: timer_delay_rd,
-	wr: timer_delay_wr,
+	rd: (DevBusMappedRead)  timer_delay_rd,
+	wr: (DevBusMappedWrite) timer_delay_wr,
 };
 #endif
 
@@ -1427,13 +1466,11 @@ static const struct drvet drvBLD = {2,                              /*2 Table En
 epicsExportAddress(drvet,drvBLD);
 
 static void
-check(char *nm, void *ptr)
+checkDevBusMappedRegister(char *nm, void *ptr)
 {
-#if 0
 	if ( 0 == devBusMappedRegister(nm, ptr) ) {
 		errlogPrintf("WARNING: Unable to register '%s'; related statistics may not work\n", nm);
 	}
-#endif
 }
 
 /* implementation */
@@ -1461,7 +1498,6 @@ static long BLD_EPICS_Init()
   }
 
 
-#ifndef USE_PULSE_CA
 	{
 	int loop;
 	/* fcomUtilFlag = DP_DEBUG; */
@@ -1481,7 +1517,7 @@ static long BLD_EPICS_Init()
 					fcomStrerror(rtncode));
 			return -1;
 		}
-		printf( "INFO: Subscribed  to %s, fcom ID 0x%X\n", bldPulseBlobs[loop].name, bldPulseID[loop] );
+		printf( "INFO: Subscribed  to %s, fcom ID 0x%X\n", bldPulseBlobs[loop].name, (unsigned int) bldPulseID[loop] );
 	}
 	/* fcomUtilFlag = DP_ERROR; */
 	}
@@ -1490,44 +1526,48 @@ static long BLD_EPICS_Init()
 	 * into a record already contains the final value, ready
 	 * for being picked up by PINI
 	 */
-	if ( epicsThreadSleepQuantum() > 0.004 ) {
-		errlogPrintf("WARNING: system clock rate not high enough to timeout -- using asynchronous mode\n");
-		      
-	} else {
-	
+	if ( epicsThreadSleepQuantum() > 0.004 )
+	{
+		errlogPrintf(	"WARNING: system clock rate not high enough to timeout! May need to use asynchronous mode\n");
+		errlogPrintf(	"sysconf clock ticks/sec = %ld, epicsThreadSleepQuantum = %0.3e\n",
+						sysconf( _SC_CLK_TCK ), epicsThreadSleepQuantum() );
+	}
+#if 0
+	else
+#endif
+	{
 		if ( (rtncode = fcomAllocBlobSet( bldPulseID, sizeof(bldPulseID)/sizeof(bldPulseID[0]), &bldBlobSet)) ) {
 			errlogPrintf("ERROR: Unable to allocate blob set: %s; trying asynchronous mode\n", fcomStrerror(rtncode));
 			bldBlobSet = 0;
 			
-		} else {
+		} else
+		{
 			bldUseFcomSet = 1;			
 		}
 	}
-#endif
 
-#if 0
 	if ( devBusMappedRegisterIO("bld_timer_io", &timer_delay_io) )
 		errlogPrintf("ERROR: Unable to register I/O methods for timer delay\n"
                      "SOFTWARE MAY NOT WORK PROPERLY\n");
-#endif
-					 
-	check("bld_stat_bad_t", &bldUnmatchedTSCount);
-	check("bld_stat_bad_d", &bldInvalidAlarmCount);
-	check("bld_stat_bad_f", &bldFcomGetErrs);
-	check("bld_stat_msg_s", &bldMcastMsgSent);
-	check("bld_stat_min_f", &bldMinFcomDelayUs);
-	check("bld_stat_max_f", &bldMaxFcomDelayUs);
-	check("bld_stat_avg_f", &bldAvgFcomDelayUs);
-	check("bld_stat_max_p", &bldMaxPostDelayUs);
-	check("bld_stat_avg_p", &bldAvgPostDelayUs);
-	check("bld_fcom_use_s", &bldUseFcomSet);
-	
+
+	/* These are simple local memory devBus devices for showing fcom status in PV's */
+	checkDevBusMappedRegister("bld_stat_bad_t", &bldUnmatchedTSCount);
+	checkDevBusMappedRegister("bld_stat_bad_d", &bldInvalidAlarmCount);
+	checkDevBusMappedRegister("bld_stat_bad_f", &bldFcomGetErrs);
+	checkDevBusMappedRegister("bld_stat_msg_s", &bldMcastMsgSent);
+	checkDevBusMappedRegister("bld_stat_min_f", &bldMinFcomDelayUs);
+	checkDevBusMappedRegister("bld_stat_max_f", &bldMaxFcomDelayUs);
+	checkDevBusMappedRegister("bld_stat_avg_f", &bldAvgFcomDelayUs);
+	checkDevBusMappedRegister("bld_stat_max_p", &bldMaxPostDelayUs);
+	checkDevBusMappedRegister("bld_stat_avg_p", &bldAvgPostDelayUs);
+	checkDevBusMappedRegister("bld_fcom_use_s", &bldUseFcomSet);
+
 	scanIoInit(&bldIoscan);
 
 	bldMutex = epicsMutexMustCreate();
 
 	if (enable_broadcast) {
-	  BLDMCastStart(enable_broadcast, getenv("IPADDR1"));
+	  BLDMCastStart( enable_broadcast, getenv("IPADDR1") );
 	}
 	else {
 	  errlogPrintf("WARN: *** Not starting BLDMCast task ***\n");
@@ -1541,19 +1581,7 @@ static long BLD_EPICS_Report(int level)
     printf("\n"BLD_DRV_VERSION"\n\n");
 	printf("Compiled with options:\n");
 
-	printf("USE_PULSE_CA     :");
-#ifdef USE_PULSE_CA
-		printf(             "  DEFINED (use CA not FCOM to obtain pulse-by-pulse data)\n");
-
-	printf("FETCH_PULSE_PVS  :");
-#ifdef FETCH_PULSE_PVS
-			printf(         "  DEFINED (do not monitor pulse-by-pulse PVs)\n");
-#else
-			printf(         "  UNDEFINED (do monitor pulse-by-pulse PVs)\n");
-#endif
-#else
-		printf(             "  UNDEFINED (use FCOM not CA to obtain pulse-by-pulse data)\n");
-#endif
+	printf("USE_PULSE_CA     :   UNDEFINED (use FCOM not CA to obtain pulse-by-pulse data)\n");
 
 	printf("USE_CA_ADD_EVENT :");
 #ifdef  USE_CA_ADD_EVENT
@@ -1575,13 +1603,11 @@ static long BLD_EPICS_Report(int level)
 		printf(             "  UNDEFINED (use of multicast interface to send data DISABLED)\n");
 #endif
 		
-#ifndef USE_PULSE_CA
 	printf("FCOM             :");
 	if ( bldBlobSet )
 		printf("  Uses a blob set to receive data synchronously\n");
 	else
 		printf("  Delays (using a hardware timer) and reads data asynchronously\n");
-#endif
 
 	printf("Latest PULSEID   : %d\n", __ld_le32(&bldEbeamInfo.uFiducialId));
 
@@ -1597,7 +1623,8 @@ static long BLD_EPICS_Report(int level)
     return 0;
 }
 
-static long BLD_report_EBEAMINFO() {
+static long BLD_report_EBEAMINFO()
+{
   printf("ts_sec: %d\n", __ld_le32(&bldEbeamInfo.ts_sec));
   printf("ts_nsec: %d\n", __ld_le32(&bldEbeamInfo.ts_nsec));
   printf("mMBZ1: %d\n", __ld_le32(&bldEbeamInfo.uMBZ1));
