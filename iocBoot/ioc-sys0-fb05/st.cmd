@@ -11,6 +11,7 @@ ld("lanIpBasic_mve.obj")
 
 cd("../..")
 
+errlogPrintf("Alert! BLD.obj no longer being built by the BLD ioc!\n")
 # Load obj file
 ld("bin/RTEMS-beatnik/BLD.obj")
 

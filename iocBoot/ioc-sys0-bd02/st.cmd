@@ -27,6 +27,8 @@ setenv("NETMASK1","255.255.252.0",0)
 # execute generic part
 . "../st.vmegeneric.cmd"
 
+errlogPrintf("Alert! BLDReciever.obj no longer being built by the BLD ioc!\n")
+
 # Load IN20 RF01 VME IOC
 ld("bin/RTEMS-beatnik/BLDReceiver.obj")
 

@@ -13,6 +13,7 @@ setenv("NETMASK1", "255.255.252.0",0)
 
 cd("../..")
 
+errlogPrintf("Alert! BLD.obj no longer being built by the BLD ioc!\n")
 # Load obj file
 ld("bin/RTEMS-beatnik/BLD.obj")
 
