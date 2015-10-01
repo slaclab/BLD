@@ -70,8 +70,6 @@ dbLoadRecords("db/IOC-SYS0-FB05.db")
 # Set the BLD data records (which are now deprecated,
 # the BLDMcastWfRecv waveform should be used instead)
 # to 'Passive' to effectively disable them.
-#dbLoadRecords("db/BLDMCast.db","LOCA=501, DIAG_SCAN=Passive, STAT_SCAN=5")
-#dbLoadRecords("db/BLDMCast.db","LOCA=501, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 dbLoadRecords("db/BLDMCastReceiverPhaseCavity.db","LOCA=501, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 dbLoadRecords("db/BLDMCastReceiverImbs.db","DEVICE=BLD:SYS0:501")
 dbLoadRecords("db/BLDMCastReceiver.db","DEVICE=BLD:SYS0:501")
