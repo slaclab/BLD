@@ -25,7 +25,7 @@ USR_CPPFLAGS =
 # several facilities (evr, micro, ...) for this to work.
 #BUILDFOR=_RTEMS
 
-#LIBRARY_IOC		+= devBLDMCastWfRecv
+LIBRARY_IOC		+= devBLDMCastWfRecv
 #LIBRARY_IOC$(BUILDFOR) += bldSndrSupport
 #LIBRARY_IOC$(BUILDFOR)	+= bldRcvrSupport
 
@@ -36,7 +36,7 @@ DBD += devBLDSndr.dbd
 
 #=============================
 # The following are compiled and added to the Support library for devBLDMCastWfRecv
-#devBLDMCastWfRecv_SRCS = devBLDMCastWfRecv.c
+devBLDMCastWfRecv_SRCS = devBLDMCastWfRecv.c
 
 # The following are compiled and added to the Support library for BLD Sender
 
@@ -66,7 +66,7 @@ BLDSender_DBD += fcomUtil.dbd
 BLDSender_DBD += fcomIocshSupport.dbd
 BLDSender_DBD += devBusMapped.dbd
 BLDSender_DBD += devBLDSndr.dbd
-#BLDSender_DBD += devBLDMCastWfRecv.dbd
+BLDSender_DBD += devBLDMCastWfRecv.dbd
 
 #=============================
 
@@ -74,7 +74,7 @@ BLDSender_DBD += devBLDSndr.dbd
 BLDSender_LIBS += autosave
 BLDSender_LIBS += devIocStats
 BLDSender_LIBS += diagTimer
-#BLDSender_LIBS += devBLDMCastWfRecv
+BLDSender_LIBS += devBLDMCastWfRecv
 BLDSender_LIBS += fcom
 BLDSender_LIBS += fcomIocshSupport
 BLDSender_LIBS += fcomUtil

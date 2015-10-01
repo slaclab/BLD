@@ -23,10 +23,13 @@ epicsEnvSet("EPICS_CAS_AUTO_BEACON_ADDR_LIST","YES")
 
 # Set common fnet variables
 epicsEnvSet("NETMASK1","255.255.252.0",0)
-# For the LCLS stations
-# Production 
-epicsEnvSet("FCOMMCGRP", "mc-lcls-fcom",1)      #  239.219.8.0 on  MCAST-LCLS-FCOM subnet
-# Development epicsEnvSet("FCOMMCGRP", "mc-b034-fcom",1)      #  on  MCAST-B034-FCOM subnet
+
+# Set the FCOM multicast prefix
+# Production FCOM group is mc-lcls-fcom,  239.219.8.0 on  MCAST-LCLS-FCOM subnet
+# epicsEnvSet("FCOM_MC_PREFIX", "mc-lcls-fcom",1)
+epicsEnvSet("FCOM_MC_PREFIX", "239.219.8.0", 1)
+# Development FCOM group is mc-b034-fcom, 239.219.248.0 on  MCAST-B034-FCOM subnet
+# Development epicsEnvSet("FCOM_MC_PREFIX", "mc-b034-fcom",1)      #  on  MCAST-B034-FCOM subnet
 
 # execute generic part
 < "../st.linuxgeneric.cmd"
@@ -65,7 +68,7 @@ epicsEnvSet("FAC", "SYS0")
 # Should be epicsEnvSet("NMBR","500")
 epicsEnvSet("NMBR","501")
 
-epicsEnvSet("EVR_DEV1","EVR:${LOCA}:BD03")
+epicsEnvSet("EVR_DEV1","EVR:${LOCA}:${UNIT}")
 # Not till linux version is tested and we retire ioc-sys0-bd01
 #epicsEnvSet("BSA_DEV1","BLD:${LOCA}:${NMBR}")
 epicsEnvSet("BSA_DEV1","BLD:${LOCA}:${NMBR}")
@@ -90,15 +93,12 @@ epicsEnvSet("BSA_DEV1","BLD:${LOCA}:${NMBR}")
 
 epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES","1000000")
 
-#set fcom multicast prefix
-epicsEnvSet( "FCOM_MC_PREFIX", "${FCOMMCGRP}" )
-
 # Set IOC Shell Prompt as well:
 epicsEnvSet("IOCSH_PS1","vioc-sys0-bd03>")
 
-epicsEnvSet("IOC_NAME","IOC=IOC:${LOCA}:BD03")
+epicsEnvSet("IOC_NAME","VIOC:${LOCA}:${UNIT}")
 
-epicsEnvSet("AUTOSAVE_MACRO","P=IOC:${LOCA}:BD03:")
+epicsEnvSet("AUTOSAVE_MACRO","VIOC:${LOCA}:${UNIT}:")
 # ====================================================================
 # Setup some additional environment variables
 # ====================================================================
@@ -250,7 +250,7 @@ dbLoadRecords("db/access.db","DEV=${BSA_DEV1}:, MANAGE=IOCMANAGERS")
 # the BLDMcastWfRecv waveform should be used instead)
 # to 'Passive' to effectively disable them.
 
-dbLoadRecords("db/BLDMCast.db","LOCA=${NMBR}, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+dbLoadRecords("db/BLDMCast.db","LOCA=${LOCA},NMBR=${NMBR}, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.
@@ -273,7 +273,7 @@ dbLoadRecords("db/BLDMCast.db","LOCA=${NMBR}, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 # which would be faster, simpler and more flexible)
 # 
 
-dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:${LOCA}:BD03:BLDWAV, scan=Event, evnt=146, rarm=2")
+dbLoadRecords("db/BLDMCastWfRecv.db","name=VIOC:${LOCA}:${UNIT}:BLDWAV, scan=Event, evnt=146, rarm=2")
 
 # END: Loading the record databases
 ########################################################################
@@ -285,7 +285,7 @@ dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:${LOCA}:BD03:BLDWAV, scan=Event, 
 # ============================================================
 # If all PVs don't connect continue anyway
 # ============================================================
-# save_restoreSet_IncompleteSetsOk(1)
+save_restoreSet_IncompleteSetsOk(1)
 
 # ============================================================
 # created save/restore backup files with date string
@@ -298,23 +298,23 @@ dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:${LOCA}:BD03:BLDWAV, scan=Event, 
 # ============================================================
 # Where "/data" is an NFS mount point setup when linuxRT target 
 # boots up.
-# set_requestfile_path("/data/${IOC}/autosave-req")
+set_requestfile_path("/data/${IOC}/autosave-req")
 
 # ============================================================
 # Where to write the save files that will be used to restore
 # ============================================================
-# set_savefile_path("/data/${IOC}/autosave")
+set_savefile_path("/data/${IOC}/autosave")
 
 # ============================================================
 # Prefix that is use to update save/restore status database
 # records
 # ============================================================
-# save_restoreSet_UseStatusPVs(1)
-# save_restoreSet_status_prefix("${IOC_NAME}:")
+save_restoreSet_UseStatusPVs(1)
+save_restoreSet_status_prefix("${IOC_NAME}:")
 
 ## Restore datasets
-# set_pass0_restoreFile("info_settings.sav")
-# set_pass1_restoreFile("info_settings.sav")
+set_pass0_restoreFile("info_settings.sav")
+set_pass1_restoreFile("info_settings.sav")
 
 # =====================================================================
 # End: Setup autosave/restore
@@ -350,8 +350,8 @@ iocInit()
 # and 'info_positions.req', from information (info nodes) contained in all of
 # the EPICS databases that have been loaded into this IOC.
 
-# makeAutosaveFiles()
-# create_monitor_set("info_settings.req",60,"")
+makeAutosaveFileFromDbInfo( "/data/${IOC}/autosave-req/info_settings.req", "autosaveFields" )
+create_monitor_set("info_settings.req",10,"")
 
 # ===========================================================================
 

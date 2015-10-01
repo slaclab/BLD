@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.67.2.2 2015/09/04 08:45:36 bhill Exp $ */
+/* $Id: BLDMCast.c,v 1.67.2.3 2015/09/30 09:58:26 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -77,7 +77,7 @@ extern int	fcomUtilFlag;
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.67.2.2 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.67.2.3 $/$Name: RT-devel $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -625,22 +625,9 @@ int rtncode;
 static int
 init_pvarray(BLDPV *p_pvs, int n_pvs, int subscribe)
 {
-int           loop;
-unsigned long cnt;
-unsigned int	nFailedConnections = 0;
-
-	int nSecDelay = 0;
-	if ( nSecDelay > 0 )
-	{
-		printf(	"**** HACK ****\n"
-				"missing RTEMS BSP timer\n"
-				"workaround is to sleep for %d seconds ...\n"
-				"Fix me!\n"
-				"**** HACK ****\n"
-				, nSecDelay );
-		printf("TODO: Try InitHookRegister here!\n" );
-		epicsThreadSleep( nSecDelay );
-	}
+	int           loop;
+	unsigned long cnt;
+	unsigned int	nFailedConnections = 0;
 
 	for(loop=0; loop<n_pvs; loop++)
 	{
@@ -1484,14 +1471,8 @@ static long BLD_EPICS_Init()
   rtncode = gethostname(name, name_len);
   if (rtncode == 0) {
     printf("INFO: BLD hostname is %s\n", name);
-    if ((strcmp("ioc-sys0-bd01", name) == 0) || (strcmp("cpu-b34-bd03", name)== 0)) {
-      enable_broadcast = 1;
-      printf("INFO: *** Enabling Multicast ***\n");
-    }
-    else {
-      enable_broadcast = 0;
-      printf("WARN: *** Multicast disabled - hostname must be ioc-sys0-bd01 ***\n");
-    }
+    enable_broadcast = 1;
+    printf("INFO: *** Enabling Multicast ***\n");
   }
   else {
     printf("ERROR: Unable to get hostname (errno=%d, rtncode=%d)\n", errno, rtncode);
