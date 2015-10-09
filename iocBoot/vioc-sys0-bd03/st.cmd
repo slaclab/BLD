@@ -66,7 +66,7 @@ epicsEnvSet("LOCA","SYS0")
 epicsEnvSet("UNIT","BD03")
 epicsEnvSet("FAC", "SYS0")
 # Should be epicsEnvSet("NMBR","500")
-epicsEnvSet("NMBR","501")
+epicsEnvSet("NMBR","502")
 
 epicsEnvSet("EVR_DEV1","EVR:${LOCA}:${UNIT}")
 # Not till linux version is tested and we retire ioc-sys0-bd01
@@ -241,15 +241,12 @@ dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU250_POS_X, EGU=mm")
 #Load Additional databases:
 # =====================================================================
 ## Load record instances
-dbLoadRecords("db/access.db","DEV=${BSA_DEV1}:, MANAGE=IOCMANAGERS")
-
-## Load record instances
-# 5 = '2 second'
 
 # Set the BLDSender data records (which are now deprecated,
 # the BLDMcastWfRecv waveform should be used instead)
 # to 'Passive' to effectively disable them.
 
+# 5 = '2 second'
 dbLoadRecords("db/BLDMCast.db","LOCA=${LOCA},NMBR=${NMBR}, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 
 # Have a BLD listener running on this IOC and fill a waveform
