@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.67.2.3 2015/09/30 09:58:26 bhill Exp $ */
+/* $Id: BLDMCast.c,v 1.67.2.4 2015/10/01 21:58:42 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -58,6 +58,7 @@
 #include <epicsExit.h>
 
 #include "HiResTime.h"
+#include "ContextTimer.h"
 #include "evrTime.h"
 #include "evrPattern.h"
 
@@ -77,7 +78,7 @@ extern int	fcomUtilFlag;
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.67.2.3 $/$Name: RT-devel $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.67.2.4 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -261,6 +262,7 @@ BLDBLOB bldPulseBlobs[] =
   /**
    * Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
    */
+  /* BMCHARGE: BlobSet mask bit 0x0001 */
   [BMCHARGE] = { name: "BPMS:IN20:221:TMIT", blob: 0, aMsk: AVAIL_BMCHARGE},	/* Charge in Nel, 1.602e-10 nC per Nel*/
 
   /**
@@ -270,7 +272,9 @@ BLDBLOB bldPulseBlobs[] =
    * BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
    * BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
    */
+  /* BMENERGY1X: BlobSet mask bit 0x0002 */
     [BMENERGY1X] = { name: "BPMS:LTU1:250:X", blob: 0, aMsk: AVAIL_BMENERGY1X},	/* Energy in MeV */
+  /* BMENERGY2X: BlobSet mask bit 0x0004 */
     [BMENERGY2X] = { name: "BPMS:LTU1:450:X", blob: 0, aMsk: AVAIL_BMENERGY2X},	/* Energy in MeV */
 
   /**
@@ -298,30 +302,43 @@ BLDBLOB bldPulseBlobs[] =
    *         R31 R32 R33 R34;     //rmat elements for bpm3y
    *         R31 R32 R33 R34]     //rmat elements for bpm4y
    */
+/* BMPOSITION1X: BlobSet mask bit 0x0008 */
   [BMPOSITION1X] = { name: "BPMS:LTU1:720:X"    , blob: 0, aMsk: AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y },	/* Position in mm/mrad */
+/* BMPOSITION2X: BlobSet mask bit 0x0010 */
   [BMPOSITION2X] = { name: "BPMS:LTU1:730:X"    , blob: 0, aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
+/* BMPOSITION3X: BlobSet mask bit 0x0020 */
   [BMPOSITION3X] = { name: "BPMS:LTU1:740:X"    , blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
+/* BMPOSITION4X: BlobSet mask bit 0x0040 */
   [BMPOSITION4X] = { name: "BPMS:LTU1:750:X"    , blob: 0, aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
+/* BC2CHARGE:    BlobSet mask bit 0x0080 */
   [BC2CHARGE]    = { name: "BLEN:LI24:886:BIMAX", blob: 0, aMsk: AVAIL_BC2CHARGE },	/* BC2 Charge in Amps */
+/* BC2ENERGY:    BlobSet mask bit 0x0100 */
   [BC2ENERGY]    = { name: "BPMS:LI24:801:X"    , blob: 0, aMsk: AVAIL_BC2ENERGY },	/* BC2 Energy in mm */
+/* BC1CHARGE:    BlobSet mask bit 0x0200 */
   [BC1CHARGE]    = { name: "BLEN:LI21:265:AIMAX", blob: 0, aMsk: AVAIL_BC1CHARGE },	/* BC1 Charge in Amps */
+/* BC1ENERGY:    BlobSet mask bit 0x0400 */
   [BC1ENERGY]    = { name: "BPMS:LI21:233:X"    , blob: 0, aMsk: AVAIL_BC1ENERGY },	/* BC1 Energy in mm */
-  
+
+#if 1
   /**
    * Undulator Launch 120Hz Feedback States X, X', Y, Y' (running on FB03:TR05)
    * scondam: 11-Nov-2014: L.Piccoli moved Und Launch Feeback to FB05:TR05
    * [UNDSTATE]     = { name: "FBCK:FB03:TR05:STATES", blob: 0, aMsk: AVAIL_UNDSTATE},    
    */
+/* UNDSTATE:    BlobSet mask bit 0x0800 */
   [UNDSTATE]     = { name: "FBCK:FB05:TR05:STATES", blob: 0, aMsk: AVAIL_UNDSTATE}, 
+#endif
 
   /**
    * Charge at the DMP
    */
+/* BMDMPCHARGE: BlobSet mask bit 0x1000 */
   [BMDMPCHARGE]     = { name: "BPMS:DMP1:502:TMIT", blob: 0, aMsk: AVAIL_DMPCHARGE}, 
 
   /**
    * XTCAV Voltage and Phase
    */
+/* XTCAVRF:    BlobSet mask bit 0x2000 */
   [XTCAVRF]  = { name: "TCAV:DMP1:360:AV", blob: 0, aMsk: AVAIL_XTCAVRF},
   
 };
@@ -329,7 +346,7 @@ BLDBLOB bldPulseBlobs[] =
 
 #define N_PULSE_BLOBS (sizeof(bldPulseBlobs)/sizeof(bldPulseBlobs[0]))
 
-FcomID bldPulseID[N_PULSE_BLOBS] = { 0 };
+FcomID fcomBlobIDs[N_PULSE_BLOBS] = { 0 };
 
 FcomBlobSetRef  bldBlobSet = 0;
 
@@ -454,7 +471,7 @@ epicsUInt32 idref, idcmp, diff;
  * This function will be registered with EVR for callback each fiducial at 360hz
  * The argument is the bldBlobSet ptr allocated by fcomAllocBlobSet()
  */
-void EVRFire(void *use_sets)
+void EVRFire( void * pBlobSet )
 {
 	/* evrRWMutex is locked while calling these user functions so don't do anything that might block. */
 	epicsTimeStamp time_s;
@@ -463,8 +480,6 @@ void EVRFire(void *use_sets)
 	evrModifier_ta modifier_a;
 	epicsUInt32  patternStatus; /* see evrPattern.h for values */
 	int status = evrTimeGetFromPipeline(&time_s,  evrTimeCurrent, modifier_a, &patternStatus, 0,0,0);
-	/* This is 120Hz. So printf will screw timing */
-	if(BLD_MCAST_DEBUG >= 4) errlogPrintf("EVR fires (status %i, mod5 0x%08x)\n", status, (unsigned)modifier_a[4]);
 	if ( status != 0 )
 	{
 		/* Error from evrTimeGetFromPipeline! */
@@ -472,29 +487,26 @@ void EVRFire(void *use_sets)
 		return;
 	}
 
-#ifndef RTEMS
-	int curFid	= PULSEID( time_s );
-	int beamFid	= PULSEID( bldFiducialTime );
-	if ( FID_DIFF( curFid, beamFid ) == 2 )
-	{
-		/* No BSP timer, so we fire fCom collection 2 fids after beam */
-		epicsEventSignal( EVRFireEvent);
-	}
-#endif
-
-	/* check for LCLS beam and rate-limiting */
+	/* check for LCLS beam */
 	if ( (modifier_a[4] & MOD5_BEAMFULL_MASK) == 0 )
 	{
+		/* This is 360Hz. So printf will really screw timing. Only enable briefly */
+		if(BLD_MCAST_DEBUG >= 5) errlogPrintf("EVR fires (status %i, mod5 0x%08x, fid %d)\n", status, (unsigned)modifier_a[4], PULSEID(time_s) );
 		/* No beam */
 		return;
 	}
+	/* This is 120Hz. So printf will screw timing. Only enable briefly. */
+	if(BLD_MCAST_DEBUG >= 4) errlogPrintf("EVR fires (status %i, mod5 0x%08x, fid %d)\n", status, (unsigned)modifier_a[4], PULSEID(time_s) );
 
 	/* Get timestamps for beam fiducial */
 	bldFiducialTime = time_s;
 	bldFiducialTsc	= GetHiResTicks();
 
+	/* Signal the EVRFireEvent to trigger the fcomGetBlobSet call */
+	epicsEventSignal( EVRFireEvent);
+
 #ifdef RTEMS
-	if ( use_sets == NULL ) {
+	if ( pBlobSet == NULL ) {
 		BSP_timer_start( BSPTIMER, timer_delay_clicks );
 	}
 #endif
@@ -504,6 +516,7 @@ void EVRFire(void *use_sets)
 #ifdef RTEMS
 /* Invoked by BSP_timer on 5ms timeout after fiducial */
 /* Wakes up BLDMCast thread which calls fcomGetBlobSet() */
+/* Only used if we're not using fcom SYNC mode */
 static void evr_timer_isr(void *arg)
 {/* post event/release sema to wakeup worker task here */
   if(EVRFireEvent) { 
@@ -891,10 +904,14 @@ epicsUInt32     this_time;
 		if ( bldBlobSet )
 		{
 			/* This is 30Hz. So printf might screw timing */
-			if(BLD_MCAST_DEBUG >= 4) errlogPrintf("Calling fcomGetBlobSet w/ timeout %u ms\n", (unsigned int) timer_delay_ms );
-
+			int		getBlobTime	= usSinceFiducial();
+			if(BLD_MCAST_DEBUG >= 4) errlogPrintf("Calling fcomGetBlobSet w/ timeout %u ms at FID+%d us\n", (unsigned int) timer_delay_ms, getBlobTime );
+			t_HiResTime		tickBeforeGet	= GetHiResTicks();
 			/* Get all the blobs w/ timeout timer_delay_ms */
-			status = fcomGetBlobSet( bldBlobSet, &got_mask, (1<<N_PULSE_BLOBS) - 1, FCOM_SET_WAIT_ALL, timer_delay_ms );
+			FcomBlobSetMask	waitFor	= (1<<N_PULSE_BLOBS) - 1;
+			status = fcomGetBlobSet( bldBlobSet, &got_mask, waitFor, FCOM_SET_WAIT_ALL, timer_delay_ms );
+			t_HiResTime		tickAfterGet	= GetHiResTicks();
+			double			usInFCom		= HiResTicksToSeconds( tickAfterGet - tickBeforeGet ) * 1e6;
 			if ( status && FCOM_ERR_TIMEDOUT != status )
 			{
 				errlogPrintf("fcomGetBlobSet failed: %s; sleeping for 2 seconds\n", fcomStrerror(status));
@@ -908,7 +925,7 @@ epicsUInt32     this_time;
 				/* If a timeout happened then fall through; there still might be good
 				 * blobs...
 				 */
-				if(BLD_MCAST_DEBUG >= 3) errlogPrintf("fcomGetBlobSet %u ms timeout!\n", (unsigned int) timer_delay_ms );
+				if(BLD_MCAST_DEBUG >= 3) errlogPrintf("fcomGetBlobSet %u ms timeout in %.1fus! req 0x%X, got 0x%X\n", (unsigned int) timer_delay_ms, usInFCom, (unsigned int)waitFor, (unsigned int)got_mask );
 			}
 			else
 			{
@@ -954,7 +971,7 @@ epicsUInt32     this_time;
 					if ( rtncode )
 						bldUnmatchedTSCount[loop]++;
 				} else {
-					rtncode = fcomGetBlob( bldPulseID[loop], &bldPulseBlobs[loop].blob, 0 );
+					rtncode = fcomGetBlob( fcomBlobIDs[loop], &bldPulseBlobs[loop].blob, 0 );
 					if ( rtncode )
 						bldFcomGetErrs[loop]++;
 				}
@@ -1336,7 +1353,7 @@ passed:
 	}
 
 	for ( loop = 0; loop < N_PULSE_BLOBS; loop++ ) {
-		rtncode = fcomUnsubscribe( bldPulseID[loop] );
+		rtncode = fcomUnsubscribe( fcomBlobIDs[loop] );
 		if ( rtncode )
 			fprintf(stderr, "Unable to unsubscribe %s from FCOM: %s\n", bldPulseBlobs[loop].name, fcomStrerror(rtncode));
 	}
@@ -1484,21 +1501,21 @@ static long BLD_EPICS_Init()
 	/* fcomUtilFlag = DP_DEBUG; */
 	for ( loop=0; loop < N_PULSE_BLOBS; loop++) {
 		printf( "INFO: Looking up fcom ID for %s\n", bldPulseBlobs[loop].name );
-		if ( FCOM_ID_NONE == (bldPulseID[loop] = fcomLCLSPV2FcomID(bldPulseBlobs[loop].name)) ) {
+		if ( FCOM_ID_NONE == (fcomBlobIDs[loop] = fcomLCLSPV2FcomID(bldPulseBlobs[loop].name)) ) {
 			errlogPrintf("FATAL ERROR: Unable to determine FCOM ID for PV %s\n",
 				     bldPulseBlobs[loop].name );
 			return -1;
 		}
-		/* printf( "INFO: Subscribing to %s, fcom ID 0x%X\n", bldPulseBlobs[loop].name, bldPulseID[loop] ); */
-		rtncode = fcomSubscribe( bldPulseID[loop], FCOM_ASYNC_GET );
+		/* printf( "INFO: Subscribing to %s, fcom ID 0x%X\n", bldPulseBlobs[loop].name, fcomBlobIDs[loop] ); */
+		rtncode = fcomSubscribe( fcomBlobIDs[loop], FCOM_ASYNC_GET );
 		if ( 0 != rtncode ) {
 			errlogPrintf("FATAL ERROR: Unable to subscribe %s (0x%08"PRIx32") to FCOM: %s\n",
 					bldPulseBlobs[loop].name,
-					bldPulseID[loop],
+					fcomBlobIDs[loop],
 					fcomStrerror(rtncode));
 			return -1;
 		}
-		printf( "INFO: Subscribed  to %s, fcom ID 0x%X\n", bldPulseBlobs[loop].name, (unsigned int) bldPulseID[loop] );
+		printf( "INFO: Subscribed  to %s, fcom ID 0x%X\n", bldPulseBlobs[loop].name, (unsigned int) fcomBlobIDs[loop] );
 	}
 	/* fcomUtilFlag = DP_ERROR; */
 	}
@@ -1507,24 +1524,13 @@ static long BLD_EPICS_Init()
 	 * into a record already contains the final value, ready
 	 * for being picked up by PINI
 	 */
-	if ( epicsThreadSleepQuantum() > 0.004 )
+	if ( (rtncode = fcomAllocBlobSet( fcomBlobIDs, sizeof(fcomBlobIDs)/sizeof(fcomBlobIDs[0]), &bldBlobSet)) ) {
+		errlogPrintf("ERROR: Unable to allocate blob set: %s; trying asynchronous mode\n", fcomStrerror(rtncode));
+		bldBlobSet = 0;
+		
+	} else
 	{
-		errlogPrintf(	"WARNING: system clock rate not high enough to timeout! May need to use asynchronous mode\n");
-		errlogPrintf(	"sysconf clock ticks/sec = %ld, epicsThreadSleepQuantum = %0.3e\n",
-						sysconf( _SC_CLK_TCK ), epicsThreadSleepQuantum() );
-	}
-#if 0
-	else
-#endif
-	{
-		if ( (rtncode = fcomAllocBlobSet( bldPulseID, sizeof(bldPulseID)/sizeof(bldPulseID[0]), &bldBlobSet)) ) {
-			errlogPrintf("ERROR: Unable to allocate blob set: %s; trying asynchronous mode\n", fcomStrerror(rtncode));
-			bldBlobSet = 0;
-			
-		} else
-		{
-			bldUseFcomSet = 1;			
-		}
+		bldUseFcomSet = 1;			
 	}
 
 	if ( devBusMappedRegisterIO("bld_timer_io", &timer_delay_io) )

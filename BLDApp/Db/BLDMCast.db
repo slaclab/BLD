@@ -499,9 +499,28 @@ record(longin, "BLD:$(LOCA):$(NMBR):UNDFCOMERRS") {
 
 record(longin, "BLD:$(LOCA):$(NMBR):MCASTSENT") {
 	field(DESC, "MC Messages Sent")
-	field(SCAN, "$(STAT_SCAN)")
+	field(SCAN, "1 second")
 	field(DTYP, "BusAddress")
 	field(INP,  "#C0S2@bld_stat_msg_s,m32")
+}
+
+record( calc, "BLD:$(LOCA):$(NMBR):MCASTRATE" )
+{
+	field( SCAN, "1 second" )
+	field( INPA, "BLD:$(LOCA):$(NMBR):MCASTSENT" )
+	field( INPB, "BLD:$(LOCA):$(NMBR):MCASTRATE.LA" )
+	field( INPC, "0.4" )
+	field( CALC, "VAL*C+(A-B)*(1-C)" )
+	field( LOLO, "$(LOLO=9)" )
+	field( LOW,  "$(LOW=119)" )
+	field( HIGH, "$(HIGH=121)" )
+	field( HIHI, "$(HIHI=361)" )
+	field( LSV,  "$(LSV=MINOR)" )
+	field( LLSV, "$(LLSV=MAJOR)" )
+	field( HSV,  "$(HSV=MINOR)" )
+	field( HHSV, "$(HHSV=MAJOR)" )
+	field( EGU,  "Pkt/Sec" )
+	field( PREC, "1" )
 }
 
 record(longin, "BLD:$(LOCA):$(NMBR):FCOMLATMIN") {
