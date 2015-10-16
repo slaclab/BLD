@@ -1,6 +1,35 @@
 # Put your release notes or change log information
 # in here.
 
+BLD-R2-7-3:
+	Bruce Hill: 16-Oct-2015: on MAIN_TRUNK
+		Switched BSA and received FCOM pv's from 502 to 500 for vioc-sys0-bd03
+			so it can take over support for these PV's from ioc-sys0-bd01
+		Changed ioc-sys0-bd01 from 500 to 502 and disabled BLD multicast so it
+			can be run without conflicts in parallel w/ vioc-sys0-bd03 for
+			diagnostic comparisons.
+		Note:  Either ioc-sys0-bd01 should be retired or both vioc-sys0-bd03
+			and ioc-sys-bd01 should run BLD-R2-7-3 in order to avoid conflicts.
+
+BLD-R2-7-2:
+	Bruce Hill: 16-Oct-2015: on MAIN_TRUNK
+		Merged RT-devel branch to MAIN_TRUNK
+		Effectively the same ioc as BLD-R2-7-1
+		vioc-sys0-bd03 still using modified pv's and bld addr to avoid conflicts
+
+BLD-R2-7-1:
+	Bruce Hill: 16-Oct-2015: on RT-devel branch
+		Fixed timing issues for linuxRT 
+		Removed stale obsolete code
+		Split fcom timeout status from tsMismatch status
+		Added PV's for monitoring additional blobs for DMP_CH and XTCAV_AMP
+		Modified bld_diagnostics screen to use emb-fcom-stats.edl for easier
+			management and addition of new blobs.
+
+BLD-R2-7-0:
+	Bruce Hill: 30-Sep-2015: on RT-devel branch
+		First release for linuxRT and vioc-sys0-bd03
+
 BLD-R2-6-5:
 	Shantha Condamoor: 4-May-2015:
         Added support for FEEGasDetEnergyReceiver MCAST address 239.255.24.2
