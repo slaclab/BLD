@@ -215,7 +215,7 @@ record(ai, "BLD:$(LOCA):$(NMBR):DMP_CHARGE") {
   field(PREC, "3")
   field(TSE,  "-2")
   field(EGU,  "Nel")
-  field(FLNK, "BLD:$(LOCA):$(NMBR):EFUND_DMP_CHARGE")
+  field(FLNK, "BLD:$(LOCA):$(NMBR):EFDMP_CHARGE")
   field(PRIO, "HIGH")
 }
 
@@ -227,7 +227,7 @@ record(ai, "BLD:$(LOCA):$(NMBR):XTCAV_AMP") {
   field(PREC, "0")
   field(TSE,  "-2")
   field(EGU,  "MV")
-  field(FLNK, "BLD:$(LOCA):$(NMBR):EFUND_XTCAV_AMP")
+  field(FLNK, "BLD:$(LOCA):$(NMBR):EFXTCAV_AMP")
   field(PRIO, "HIGH")
 }
 
