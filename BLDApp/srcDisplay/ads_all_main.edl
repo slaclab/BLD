@@ -3,9 +3,9 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 64
-y 76
-w 800
+x 632
+y 1668
+w 924
 h 488
 font "helvetica-medium-r-12.0"
 ctlFont "helvetica-medium-r-12.0"
@@ -21,7 +21,7 @@ topShadowColor index 1
 botShadowColor index 11
 showGrid
 snapToGrid
-gridSize 8
+gridSize 4
 endScreenProperties
 
 # (Rectangle)
@@ -33,7 +33,7 @@ release 0
 x 8
 y 32
 w 608
-h 96
+h 107
 lineColor index 3
 fill
 fillColor index 3
@@ -45,10 +45,10 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 24
-y 220
-w 240
-h 240
+x 4
+y 224
+w 448
+h 248
 lineColor index 3
 fill
 fillColor index 3
@@ -167,7 +167,7 @@ setPosition {
   0 "parentWindow"
 }
 symbols {
-  0 "PRIM=IOC,LOCA=SYS0,IOCLOCA=SYS0,UNIT=BD01"
+  0 "PRIM=IOC,LOCA=SYS0,IOCLOCA=SYS0,IOCUNIT=BD01"
 }
 endObjectProperties
 
@@ -308,23 +308,23 @@ beginObjectProperties
 major 4
 minor 4
 release 0
-x 280
-y 170
-w 144
+x 468
+y 148
+w 152
 h 24
 fgColor index 14
 bgColor index 4
 topShadowColor index 1
 botShadowColor index 11
 font "helvetica-medium-r-12.0"
-buttonLabel "BLD MCAST Diag..."
+buttonLabel "BLD MCAST BD01 ..."
 numPvs 4
 numDsps 1
 displayFileName {
   0 "bld_diagnostics.edl"
 }
 symbols {
-  0 "device=BLD:SYS0:500"
+  0 "device=BLD:SYS0:500,UNIT=BD01,bldName=IOC:SYS0:BD01"
 }
 endObjectProperties
 
@@ -334,16 +334,16 @@ beginObjectProperties
 major 4
 minor 1
 release 1
-x 24
-y 205
-w 160
-h 16
+x 4
+y 208
+w 184
+h 20
 font "helvetica-medium-i-12.0"
 fontAlign "center"
 fgColor index 14
 bgColor index 3
 value {
-  "BLD Data via Multicast"
+  "BLD Data via BD01 Multicast"
 }
 endObjectProperties
 
@@ -491,8 +491,8 @@ beginObjectProperties
 major 4
 minor 4
 release 0
-x 432
-y 144
+x 316
+y 148
 w 144
 h 24
 fgColor index 14
@@ -517,8 +517,8 @@ beginObjectProperties
 major 4
 minor 4
 release 0
-x 432
-y 170
+x 316
+y 172
 w 144
 h 24
 fgColor index 14
@@ -543,8 +543,8 @@ beginObjectProperties
 major 4
 minor 4
 release 0
-x 280
-y 144
+x 164
+y 148
 w 144
 h 24
 fgColor index 14
@@ -570,7 +570,7 @@ major 4
 minor 0
 release 0
 x 16
-y 104
+y 94
 w 576
 h 24
 
@@ -583,7 +583,7 @@ major 4
 minor 4
 release 0
 x 16
-y 104
+y 94
 w 154
 h 20
 fgColor index 14
@@ -612,7 +612,7 @@ major 4
 minor 1
 release 1
 x 198
-y 104
+y 94
 w 21
 h 12
 font "helvetica-medium-r-10.0"
@@ -632,7 +632,7 @@ major 4
 minor 7
 release 0
 x 251
-y 104
+y 94
 w 34
 h 20
 controlPv "IOC:SYS0:BD02:FIDUCIALRATE"
@@ -655,7 +655,7 @@ major 4
 minor 4
 release 0
 x 283
-y 104
+y 94
 w 72
 h 20
 fgColor index 80
@@ -676,7 +676,7 @@ setPosition {
   0 "parentWindow"
 }
 symbols {
-  0 "PRIM=IOC,LOCA=SYS0,IOCLOCA=SYS0,UNIT=BD02"
+  0 "PRIM=IOC,LOCA=SYS0,IOCLOCA=SYS0,IOCUNIT=BD02"
 }
 endObjectProperties
 
@@ -687,7 +687,7 @@ major 4
 minor 4
 release 0
 x 357
-y 104
+y 94
 w 91
 h 20
 fgColor index 80
@@ -719,7 +719,7 @@ major 10
 minor 0
 release 0
 x 518
-y 107
+y 97
 w 71
 h 15
 controlPv "EVR:SYS0:BD02:LINKERRCNT"
@@ -738,7 +738,7 @@ major 10
 minor 0
 release 0
 x 454
-y 107
+y 97
 w 53
 h 15
 controlPv "EVR:SYS0:BD02:LINKERR"
@@ -757,7 +757,7 @@ major 4
 minor 0
 release 0
 x 27
-y 112
+y 102
 w 3
 h 4
 lineColor index 16
@@ -776,7 +776,7 @@ major 4
 minor 0
 release 0
 x 342
-y 112
+y 102
 w 4
 h 4
 lineColor index 16
@@ -795,7 +795,7 @@ major 4
 minor 0
 release 0
 x 437
-y 112
+y 102
 w 4
 h 4
 lineColor index 16
@@ -817,10 +817,10 @@ beginObjectProperties
 major 4
 minor 1
 release 0
-x 30
-y 225
-w 230
-h 230
+x 12
+y 232
+w 196
+h 232
 fgColor index 14
 bgColor index 4
 oddColBgColor index 4
@@ -834,50 +834,16 @@ numElements 10
 font "helvetica-medium-r-12.0"
 endObjectProperties
 
-# (Rectangle)
-object activeRectangleClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 288
-y 216
-w 240
-h 240
-lineColor index 3
-fill
-fillColor index 3
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 1
-x 288
-y 208
-w 160
-h 16
-font "helvetica-medium-i-12.0"
-fontAlign "center"
-fgColor index 14
-bgColor index 3
-value {
-  "BLD Data via Multicast"
-}
-endObjectProperties
-
 # (Coef Table)
 object activeCoefTableClass
 beginObjectProperties
 major 4
 minor 1
 release 0
-x 296
-y 224
-w 230
-h 230
+x 212
+y 232
+w 232
+h 232
 fgColor index 14
 bgColor index 4
 oddColBgColor index 4
@@ -897,8 +863,8 @@ beginObjectProperties
 major 4
 minor 4
 release 0
-x 120
-y 144
+x 4
+y 148
 w 144
 h 24
 fgColor index 14
@@ -923,8 +889,8 @@ beginObjectProperties
 major 4
 minor 4
 release 0
-x 592
-y 144
+x 164
+y 172
 w 144
 h 24
 fgColor index 14
@@ -941,5 +907,359 @@ displayFileName {
 symbols {
   0 "device=BLD:SYS0:500,mcgroup=FEEGasDetEnergy"
 }
+endObjectProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 16
+y 116
+w 576
+h 24
+
+beginGroup
+
+# (Related Display)
+object relatedDisplayClass
+beginObjectProperties
+major 4
+minor 4
+release 0
+x 16
+y 116
+w 154
+h 20
+fgColor index 14
+bgColor index 4
+topShadowColor index 1
+botShadowColor index 11
+font "helvetica-medium-r-12.0"
+buttonLabel "   VIOC:SYS0:BD03..."
+numPvs 4
+numDsps 1
+displayFileName {
+  0 "ioc_linuxrt_crat"
+}
+setPosition {
+  0 "parentWindow"
+}
+symbols {
+  0 "type=BLD,ioc=VIOC:SYS0:BD03,cpu=CPU:SYS0:BD03,c=1,loca=SYS0,acsw=ACSW:MCC0:NW04,plug=5,acswhost=acsw-sys0-nw04"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 198
+y 116
+w 21
+h 12
+font "helvetica-medium-r-10.0"
+fgColor index 14
+bgColor index 4
+useDisplayBg
+value {
+  "BLD"
+}
+autoSize
+endObjectProperties
+
+# (Text Control)
+object activeXTextDspClass
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 251
+y 116
+w 34
+h 20
+controlPv "VIOC:SYS0:BD03:FIDUCIALRATE"
+font "helvetica-medium-r-10.0"
+fontAlign "center"
+fgColor index 14
+fgAlarm
+bgColor index 4
+limitsFromDb
+nullColor index 14
+newPos
+objType "controls"
+noExecuteClipMask
+endObjectProperties
+
+# (Related Display)
+object relatedDisplayClass
+beginObjectProperties
+major 4
+minor 4
+release 0
+x 283
+y 116
+w 72
+h 20
+fgColor index 80
+bgColor index 4
+topShadowColor index 1
+botShadowColor index 11
+font "helvetica-medium-r-10.0"
+buttonLabel "Pattern..."
+numPvs 4
+numDsps 1
+displayFileName {
+  0 "evrPatternDiags"
+}
+menuLabel {
+  0 "Pattern Diags"
+}
+setPosition {
+  0 "parentWindow"
+}
+symbols {
+  0 "PRIM=VIOC,LOCA=SYS0,IOCLOCA=SYS0,IOCUNIT=BD03"
+}
+endObjectProperties
+
+# (Related Display)
+object relatedDisplayClass
+beginObjectProperties
+major 4
+minor 4
+release 0
+x 357
+y 116
+w 91
+h 20
+fgColor index 80
+bgColor index 4
+topShadowColor index 1
+botShadowColor index 11
+font "helvetica-medium-r-10.0"
+buttonLabel "EVR BD03..."
+numPvs 4
+numDsps 1
+displayFileName {
+  0 "evrDiags"
+}
+menuLabel {
+  0 "EVR"
+}
+setPosition {
+  0 "parentWindow"
+}
+symbols {
+  0 "LOCA=SYS0,UNIT=BD03,IOCUNIT=BD03"
+}
+endObjectProperties
+
+# (Text Update)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 518
+y 119
+w 71
+h 15
+controlPv "EVR:SYS0:BD03:LINKERRCNT"
+fgColor index 14
+fgAlarm
+bgColor index 4
+fill
+font "helvetica-bold-r-12.0"
+fontAlign "center"
+endObjectProperties
+
+# (Text Update)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 454
+y 119
+w 53
+h 15
+controlPv "EVR:SYS0:BD03:LINKERR"
+fgColor index 14
+fgAlarm
+bgColor index 4
+fill
+font "helvetica-bold-r-12.0"
+fontAlign "center"
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 27
+y 124
+w 3
+h 4
+lineColor index 16
+lineAlarm
+fill
+fillColor index 16
+fillAlarm
+lineWidth 2
+alarmPv "VIOC:SYS0:BD03:STATSUMY"
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 342
+y 124
+w 4
+h 4
+lineColor index 16
+lineAlarm
+fill
+fillColor index 16
+fillAlarm
+lineWidth 2
+alarmPv "VIOC:SYS0:BD03:PATTERNSTATE"
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 437
+y 124
+w 4
+h 4
+lineColor index 16
+lineAlarm
+fill
+fillColor index 16
+fillAlarm
+lineWidth 2
+alarmPv "EVR:SYS0:BD03:LINK"
+endObjectProperties
+
+endGroup
+
+endObjectProperties
+
+# (Related Display)
+object relatedDisplayClass
+beginObjectProperties
+major 4
+minor 4
+release 0
+x 468
+y 172
+w 152
+h 24
+fgColor index 14
+bgColor index 4
+topShadowColor index 1
+botShadowColor index 11
+font "helvetica-medium-r-12.0"
+buttonLabel "BLD MCAST BD03 ..."
+numPvs 4
+numDsps 1
+displayFileName {
+  0 "bld_diagnostics.edl"
+}
+symbols {
+  0 "device=BLD:SYS0:502,UNIT=BD03,bldName=VIOC:SYS0:BD03"
+}
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 460
+y 224
+w 448
+h 248
+lineColor index 3
+fill
+fillColor index 3
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 460
+y 208
+w 184
+h 20
+font "helvetica-medium-i-12.0"
+fontAlign "center"
+fgColor index 14
+bgColor index 3
+value {
+  "BLD Data via BD03 Multicast"
+}
+endObjectProperties
+
+# (Coef Table)
+object activeCoefTableClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 468
+y 232
+w 196
+h 232
+fgColor index 14
+bgColor index 4
+oddColBgColor index 4
+evenColBgColor index 8
+topShadowColor index 2
+botShadowColor index 11
+pv "VIOC:SYS0:BD03:BLDWAV"
+labels "Charge [nC], L3Energy [MeV], LTUPosX [mm], LTUPosY [mm], LTUAngX [mrad], LTUAngY [mrad], BC2Charge [A], BC2Energy [mm], BC1Charge [A], BC1Energy [mm]"
+firstElement 0
+numElements 10
+font "helvetica-medium-r-12.0"
+endObjectProperties
+
+# (Coef Table)
+object activeCoefTableClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 668
+y 232
+w 232
+h 232
+fgColor index 14
+bgColor index 4
+oddColBgColor index 4
+evenColBgColor index 8
+topShadowColor index 2
+botShadowColor index 11
+pv "VIOC:SYS0:BD03:BLDWAV"
+labels "UndPosX [mm], UndPosY [mm], UndAngX [mm], UndAngY [mm], XTCAVAmpl [MeV], XTCAVPhase [deg], DMP502Charge [Nel], PhotonEnergy [eV], LTU250PosX [mm], LTU450PosX [mm]"
+firstElement 10
+numElements 10
+font "helvetica-medium-r-12.0"
 endObjectProperties
 
