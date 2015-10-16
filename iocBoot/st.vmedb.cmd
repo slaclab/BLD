@@ -18,25 +18,21 @@
 # For iocAdmin
 epicsEnvSet("ENGINEER","Shantha Condamoor")
 epicsEnvSet("LOCATION",getenv("LOCN"),1)
-epicsEnvSet("LOCA_NAME",getenv("LOCAs"),1)
-epicsEnvSet("IOC_UNIT",getenv("UNITs"),1)
 
 ########################################################################
 # BEGIN: Load the record databases
 #######################################################################
 # Load iocAdmin databases to support IOC Health and monitoring
 # =====================================================================
-dbLoadRecords("db/iocAdminRTEMS.db",getenv("IOC_MACRO"),0)
-#dbLoadRecords("db/iocAdminScanMon.db",getenv("IOC_MACRO"),0)
+dbLoadRecords("db/iocAdminRTEMS.db",getenv("IOC_NAME"))
+dbLoadRecords("db/iocAdminScanMon.db",getenv("IOC_NAME"))
 
 # The following database is a result of a python parser
 # which looks at RELEASE_SITE and RELEASE to discover
 # versions of software your IOC is referencing
 # The python parser is part of iocAdmin
-dbLoadRecords("db/iocRelease.db",getenv("IOC_MACRO"),0)
+dbLoadRecords("db/iocRelease.db",getenv("IOC_NAME"))
 
-# =====================================================================
-# Load database for autosave status
-# =====================================================================
-dbLoadRecords("db/save_restoreStatus.db", getenv("AUTOSAVE_MACRO"),0)
+
+
 

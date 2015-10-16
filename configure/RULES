@@ -1,12 +1,6 @@
-#CONFIG
-include $(EPICS_BASE)/configure/RULES
+# RULES
+
+include $(CONFIG)/RULES
 
 # Library should be rebuilt because LIBOBJS may have changed.
 $(LIBNAME): ../Makefile
-
-COMMENT="/* This file was automatically created, do not edit */\n"
-
-NM=$(RTEMS_BASE)/bin/$(NM_FOR_TARGET)
-
-lib%-symdeps.a:%.obj
-	$(NM) -uPo $^ | awk 'BEGIN{printf($(COMMENT))} {printf("EXTERN(%s)\n",$$2)}' > $@

@@ -1,14 +1,15 @@
-/* $Id: BLDMCast.h,v 1.33 2014/07/10 21:01:04 scondam Exp $ */
+/* $Id: BLDMCast.h,v 1.34.2.2 2015/10/16 09:16:30 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.h
 
-  Abs:  BLDMCast driver header for eBeam MCAST BLD data sent to PCD.
+  Abs:  BLDMCast driver header for eBeam MCAST BLD data sent to PCDS.
 
   Auth: Sheng Peng (pengs)
   Mod:	Till Straumann (strauman)
   		Luciano Piccoli (lpiccoli)
   		Shantha Condamoor (scondam)
+  		Bruce Hill (bhill)
 
   Mod:  22-Sep-2009 - S.Peng - Initial Release
 		18-May-2010 - T.Straumann: BLD-R2-0-0-BR - Cleanup and modifications
@@ -18,8 +19,9 @@
 		28-Feb-2014 - L.Piccoli - BLD-R2-4-0 - Merged BLD-R2-0-0-BR branch with MAIN_TRUNK. Addition of TCAV/DMP1 PVs to BLD. Version 0x5000f
 		28-Apr-2014 - S.Condamoor -  BLD-R2-5-2, BLD-R2-5-1, BLD-R2-5-0 - no changes affecting this file.
 		7-Jul-2014  - S.Condamoor - BLD-R2-6-0 - Added Photon Energy Calculation to eBeam BLD MCAST data . Version 0x6000f
-											   - Swapped ts_nsec and ts_sec fields in EBEAMINFO per PCD (M.Browne) request.
+											   - Swapped ts_nsec and ts_sec fields in EBEAMINFO per PCDS (M.Browne) request.
 		2-Feb-2015  - S.Condamoor - BLD-R2-6-3 - Fix for etax in Photon Energy Calculation . Version 0x7000f											   
+		18-Sep-2015 - B.Hill - Modified for linux compatibility
 -----------------------------------------------------------------------------*/
 #ifndef _BLD_MCAST_H_
 #define _BLD_MCAST_H_
@@ -65,7 +67,7 @@ extern "C" {
    The dispersion for the first BPM (BPMS:LTU1:250) is positive, the one for the second BPM (BPMS:LTU1:450) is negative,
    So the fix is to define etax=-125 mm
 
-   Increment the ebeam bld version number per PCD request, so the data is clearly marked as changed
+   Increment the ebeam bld version number per PCDS request, so the data is clearly marked as changed
 */
 #define EBEAMINFO_VERSION_5 0x7000f
 
@@ -92,8 +94,9 @@ extern "C" {
  * Structure defined in this document:
  * https://confluence.slac.stanford.edu/download/attachments/10256639/bldicd.pdf
  */
-  typedef struct EBEAMINFO {
-  /* Shantha Condamoor: 7-Jul-2014: Swapped sec and nsec fields per PCD request (M.Browne and C.O.Grady) */
+typedef struct EBEAMINFO
+{
+  /* Shantha Condamoor: 7-Jul-2014: Swapped sec and nsec fields per PCDS request (M.Browne and C.O.Grady) */
     Uint32_LE     ts_nsec;   
     Uint32_LE     ts_sec;  
     Uint32_LE     uMBZ1;
@@ -179,7 +182,8 @@ extern EBEAMINFO    bldEbeamInfo;
 extern epicsMutexId bldMutex;
 extern IOSCANPVT    bldIoscan;         /* Trigger full-rate EPICS records */
 
-#define BLDMCAST_DST_IP	    "239.255.24.0"
+/* #define BLDMCAST_DST_IP	    "239.255.24.0" Stubbed so it won't conflict */
+#define BLDMCAST_DST_IP	    "239.255.24.254"
 #define BLDMCAST_DST_PORT	10148
 
 #ifdef __cplusplus
