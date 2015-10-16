@@ -1,0 +1,36 @@
+#
+# FCOM statistics template
+#
+
+record( longin, "BLD:$(LOCA):$(NMBR):$(BLOB)_TIMEOUT" )
+{
+	field( DESC, "Fcom timeout on blob" )
+	field( SCAN, "$(STAT_SCAN)" )
+	field( DTYP, "BusAddress" )
+	field( INP,  "#C$(NUM)S2@bld_stat_timeout,m32" )
+}
+
+record( longin, "BLD:$(LOCA):$(NMBR):$(BLOB)LATEERRS" )
+{
+	field( DESC, "Timestamp Mismatch Cnt" )
+	field( SCAN, "$(STAT_SCAN)" )
+	field( DTYP, "BusAddress" )
+	field( INP,  "#C$(NUM)S2@bld_stat_bad_ts,m32" )
+}
+
+record( longin, "BLD:$(LOCA):$(NMBR):$(BLOB)BADERRS" )
+{
+	field( DESC, "Invalid blob status Cnt" )
+	field( SCAN, "$(STAT_SCAN)" )
+	field( DTYP, "BusAddress" )
+	field( INP,  "#C$(NUM)S2@bld_stat_bad_d,m32" )
+}
+
+record( longin, "BLD:$(LOCA):$(NMBR):$(BLOB)FCOMERRS" )
+{
+	field( DESC, "FCOM get blob error Cnt" )
+	field( SCAN, "$(STAT_SCAN)" )
+	field( DTYP, "BusAddress" )
+	field( INP,  "#C$(NUM)S2@bld_stat_bad_f,m32" )
+}
+

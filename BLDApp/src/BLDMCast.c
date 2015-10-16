@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.67.2.4 2015/10/01 21:58:42 bhill Exp $ */
+/* $Id: BLDMCast.c,v 1.67.2.5 2015/10/13 22:08:03 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -25,6 +25,7 @@
 		11-Nov-2014: S.Condamoor - BLD-R2-6-2 L.Piccoli moved Und Launch Feeback to FB05:RF05. FBCK:FB03:TR05:STATES changed to FBCK:FB05:TR05:STATES	
 		2-Feb-2015  - S.Condamoor - BLD-R2-6-3 - Fix for etax in Photon Energy Calculation per PCDS request. Version 0x7000f												
 		18-Sep-2015 - B.Hill - Modified for linux compatibility
+		16-Oct-2015 - B.Hill - Fixed some timing issues, added more fcom stats, and tossed stale code
 -----------------------------------------------------------------------------*/
 #include <stddef.h>
 #include <stdlib.h>
@@ -78,7 +79,7 @@ extern int	fcomUtilFlag;
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.67.2.4 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.67.2.5 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -91,7 +92,6 @@ extern int	fcomUtilFlag;
 
 #define	CONNECT_PV
 #undef  USE_CA_ADD_EVENT    /* ca_create_subscription seems buggy */
-#undef  USE_PULSE_CA        /* Use CA for obtaining pulse PVs; use FCOM otherwise */
 /* T.S: I doubt that ca_create_subscription works any different. 
  * ca_add_array_event is just a macro mapping to the
  * ca_add_masked_array_event() wrapper which calls
@@ -139,6 +139,7 @@ enum STATICPVSINDEX
 };/* the definition here must match the PV definition below */
 
 /* We use caget to read pulse by pulse PVs when EVR triggers */
+/* Doubles as enumerated names for each blob */
 enum PULSEPVSINDEX
 {
     BMCHARGE=0,
@@ -153,31 +154,14 @@ enum PULSEPVSINDEX
     BC1CHARGE,
     BC1ENERGY,
     UNDSTATE, /* For X, X', Y and Y' */
-    BMDMPCHARGE,
-    XTCAVRF,
+    DMP_CHARGE,
+    XTCAV_AMP,
 	/* Define Y after everything else so that fcom array doesn't have to use them */
     BMPOSITION1Y,
     BMPOSITION2Y,
     BMPOSITION3Y,
     BMPOSITION4Y
 };/* the definition here must match the PV definition below, the order is critical as well */
-
-/*
-  [BMCHARGE] 
-  [BMENERGY1X]
-  [BMENERGY2X]
-  [BMPOSITION1X]
-  [BMPOSITION2X]
-  [BMPOSITION3X]
-  [BMPOSITION4X]
-  [BC2CHARGE]   
-  [BC2ENERGY]   
-  [BC1CHARGE]   
-  [BC1ENERGY]   
-  [UNDSTATE]    
-  [BMDMPCHARGE] 
-  [XTCAVRF]  
-*/
 
 /** Former PVAVAILMASK enum */
 #define AVAIL_DSPR1          0x0001
@@ -200,8 +184,8 @@ enum PULSEPVSINDEX
 #define AVAIL_BC1CHARGE     0x20000
 #define AVAIL_BC1ENERGY     0x40000
 #define AVAIL_UNDSTATE      0x80000
-#define AVAIL_DMPCHARGE    0x100000
-#define AVAIL_XTCAVRF      0x200000
+#define AVAIL_DMP_CHARGE   0x100000
+#define AVAIL_XTCAV_AMP    0x200000
 
 /* Shantha Condamoor: 7-Jul-2014: The following are for matlab PVs that are used in shot-to-shot photon energy calculations*/
 #define AVAIL_PHOTONEV     0x400000
@@ -238,25 +222,24 @@ typedef struct BLDBLOB
 } BLDBLOB;
 
 
-#undef IGNORE_UNAVAIL_PVS
 BLDPV bldStaticPVs[]=
 {
     [DSPR1]  = {"BLD:SYS0:500:DSPR1",  1, AVAIL_DSPR1,  NULL, NULL},	/* For Energy */
     [DSPR2]  = {"BLD:SYS0:500:DSPR2",  1, AVAIL_DSPR2,  NULL, NULL},	/* For Energy */
-#ifndef IGNORE_UNAVAIL_PVS
     [E0BDES] = {"BEND:LTU0:125:BDES",  1, AVAIL_E0BDES, NULL, NULL},	/* Energy in MeV */
-#endif /* IGNORE_UNAVAIL_PVS */
     [FMTRX]  = {"BLD:SYS0:500:FMTRX", 32, AVAIL_FMTRX,  NULL, NULL},		/* For Position */
 /* Shantha Condamoor: 7-Jul-2014: The following are for matlab PVs that are used in shot-to-shot photon energy calculations*/	
-#ifndef IGNORE_UNAVAIL_PVS
 	[PHOTONEV]={"SIOC:SYS0:ML00:AO627",1, AVAIL_PHOTONEV,  NULL, NULL},	/* For shot-to-shot Photon Energy */
-#endif /* IGNORE_UNAVAIL_PVS */
 	[X450AVE]= {"SIOC:SYS0:ML02:AO041",1, AVAIL_X450AVE,  NULL, NULL},	/* Average of last few hundred data points of X POS in LTU BPM x450 */		
 	[X250AVE]= {"SIOC:SYS0:ML02:AO040",1, AVAIL_X250AVE,  NULL, NULL},	/* Average of last few hundred data points of X POS in LTU BPM x250 */	
 };
 
 #define N_STATIC_PVS (sizeof(bldStaticPVs)/sizeof(bldStaticPVs[0]))
 
+/*
+ * Note: The BLOB name sequence below must match the fcom_stats.substitution file
+ * and the above enumeration for PULSEPVSINDEX
+ */
 BLDBLOB bldPulseBlobs[] =
 {
   /**
@@ -332,14 +315,14 @@ BLDBLOB bldPulseBlobs[] =
   /**
    * Charge at the DMP
    */
-/* BMDMPCHARGE: BlobSet mask bit 0x1000 */
-  [BMDMPCHARGE]     = { name: "BPMS:DMP1:502:TMIT", blob: 0, aMsk: AVAIL_DMPCHARGE}, 
+/* DMP_CHARGE: BlobSet mask bit 0x1000 */
+  [DMP_CHARGE]     = { name: "BPMS:DMP1:502:TMIT", blob: 0, aMsk: AVAIL_DMP_CHARGE}, 
 
   /**
    * XTCAV Voltage and Phase
    */
-/* XTCAVRF:    BlobSet mask bit 0x2000 */
-  [XTCAVRF]  = { name: "TCAV:DMP1:360:AV", blob: 0, aMsk: AVAIL_XTCAVRF},
+/* XTCAV_AMP:    BlobSet mask bit 0x2000 */
+  [XTCAV_AMP]  = { name: "TCAV:DMP1:360:AV", blob: 0, aMsk: AVAIL_XTCAV_AMP},
   
 };
 
@@ -376,6 +359,7 @@ volatile int bldConnectAbort      = 1;
 epicsExportAddress(int, bldConnectAbort);
 epicsUInt32  bldInvalidAlarmCount[N_PULSE_BLOBS] = {0};
 epicsUInt32  bldUnmatchedTSCount[N_PULSE_BLOBS]  = {0};
+epicsUInt32  bldFcomTimeoutCount[N_PULSE_BLOBS]  = {0};
 EBEAMINFO    bldEbeamInfo;
 IOSCANPVT    bldIoscan;         /* Trigger EPICS record */
 epicsMutexId bldMutex = NULL;	/* Protect bldStaticPVs' values */
@@ -888,7 +872,7 @@ epicsUInt32     this_time;
 			{
 				if(status == epicsEventWaitTimeout)
 				{
-					if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Wait EVR timeout, check timing?\n");
+					if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Timed out waiting for Beam event\n");
 				}
 				else
 				{
@@ -932,10 +916,6 @@ epicsUInt32     this_time;
 				if(BLD_MCAST_DEBUG >= 4) errlogPrintf("fcomGetBlobSet succeeeded.\n");
 			}
 		}
-		else
-		{
-			errlogPrintf( "fcomGetBlobSet failed: %s; sleeping for 2 seconds\n", fcomStrerror(status));
-		}
 
 		this_time = usSinceFiducial();
 
@@ -971,18 +951,20 @@ epicsUInt32     this_time;
 					if ( rtncode )
 						bldUnmatchedTSCount[loop]++;
 				} else {
+					/* No blob set, just fetch current blob status one by one */
 					rtncode = fcomGetBlob( fcomBlobIDs[loop], &bldPulseBlobs[loop].blob, 0 );
 					if ( rtncode )
 						bldFcomGetErrs[loop]++;
 				}
 
 				if ( rtncode ) {
-					dataAvailable        &= ~bldPulseBlobs[loop].aMsk;
+					dataAvailable &= ~bldPulseBlobs[loop].aMsk;
 					bldPulseBlobs[loop].blob = 0;
 					continue;
 				}
-				b1 = bldPulseBlobs[loop].blob;
 
+				/* Grab a reference to this blob and check it's status */
+				b1 = bldPulseBlobs[loop].blob;
 				if ( b1->fc_stat ) {
 					/* If status is not 0 then handle a few special, permissible cases */
 					switch ( loop ) {
@@ -1043,8 +1025,7 @@ passed:
 				tempD = tempD/2.0 + 1.0;
 				tempD *= bldStaticPVs[E0BDES].pTD->value * 1000.0;
 				__st_le64(&bldEbeamInfo.ebeamL3Energy, tempD);
-					
-				
+
 			} else {
 				bldEbeamInfo.uDamageMask |= __le32(EBEAML3ENERGY_DAMAGEMASK);
 			}
@@ -1064,12 +1045,6 @@ passed:
 				pMatrixValue = &(bldStaticPVs[FMTRX].pTD->value);
 				for ( i=0; i<4; i++, pMatrixValue+=8 ) {
 					double acc = 0.0;
-#if 0
-					for(j=0;j<4;j++) {
-						tempDA[i] += pMatrixValue[i*8+2*j] * bldPulseBlobs[BMPOSITION1X+j].blob->fcbl_bpm_X;
-						tempDA[i] += pMatrixValue[i*8+2*j+1] * bldPulseBlobs[BMPOSITION1X+j].blob->fcbl_bpm_Y;
-					}
-#else
 					acc += pMatrixValue[0] * bldPulseBlobs[BMPOSITION1X].blob->fcbl_bpm_X;
 					acc += pMatrixValue[1] * bldPulseBlobs[BMPOSITION1X].blob->fcbl_bpm_Y;
 					acc += pMatrixValue[2] * bldPulseBlobs[BMPOSITION2X].blob->fcbl_bpm_X;
@@ -1080,7 +1055,6 @@ passed:
 					acc += pMatrixValue[7] * bldPulseBlobs[BMPOSITION4X].blob->fcbl_bpm_Y;
 
 					tempDA[i] = acc;	
-#endif
 				}
 				__st_le64(&bldEbeamInfo.ebeamLTUPosX, tempDA[0]);
 				__st_le64(&bldEbeamInfo.ebeamLTUPosY, tempDA[1]);
@@ -1156,15 +1130,15 @@ passed:
 			}
 
 			/* XTCAV Phase & Amplitude */ 
-			if( AVAIL_XTCAVRF & dataAvailable )
+			if( AVAIL_XTCAV_AMP & dataAvailable )
 			{
 			  if(BLD_XTCAV_DEBUG >= 1) {
-			    errlogPrintf("Got XTCAV blob %f %f\n", (double)bldPulseBlobs[XTCAVRF].blob->fcbl_llrf_aavg,
-					 (double)bldPulseBlobs[XTCAVRF].blob->fcbl_llrf_pavg);
+			    errlogPrintf("Got XTCAV blob %f %f\n", (double)bldPulseBlobs[XTCAV_AMP].blob->fcbl_llrf_aavg,
+					 (double)bldPulseBlobs[XTCAV_AMP].blob->fcbl_llrf_pavg);
 			  }
 
-			  __st_le64(&bldEbeamInfo.ebeamXTCAVAmpl, (double)bldPulseBlobs[XTCAVRF].blob->fcbl_llrf_aavg);
-			  __st_le64(&bldEbeamInfo.ebeamXTCAVPhase, (double)bldPulseBlobs[XTCAVRF].blob->fcbl_llrf_pavg);
+			  __st_le64(&bldEbeamInfo.ebeamXTCAVAmpl, (double)bldPulseBlobs[XTCAV_AMP].blob->fcbl_llrf_aavg);
+			  __st_le64(&bldEbeamInfo.ebeamXTCAVPhase, (double)bldPulseBlobs[XTCAV_AMP].blob->fcbl_llrf_pavg);
 			}
 			else
 			{
@@ -1182,9 +1156,9 @@ passed:
 
 
 			/* DMP Charge */ 
-			if( AVAIL_DMPCHARGE & dataAvailable )
+			if( AVAIL_DMP_CHARGE & dataAvailable )
 			{
-			  __st_le64(&bldEbeamInfo.ebeamDMP502Charge, (double)bldPulseBlobs[BMDMPCHARGE].blob->fcbl_bpm_T);
+			  __st_le64(&bldEbeamInfo.ebeamDMP502Charge, (double)bldPulseBlobs[DMP_CHARGE].blob->fcbl_bpm_T);
 			}
 			else
 			{
@@ -1274,7 +1248,7 @@ passed:
 			} else {
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(0);
 			}						
-			
+
 			if( AVAIL_BMENERGY1X & dataAvailable )
 			{
 			  __st_le64(&bldEbeamInfo.ebeamLTU250PosX, (double)bldPulseBlobs[BMENERGY1X].blob->fcbl_bpm_X);
@@ -1294,6 +1268,17 @@ passed:
 			epicsMutexUnlock(bldMutex);
 		}
 
+		/*
+		 * This scanIoRequest triggers I/O Scan processing of all the BLD_SNDR DTYP records.
+		 * It's getting triggered after the FCOM Blob set fetch, approx 3ms to 5ms after beam,
+		 * but before we send the BLD packet below.
+		 * As the BLD_SNDR records get their data from the most recently recieved BLD packet,
+		 * it's going to be the BLD for the prior pulse.
+		 * Ran a number of tests on lcls-srv01 comparing original src PV's, their 10HZ BSA buffers,
+		 * along w/ their counterparts from fcom blobs via multicast BLD and the
+		 * timestamps and data values match for all of them.  Since each data point gets
+		 * the right timestamp it shouldn't matter that we're publishing it on the next pulse.
+		 */
 		scanIoRequest(bldIoscan);
 
 #ifdef MULTICAST
@@ -1370,17 +1355,23 @@ dumpTsMismatchStats(FILE *f, int reset)
 	epicsUInt32 cnt [N_PULSE_BLOBS];
 	epicsUInt32 cnt1[N_PULSE_BLOBS];
 	epicsUInt32 cnt2[N_PULSE_BLOBS];
+	epicsUInt32 cnt3[N_PULSE_BLOBS];
 
 	if ( bldMutex ) epicsMutexLock( bldMutex );
 		memcpy(cnt,  bldUnmatchedTSCount,  sizeof(cnt));
 		memcpy(cnt1, bldInvalidAlarmCount, sizeof(cnt1));
-		memcpy(cnt2, bldFcomGetErrs,       sizeof(cnt1));
+		memcpy(cnt2, bldFcomGetErrs,       sizeof(cnt2));
+		memcpy(cnt3, bldFcomTimeoutCount,  sizeof(cnt3));
 	if ( bldMutex ) epicsMutexUnlock( bldMutex );
 	if ( !f )
 		f = stdout;
-	fprintf(f,"FCOM Data arriving late:\n");
+	fprintf(f,"FCOM Data timestamp mismatch:\n");
 	for ( i=0; i<N_PULSE_BLOBS; i++ ) {
 		fprintf(f,"  %40s: %9lu times\n", bldPulseBlobs[i].name, (unsigned long)cnt[i]);
+	}
+	fprintf(f,"FCOM Data timeout:\n");
+	for ( i=0; i<N_PULSE_BLOBS; i++ ) {
+		fprintf(f,"  %40s: %9lu times\n", bldPulseBlobs[i].name, (unsigned long)cnt3[i]);
 	}
 	fprintf(f,"FCOM Data with bad/invalid status\n");
 	for ( i=0; i<N_PULSE_BLOBS; i++ ) {
@@ -1390,10 +1381,11 @@ dumpTsMismatchStats(FILE *f, int reset)
 	for ( i=0; i<N_PULSE_BLOBS; i++ ) {
 		fprintf(f,"  %40s: %9lu times\n", bldPulseBlobs[i].name, (unsigned long)cnt2[i]);
 	}
-	fprintf(f,"MCAST messages posted:     %10lu\n", (unsigned long)bldMcastMsgSent);
+	fprintf(f,"BLD MCAST messages posted: %10lu\n", (unsigned long)bldMcastMsgSent);
 	if ( reset ) {
 		if ( bldMutex ) epicsMutexLock( bldMutex );
 			for ( i=0; i<N_PULSE_BLOBS; i++ ) {
+				bldFcomTimeoutCount[i]  = 0;
 				bldUnmatchedTSCount[i]  = 0;
 				bldInvalidAlarmCount[i] = 0;
 				bldFcomGetErrs[i]       = 0;
@@ -1403,7 +1395,7 @@ dumpTsMismatchStats(FILE *f, int reset)
 	}
 }
 
-#if 1
+
 /**************************************************************************************************/
 /* Here we supply the access methods for BSP_timer devBusMappedIO                                  */
 /**************************************************************************************************/
@@ -1454,7 +1446,6 @@ static DevBusMappedAccessRec timer_delay_io = {
 	rd: (DevBusMappedRead)  timer_delay_rd,
 	wr: (DevBusMappedWrite) timer_delay_wr,
 };
-#endif
 
 /**************************************************************************************************/
 /* Here we supply the driver report function for epics                                            */
@@ -1480,24 +1471,22 @@ checkDevBusMappedRegister(char *nm, void *ptr)
 /* implementation */
 static long BLD_EPICS_Init()
 {
-  int rtncode;
-  int enable_broadcast = 0;
-  int name_len = 100;
-  char name[name_len];
-
-  rtncode = gethostname(name, name_len);
-  if (rtncode == 0) {
-    printf("INFO: BLD hostname is %s\n", name);
-    enable_broadcast = 1;
-    printf("INFO: *** Enabling Multicast ***\n");
-  }
-  else {
-    printf("ERROR: Unable to get hostname (errno=%d, rtncode=%d)\n", errno, rtncode);
-  }
-
-
-	{
 	int loop;
+	int rtncode;
+	int enable_broadcast = 0;
+	int name_len = 100;
+	char name[name_len];
+
+	rtncode = gethostname(name, name_len);
+	if (rtncode == 0) {
+		printf("INFO: BLD hostname is %s\n", name);
+		enable_broadcast = 1;
+		printf("INFO: *** Enabling Multicast ***\n");
+	}
+	else {
+		printf("ERROR: Unable to get hostname (errno=%d, rtncode=%d)\n", errno, rtncode);
+	}
+
 	/* fcomUtilFlag = DP_DEBUG; */
 	for ( loop=0; loop < N_PULSE_BLOBS; loop++) {
 		printf( "INFO: Looking up fcom ID for %s\n", bldPulseBlobs[loop].name );
@@ -1506,7 +1495,6 @@ static long BLD_EPICS_Init()
 				     bldPulseBlobs[loop].name );
 			return -1;
 		}
-		/* printf( "INFO: Subscribing to %s, fcom ID 0x%X\n", bldPulseBlobs[loop].name, fcomBlobIDs[loop] ); */
 		rtncode = fcomSubscribe( fcomBlobIDs[loop], FCOM_ASYNC_GET );
 		if ( 0 != rtncode ) {
 			errlogPrintf("FATAL ERROR: Unable to subscribe %s (0x%08"PRIx32") to FCOM: %s\n",
@@ -1515,9 +1503,8 @@ static long BLD_EPICS_Init()
 					fcomStrerror(rtncode));
 			return -1;
 		}
-		printf( "INFO: Subscribed  to %s, fcom ID 0x%X\n", bldPulseBlobs[loop].name, (unsigned int) fcomBlobIDs[loop] );
-	}
-	/* fcomUtilFlag = DP_ERROR; */
+		printf( "INFO: Subscribed  to %s, fcom ID 0x%X\n", bldPulseBlobs[loop].name,
+				(unsigned int) fcomBlobIDs[loop] );
 	}
 
 	/* Allocate blob set here so that the flag that is read
@@ -1538,7 +1525,8 @@ static long BLD_EPICS_Init()
                      "SOFTWARE MAY NOT WORK PROPERLY\n");
 
 	/* These are simple local memory devBus devices for showing fcom status in PV's */
-	checkDevBusMappedRegister("bld_stat_bad_t", &bldUnmatchedTSCount);
+	checkDevBusMappedRegister("bld_stat_bad_ts", &bldUnmatchedTSCount);
+	checkDevBusMappedRegister("bld_stat_timeout", &bldFcomTimeoutCount);
 	checkDevBusMappedRegister("bld_stat_bad_d", &bldInvalidAlarmCount);
 	checkDevBusMappedRegister("bld_stat_bad_f", &bldFcomGetErrs);
 	checkDevBusMappedRegister("bld_stat_msg_s", &bldMcastMsgSent);
@@ -1567,8 +1555,6 @@ static long BLD_EPICS_Report(int level)
 {
     printf("\n"BLD_DRV_VERSION"\n\n");
 	printf("Compiled with options:\n");
-
-	printf("USE_PULSE_CA     :   UNDEFINED (use FCOM not CA to obtain pulse-by-pulse data)\n");
 
 	printf("USE_CA_ADD_EVENT :");
 #ifdef  USE_CA_ADD_EVENT
@@ -1601,11 +1587,6 @@ static long BLD_EPICS_Report(int level)
 	if ( level > 3 ) {
 	  BLD_report_EBEAMINFO();
 	}
-
-	/* scondam: 19-Jun-2014: BLDSender and BLDReceiver apps have been split.
-	   bld_receivers_report() not needed for Sender. */
-	   
-	/* bld_receivers_report(level); */
 
     return 0;
 }

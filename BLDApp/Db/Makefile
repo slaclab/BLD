@@ -17,6 +17,7 @@ include $(TOP)/configure/CONFIG
 #DB += bsaBLDReceiverGdetEdef.db
 
 DB += BLDMCast.db
+DB += fcom_stats.db
 DB += BLDMCastWfRecv.db
 
 # ========================================

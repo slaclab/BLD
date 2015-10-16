@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastStatus.c,v 1.13 2014/07/08 19:58:19 scondam Exp $ */
+/* $Id: devBLDMCastStatus.c,v 1.13.2.1 2015/09/30 09:58:26 bhill Exp $ */
 
 
 /*=============================================================================
@@ -67,6 +67,8 @@ typedef enum
   BLD_AI_PHOTONENERGY,  
   BLD_AI_LTU450_POS_X,   
   BLD_AI_LTU250_POS_X,  
+  BLD_AI_DMP_CHARGE,  
+  BLD_AI_XTCAV_AMP,
 } BLDFUNC;
 
 /*      define parameter check for convinence */
@@ -78,7 +80,6 @@ typedef enum
 
 static long init_ai( struct aiRecord * pai)
 {
-  pai->dpvt = NULL;
     pai->dpvt = NULL;
 
     if (pai->inp.type!=INST_IO)
@@ -99,36 +100,22 @@ static long init_ai( struct aiRecord * pai)
     CHECK_AIPARM("BC1CHARGE",  BLD_AI_BC1CHARGE)
     CHECK_AIPARM("BC1ENERGY",  BLD_AI_BC1ENERGY)
 
-  if (pai->inp.type!=INST_IO)
-  {
-    recGblRecordError(S_db_badField, (void *)pai, "devAiBLD Init_record, Illegal INP");
-    pai->pact=TRUE;
-    return (S_db_badField);
-  }
+	CHECK_AIPARM("UND_POS_X",  BLD_AI_UND_POS_X);
+	CHECK_AIPARM("UND_POS_Y",  BLD_AI_UND_POS_Y);
+	CHECK_AIPARM("UND_ANG_X",  BLD_AI_UND_ANG_X);
+	CHECK_AIPARM("UND_ANG_Y",  BLD_AI_UND_ANG_Y);
+	
+	CHECK_AIPARM("DMP_CHARGE", BLD_AI_DMP_CHARGE);
+	CHECK_AIPARM("XTCAV_AMP",  BLD_AI_XTCAV_AMP);
 
-  CHECK_AIPARM("CHARGE",     BLD_AI_CHARGE);
-  CHECK_AIPARM("ENERGY",     BLD_AI_ENERGY);
-  CHECK_AIPARM("POS_X",      BLD_AI_POS_X);
-  CHECK_AIPARM("POS_Y",      BLD_AI_POS_Y);
-  CHECK_AIPARM("ANG_X",      BLD_AI_ANG_X);
-  CHECK_AIPARM("ANG_Y",      BLD_AI_ANG_Y);
-  CHECK_AIPARM("BC2CHARGE",  BLD_AI_BC2CHARGE);
-  CHECK_AIPARM("BC2ENERGY",  BLD_AI_BC2ENERGY);
-  CHECK_AIPARM("BC1CHARGE",  BLD_AI_BC2CHARGE);
-  CHECK_AIPARM("BC1ENERGY",  BLD_AI_BC2ENERGY);
-  CHECK_AIPARM("UND_POS_X",  BLD_AI_UND_POS_X);
-  CHECK_AIPARM("UND_POS_Y",  BLD_AI_UND_POS_Y);
-  CHECK_AIPARM("UND_ANG_X",  BLD_AI_UND_ANG_X);
-  CHECK_AIPARM("UND_ANG_Y",  BLD_AI_UND_ANG_Y);
-  
-  CHECK_AIPARM("PHOTONENERGY",BLD_AI_PHOTONENERGY);
-  CHECK_AIPARM("LTU450_POS_X",BLD_AI_LTU450_POS_X);  
-  CHECK_AIPARM("LTU250_POS_X",BLD_AI_LTU250_POS_X);   
+	CHECK_AIPARM("PHOTONENERGY",BLD_AI_PHOTONENERGY);
+	CHECK_AIPARM("LTU450_POS_X",BLD_AI_LTU450_POS_X);  
+	CHECK_AIPARM("LTU250_POS_X",BLD_AI_LTU250_POS_X);   
 
-  recGblRecordError(S_db_badField, (void *) pai, "devAiBLD Init_record, bad parm");
-  pai->pact = TRUE;
+	recGblRecordError(S_db_badField, (void *) pai, "devAiBLD Init_record, bad parm");
+	pai->pact = TRUE;
 
-  return (S_db_badField);
+	return (S_db_badField);
 }
 
 
@@ -149,7 +136,7 @@ static long read_ai(struct aiRecord *pai)
   switch ( tyData ) {
   case BLD_AI_CHARGE:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamCharge);
-    if(bldEbeamInfo.uDamageMask & __le32(0x1)) {
+    if(bldEbeamInfo.uDamageMask & __le32(EBEAMCHARGE_DAMAGEMASK)) {
       damage = 1;
     }
     if (BLD_MCAST_DEBUG == 4) {
@@ -159,103 +146,115 @@ static long read_ai(struct aiRecord *pai)
     break;
   case BLD_AI_ENERGY:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamL3Energy);
-    if(bldEbeamInfo.uDamageMask & __le32(0x2)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAML3ENERGY_DAMAGEMASK)) {
       damage = 1;
     }
     break;
   case BLD_AI_POS_X:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamLTUPosX);
-    if(bldEbeamInfo.uDamageMask & __le32(0x4)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMLTUPOSX_DAMAGEMASK)) {
       damage = 1;
     }
     break;
   case BLD_AI_POS_Y:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamLTUPosY);
-    if(bldEbeamInfo.uDamageMask & __le32(0x8)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMLTUPOSY_DAMAGEMASK)) {
       damage = 1;
     }
     break;
   case BLD_AI_ANG_X:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamLTUAngX);
-    if(bldEbeamInfo.uDamageMask & __le32(0x10)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMLTUANGX_DAMAGEMASK)) {
       damage = 1;
     }
     break;
   case BLD_AI_ANG_Y:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamLTUAngY);
-    if(bldEbeamInfo.uDamageMask & __le32(0x20)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMLTUANGY_DAMAGEMASK)) {
       damage = 1;
     }
     break;
   case BLD_AI_BLEN:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamBC2Current);
-    if(bldEbeamInfo.uDamageMask & __le32(0x40)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMBC2CURRENT_DAMAGEMASK)) {
       damage = 1;
     }
     break;
   case BLD_AI_BC2CHARGE:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamBC2Current);
-    if(bldEbeamInfo.uDamageMask & __le32(0x40)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMBC2CURRENT_DAMAGEMASK)) {
       damage = 1;
     }
     break;
   case BLD_AI_BC2ENERGY:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamBC2Energy);
-    if(bldEbeamInfo.uDamageMask & __le32(0x80)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMBC2ENERGY_DAMAGEMASK)) {
       damage = 1;
     }
     break;
   case BLD_AI_BC1CHARGE:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamBC1Current);
-    if(bldEbeamInfo.uDamageMask & __le32(0x100)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMBC1CURRENT_DAMAGEMASK)) {
       damage = 1;
     }
     break;
   case BLD_AI_BC1ENERGY:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamBC1Energy);
-    if(bldEbeamInfo.uDamageMask & __le32(0x200)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMBC1ENERGY_DAMAGEMASK)) {
       damage = 1;
     }
     break;
   case BLD_AI_UND_POS_X:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamUndPosX);
-    if(bldEbeamInfo.uDamageMask & __le32(0x400)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMUNDPOSX_DAMAGEMASK)) {
       damage = 1;
     }
     break;
   case BLD_AI_UND_ANG_X:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamUndAngX);
-    if(bldEbeamInfo.uDamageMask & __le32(0x800)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMUNDANGX_DAMAGEMASK)) {
       damage = 1;
     }
     break;
   case BLD_AI_UND_POS_Y:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamUndPosY);
-    if(bldEbeamInfo.uDamageMask & __le32(0x1000)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMUNDPOSY_DAMAGEMASK)) {
       damage = 1;
     }
     break;
   case BLD_AI_UND_ANG_Y:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamUndAngY);
-    if(bldEbeamInfo.uDamageMask & __le32(0x2000)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMUNDANGY_DAMAGEMASK)) {
+      damage = 1;
+    }
+    break;
+  case BLD_AI_DMP_CHARGE:
+    pai->val = __ld_le64(&bldEbeamInfo.ebeamDMP502Charge);
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMDMP502CHARGE_DAMAGEMASK)) {
+      damage = 1;
+    }
+    break;
+  case BLD_AI_XTCAV_AMP:
+    pai->val = __ld_le64(&bldEbeamInfo.ebeamXTCAVAmpl);
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMXTCAVAMPL_DAMAGEMASK)) {
       damage = 1;
     }
     break;
   case BLD_AI_PHOTONENERGY:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamPhotonEnergy);
-    if(bldEbeamInfo.uDamageMask & __le32(0x20000)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMPHTONENERGY_DAMAGEMASK)) {
       damage = 1;
     }
     break;	
   case BLD_AI_LTU450_POS_X:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamLTU450PosX);
-    if(bldEbeamInfo.uDamageMask & __le32(0x20000)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMLTU450POSX_DAMAGEMASK)) {
       damage = 1;
     }
     break;	
   case BLD_AI_LTU250_POS_X:
     pai->val = __ld_le64(&bldEbeamInfo.ebeamLTU250PosX);
-    if(bldEbeamInfo.uDamageMask & __le32(0x20000)) {
+	if(bldEbeamInfo.uDamageMask & __le32(EBEAMLTU250POSX_DAMAGEMASK)) {
       damage = 1;
     }
     break;		

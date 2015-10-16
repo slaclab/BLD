@@ -253,6 +253,7 @@ dbLoadRecords("db/access.db","DEV=BLD:SYS0:500:, MANAGE=IOCMANAGERS")
 # to 'Passive' to effectively disable them.
 
 dbLoadRecords("db/BLDMCast.db","LOCA=SYS0,NMBR=500, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+dbLoadRecords("db/fcom_stats.db","LOCA=SYS0,NMBR=500, STAT_SCAN=5")
 
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.

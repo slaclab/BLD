@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.34 2015/02/03 01:36:29 scondam Exp $ */
+/* $Id: BLDMCast.h,v 1.34.2.1 2015/09/30 09:58:26 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.h
@@ -94,7 +94,8 @@ extern "C" {
  * Structure defined in this document:
  * https://confluence.slac.stanford.edu/download/attachments/10256639/bldicd.pdf
  */
-  typedef struct EBEAMINFO {
+typedef struct EBEAMINFO
+{
   /* Shantha Condamoor: 7-Jul-2014: Swapped sec and nsec fields per PCDS request (M.Browne and C.O.Grady) */
     Uint32_LE     ts_nsec;   
     Uint32_LE     ts_sec;  

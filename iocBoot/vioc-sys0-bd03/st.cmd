@@ -231,6 +231,8 @@ dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_POS_X, EGU=mm")
 dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_POS_Y, EGU=mm")
 dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_ANG_X, EGU=mrad")
 dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_ANG_Y, EGU=mrad")
+dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=DMP_CHARGE,EGU=Nel")
+dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=XTCAV_AMP, EGU=MV")
 dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=PHOTONENERGY, EGU=eV")
 dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU450_POS_X, EGU=mm")
 dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU250_POS_X, EGU=mm")
@@ -248,6 +250,7 @@ dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU250_POS_X, EGU=mm")
 
 # 5 = '2 second'
 dbLoadRecords("db/BLDMCast.db","LOCA=${LOCA},NMBR=${NMBR}, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+dbLoadRecords("db/fcom_stats.db","LOCA=${LOCA},NMBR=${NMBR}, STAT_SCAN=5")
 
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.

@@ -207,6 +207,30 @@ record(ai, "BLD:$(LOCA):$(NMBR):UND_ANG_Y") {
   field(PRIO, "HIGH")
 }
 
+record(ai, "BLD:$(LOCA):$(NMBR):DMP_CHARGE") {
+  field(DESC, "Dump Charge")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_SNDR")
+  field(INP,  "@DMP_CHARGE")
+  field(PREC, "3")
+  field(TSE,  "-2")
+  field(EGU,  "Nel")
+  field(FLNK, "BLD:$(LOCA):$(NMBR):EFUND_DMP_CHARGE")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "BLD:$(LOCA):$(NMBR):XTCAV_AMP") {
+  field(DESC, "XTCAV Amplitude")
+  field(SCAN, "$(DIAG_SCAN)")
+  field(DTYP, "BLD_SNDR")
+  field(INP,  "@XTCAV_AMP")
+  field(PREC, "0")
+  field(TSE,  "-2")
+  field(EGU,  "MV")
+  field(FLNK, "BLD:$(LOCA):$(NMBR):EFUND_XTCAV_AMP")
+  field(PRIO, "HIGH")
+}
+
 # Shantha Condamoor: 7-Jul-2014: Added PHOTONENERGY,LTU450_POS_X and LTU250_POS_X
 
 record(ai, "BLD:$(LOCA):$(NMBR):PHOTONENERGY") {
@@ -243,258 +267,6 @@ record(ai, "BLD:$(LOCA):$(NMBR):LTU250_POS_X") {
   field(EGU,  "mm")
   field(FLNK, "BLD:$(LOCA):$(NMBR):EFLTU250_POS_X")
   field(PRIO, "HIGH")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):TMITLATEERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C0S2@bld_stat_bad_t,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):ENG1LATEERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C1S2@bld_stat_bad_t,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):ENG2LATEERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C2S2@bld_stat_bad_t,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):POS1LATEERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C3S2@bld_stat_bad_t,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):POS2LATEERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C4S2@bld_stat_bad_t,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):POS3LATEERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C5S2@bld_stat_bad_t,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):POS4LATEERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C6S2@bld_stat_bad_t,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):BLENLATEERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C7S2@bld_stat_bad_t,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):BC2ENLATEERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C8S2@bld_stat_bad_t,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):BC1CHLATEERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C9S2@bld_stat_bad_t,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):BC1ENLATEERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C10S2@bld_stat_bad_t,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):UNDLATEERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C11S2@bld_stat_bad_t,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):TMITBADERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C0S2@bld_stat_bad_d,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):ENG1BADERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C1S2@bld_stat_bad_d,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):ENG2BADERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C2S2@bld_stat_bad_d,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):POS1BADERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C3S2@bld_stat_bad_d,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):POS2BADERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C4S2@bld_stat_bad_d,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):POS3BADERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C5S2@bld_stat_bad_d,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):POS4BADERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C6S2@bld_stat_bad_d,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):BLENBADERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C7S2@bld_stat_bad_d,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):BC2ENBADERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C8S2@bld_stat_bad_d,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):BC1CHBADERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C9S2@bld_stat_bad_d,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):BC1ENBADERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C10S2@bld_stat_bad_d,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):UNDBADERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C11S2@bld_stat_bad_d,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):TMITFCOMERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C0S2@bld_stat_bad_f,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):ENG1FCOMERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C1S2@bld_stat_bad_f,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):ENG2FCOMERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C2S2@bld_stat_bad_f,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):POS1FCOMERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C3S2@bld_stat_bad_f,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):POS2FCOMERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C4S2@bld_stat_bad_f,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):POS3FCOMERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C5S2@bld_stat_bad_f,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):POS4FCOMERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C6S2@bld_stat_bad_f,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):BLENFCOMERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C7S2@bld_stat_bad_f,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):BC2ENFCOMERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C8S2@bld_stat_bad_f,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):BC1CHFCOMERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C9S2@bld_stat_bad_f,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):BC1ENFCOMERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C10S2@bld_stat_bad_f,m32")
-}
-
-record(longin, "BLD:$(LOCA):$(NMBR):UNDFCOMERRS") {
-	field(DESC, "Timestamp Mismatch Cnt")
-	field(SCAN, "$(STAT_SCAN)")
-	field(DTYP, "BusAddress")
-	field(INP,  "#C11S2@bld_stat_bad_f,m32")
 }
 
 record(longin, "BLD:$(LOCA):$(NMBR):MCASTSENT") {
