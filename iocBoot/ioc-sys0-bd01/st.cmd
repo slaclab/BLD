@@ -71,9 +71,9 @@ fcomInit(getenv("FCOM_MC_PREFIX",0),1000)
 # Set IOC Shell Prompt as well:
 epicsEnvSet("IOCSH_PS1","ioc-sys0-bd01>")
 
-epicsEnvSet("IOC_NAME","IOC=IOC:SYS0:${UNIT}")
+epicsEnvSet("IOC_NAME","IOC=IOC:SYS0:BD01")
 
-epicsEnvSet("AUTOSAVE_MACRO","P=IOC:SYS0:${UNIT}:")
+epicsEnvSet("AUTOSAVE_MACRO","P=IOC:SYS0:BD01:")
 # ====================================================================
 # Setup some additional environment variables
 # ====================================================================
@@ -126,7 +126,7 @@ bspExtVerbosity=0
 # ErDebug=100
 
 #ErConfigure(0, 0, 0, 0, 1)
-ErConfigure( 0,0x300000,0x60,4,0)       # VME EVR:SYS0:${UNIT}
+ErConfigure( 0,0x300000,0x60,4,0)       # VME EVR:SYS0:BD01
 #evrTimeFlag=0
 
 # Add evrInitialize (after ErConfigure) if a fiducial routine will be
@@ -140,7 +140,7 @@ ErConfigure( 0,0x300000,0x60,4,0)       # VME EVR:SYS0:${UNIT}
 # =====================================================================
 # Load database for autosave status
 # =====================================================================
-# dbLoadRecords("db/save_restoreStatus.db", "P=IOC:SYS0:${UNIT}:")
+# dbLoadRecords("db/save_restoreStatus.db", "P=IOC:SYS0:BD01:")
 
 # =====================================================================
 # Set some facility specific MACROs for database instantiation below
@@ -157,8 +157,8 @@ ErConfigure( 0,0x300000,0x60,4,0)       # VME EVR:SYS0:${UNIT}
 # FAC = SYS0 ==> LCLS1
 # FAC = SYS1 ==> FACET
 
-epicsEnvSet("EVR_DEV1","EVR:${FAC}:${UNIT}")
-epicsEnvSet("BSA_DEV1","BLD:${LOCA}:${NMBR}")
+epicsEnvSet("EVR_DEV1","EVR:SYS0:BD01")
+epicsEnvSet("BSA_DEV1","BLD:SYS0:502")
 
 # ========================================================
 # Load EVR Databases for the Timing system
@@ -170,7 +170,7 @@ epicsEnvSet("BSA_DEV1","BLD:${LOCA}:${NMBR}")
 # SYS1 = FACET
 # SYS6 = XTA
 # ===========================================================================
-dbLoadRecords("db/Pattern.db","IOC=IOC:SYS0:${UNIT},SYS=SYS0")
+dbLoadRecords("db/Pattern.db","IOC=IOC:SYS0:BD01,SYS=SYS0")
 
 # Databases for the PMC EVR230
 # Note the first instance of an EVR will inherit the unit number of the parent IOC.
@@ -178,36 +178,36 @@ dbLoadRecords("db/Pattern.db","IOC=IOC:SYS0:${UNIT},SYS=SYS0")
 # Hence,
 # EVR device number one ==> EVR=EVR:B34:EV07
 # EVR device number two ==> EVR=EVR:B34:EV08
-dbLoadRecords("db/EvrPmc.db","EVR=EVR:SYS0:${UNIT},CRD=0,SYS=SYS0")
-dbLoadRecords("db/PMC-trig.db","IOC=IOC:SYS0:${UNIT},LOCA=SYS0,UNIT=${UNIT},SYS=SYS0")
+dbLoadRecords("db/EvrPmc.db","EVR=EVR:SYS0:BD01,CRD=0,SYS=SYS0")
+dbLoadRecords("db/PMC-trig.db","IOC=IOC:SYS0:BD01,LOCA=SYS0,UNIT=BD01,SYS=SYS0")
 
 # Support for Beam Synchronous Acquisition (BSA)
 
 # BSA Database for each data source from above
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=CHARGE,       EGU=nC")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=ENERGY,       EGU=MeV")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=POS_X,        EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=POS_Y,        EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=ANG_X,        EGU=mrad")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=ANG_Y,        EGU=mrad")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=BC2CHARGE,    EGU=Amps")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=BC2ENERGY,    EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=BC1CHARGE,    EGU=Amps")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=BC1ENERGY,    EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_POS_X,    EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_POS_Y,    EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_ANG_X,    EGU=mrad")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_ANG_Y,    EGU=mrad")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=DMP_CHARGE,   EGU=Nel")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=XTCAV_AMP,    EGU=MV")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=PHOTONENERGY, EGU=eV")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU450_POS_X, EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU250_POS_X, EGU=mm")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=CHARGE,       EGU=nC")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=ENERGY,       EGU=MeV")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=POS_X,        EGU=mm")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=POS_Y,        EGU=mm")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=ANG_X,        EGU=mrad")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=ANG_Y,        EGU=mrad")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=BC2CHARGE,    EGU=Amps")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=BC2ENERGY,    EGU=mm")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=BC1CHARGE,    EGU=Amps")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=BC1ENERGY,    EGU=mm")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=UND_POS_X,    EGU=mm")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=UND_POS_Y,    EGU=mm")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=UND_ANG_X,    EGU=mrad")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=UND_ANG_Y,    EGU=mrad")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=DMP_CHARGE,   EGU=Nel")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=XTCAV_AMP,    EGU=MV")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=PHOTONENERGY, EGU=eV")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=LTU450_POS_X, EGU=mm")
+dbLoadRecords("db/Bsa.db","DEVICE=BLD:SYS0:502, ATRB=LTU250_POS_X, EGU=mm")
 
 # =====================================================================
 #Load Additional databases:
 # =====================================================================
-dbLoadRecords("db/access.db","DEV=BLD:SYS0:${NMBR}:, MANAGE=IOCMANAGERS")
+dbLoadRecords("db/access.db","DEV=BLD:SYS0:502:, MANAGE=IOCMANAGERS")
 
 ## Load record instances
 # 5 = '2 second'
@@ -216,14 +216,14 @@ dbLoadRecords("db/access.db","DEV=BLD:SYS0:${NMBR}:, MANAGE=IOCMANAGERS")
 # the BLDMcastWfRecv waveform should be used instead)
 # to 'Passive' to effectively disable them.
 
-dbLoadRecords("db/BLDMCast.db","LOCA=SYS0,NMBR=${NMBR}, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
-dbLoadRecords("db/fcom_stats.db","LOCA=SYS0,NMBR=${NMBR}, STAT_SCAN=5")
+dbLoadRecords("db/BLDMCast.db","LOCA=SYS0,NMBR=502, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+dbLoadRecords("db/fcom_stats.db","LOCA=SYS0,NMBR=502, STAT_SCAN=5")
 
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.
 # We scan with event 146 (beam + .5Hz)
 #
-# NOTE: There must be one of the EVR:IOC:SYS0:${UNIT}:EVENTxyCTRL
+# NOTE: There must be one of the EVR:IOC:SYS0:BD01:EVENTxyCTRL
 #       records holding the event number we use here and it
 #       must have VME interrupts (.VME field) enabled.
 #
@@ -240,7 +240,7 @@ dbLoadRecords("db/fcom_stats.db","LOCA=SYS0,NMBR=${NMBR}, STAT_SCAN=5")
 # which would be faster, simpler and more flexible)
 # 
 
-dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:${UNIT}:BLDWAV, scan=Event, evnt=146, rarm=2")
+dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:BD01:BLDWAV, scan=Event, evnt=146, rarm=2")
 
 # END: Loading the record databases
 ########################################################################
@@ -274,7 +274,7 @@ dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:${UNIT}:BLDWAV, scan=Event, 
 # Prefix that is use to update save/restore status database
 # records
 # ============================================================
-# save_restoreSet_status_prefix("${IOC}:")
+# save_restoreSet_status_prefix("IOC:SYS0:BD01:")
 
 ## Restore datasets
 # set_pass0_restoreFile("info_settings.sav")

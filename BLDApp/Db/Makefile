@@ -42,6 +42,9 @@ DB_INSTALLS += $(EVENT)/db/Bsa.db
 # Install databases from iocAdmin package
 # These databases support IOC Health and Monitoring
 # ========================================================
+# HardIOC
+DB_INSTALLS += $(IOCADMIN)/db/iocAdminRTEMS.db
+
 # SoftIOC
 DB_INSTALLS += $(IOCADMIN)/db/iocAdminSoft.db
 
