@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.67.2.6 2015/10/16 09:16:30 bhill Exp $ */
+/* $Id: BLDMCast.c,v 1.68 2015/10/16 09:49:14 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -51,6 +51,7 @@
 #include <epicsEvent.h>
 #include <epicsThread.h>
 #include <epicsTypes.h>
+#include <initHooks.h>
 #include <cadef.h>
 #include <drvSup.h>
 #include <alarm.h>
@@ -79,7 +80,7 @@ extern int	fcomUtilFlag;
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.67.2.6 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.68 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -405,7 +406,7 @@ static void BLDMCastTaskEnd(void * parg);
 
 void BLDMCastStart(int enable, const char * NIC)
 {
-	/* This function will be called in st.cmd after iocInit() */
+	/* This function is called via an initHook after iocInit() */
     printf( "BLDMCastStart: %s %s\n", (enable ? "enable" : "disable"), NIC );
     BLD_MCAST_ENABLE = enable;
 
@@ -1468,6 +1469,14 @@ checkDevBusMappedRegister(char *nm, void *ptr)
 	}
 }
 
+void  initHookBLDMCastStart( initHookState state )
+{
+	if ( state == initHookAfterIocRunning )
+	{
+		BLDMCastStart( 1, getenv("IPADDR1") );
+	}
+}
+
 /* implementation */
 static long BLD_EPICS_Init()
 {
@@ -1542,7 +1551,9 @@ static long BLD_EPICS_Init()
 	bldMutex = epicsMutexMustCreate();
 
 	if (enable_broadcast) {
-	  BLDMCastStart( enable_broadcast, getenv("IPADDR1") );
+		int	initHookStatus = initHookRegister( initHookBLDMCastStart );
+		if ( initHookStatus != 0 )
+			errlogPrintf( "Error %d from initHookRegister of BLDMCastStart!\n", initHookStatus );
 	}
 	else {
 	  errlogPrintf("WARN: *** Not starting BLDMCast task ***\n");

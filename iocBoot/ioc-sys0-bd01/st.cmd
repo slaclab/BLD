@@ -125,8 +125,8 @@ bspExtVerbosity=0
 # Debug interest level for EVR Driver
 # ErDebug=100
 
-#ErConfigure(0, 0, 0, 0, 1)
-ErConfigure( 0,0x300000,0x60,4,0)       # VME EVR:SYS0:BD01
+ErConfigure(0, 0, 0, 0, 1)
+#ErConfigure( 0,0x300000,0x60,4,0)       # VME EVR:SYS0:BD01
 #evrTimeFlag=0
 
 # Add evrInitialize (after ErConfigure) if a fiducial routine will be
