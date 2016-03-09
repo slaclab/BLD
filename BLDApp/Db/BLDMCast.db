@@ -3,6 +3,7 @@ record (ai, "BLD:$(LOCA):$(NMBR):DSPR1") {
   field(EGU, "m/MeV")
   field(PREC,"4")
   field(PINI,"YES")
+  info( autosaveFields, "VAL" )
 }
 
 record (ai, "BLD:$(LOCA):$(NMBR):DSPR2") {
@@ -10,6 +11,7 @@ record (ai, "BLD:$(LOCA):$(NMBR):DSPR2") {
   field(EGU, "m/MeV")
   field(PREC,"4")
   field(PINI,"YES")
+  info( autosaveFields, "VAL" )
 }
 
 record (waveform, "BLD:$(LOCA):$(NMBR):FMTRX") {
@@ -19,6 +21,7 @@ record (waveform, "BLD:$(LOCA):$(NMBR):FMTRX") {
   field(EGU,"")
   field(PREC,"4")
   field(PINI,"YES")
+  info( autosaveFields, "VAL" )
 }
 
 record(ai, "BLD:$(LOCA):$(NMBR):CHARGE") {
