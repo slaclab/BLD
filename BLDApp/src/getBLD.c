@@ -3,9 +3,9 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <string.h>
 #include <unistd.h>
 #include <time.h>
-#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -14,6 +14,7 @@
 #include <netdb.h>
 #include <sys/uio.h>
 #include <net/if.h>
+#include <arpa/inet.h>
 
 #include "epicsThread.h"
 #include "epicsEvent.h"
@@ -180,7 +181,7 @@ static int getMessage(int recvBufSize) {
       }
     }
     else {
-      printf("Message size: %d\n", recvSize);
+      printf("Message size: %zd\n", recvSize);
     }
   }
 

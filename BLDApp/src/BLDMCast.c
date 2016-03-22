@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.68 2015/10/16 09:49:14 bhill Exp $ */
+/* $Id: BLDMCast.c,v 1.69 2016/03/03 02:42:17 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -34,6 +34,9 @@
 #include <inttypes.h>
 #include <errno.h>
 #include <unistd.h>
+#ifdef RTEMS
+#include <lanIpBasic.h>
+#endif
 
 #include <sys/time.h>
 
@@ -80,7 +83,7 @@ extern int	fcomUtilFlag;
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.68 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.69 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -99,7 +102,11 @@ extern int	fcomUtilFlag;
  * ca_create_subscription with the DBE_VALUE | DBE_ALARM mask ...
  */
 #define MULTICAST           /* Use multicast interface */
+#ifdef RTEMS
 #define MULTICAST_UDPCOMM   /* Use UDPCOMM for data output; BSD sockets otherwise */
+#else
+#define MULTICAST_UDPCOMM   /* Use UDPCOMM for data output; BSD sockets otherwise */
+#endif
 
 /*
 #ifdef FB05_TEST / * If running of FB05, disable multicast - this is already done by the BLD IOC * /
@@ -339,7 +346,7 @@ static epicsInt32 bldUseFcomSet = 0;
 
 static unsigned int dataAvailable = 0;
 
-int BLD_MCAST_ENABLE = 1;
+int BLD_MCAST_ENABLE = 0;
 epicsExportAddress(int, BLD_MCAST_ENABLE);
 
 int BLD_MCAST_DEBUG = 1;
@@ -408,7 +415,6 @@ void BLDMCastStart(int enable, const char * NIC)
 {
 	/* This function is called via an initHook after iocInit() */
     printf( "BLDMCastStart: %s %s\n", (enable ? "enable" : "disable"), NIC );
-    BLD_MCAST_ENABLE = enable;
 
     if(NIC && NIC[0] != 0)
         mcastIntfIp = inet_addr(NIC);
@@ -703,7 +709,6 @@ int		rtncode;
 
 int		sFd;
 #ifndef MULTICAST_UDPCOMM
-struct sockaddr_in sockaddrSrc;
 struct sockaddr_in sockaddrDst;
 unsigned char mcastTTL;
 #endif
@@ -743,7 +748,7 @@ epicsUInt32     this_time;
 		return -1;
 	}
 #else	
-	
+
 	sFd = socket(AF_INET, SOCK_DGRAM, 0);
 
 	if(sFd == -1)
@@ -757,17 +762,19 @@ epicsUInt32     this_time;
 	 * should be big enough.
 	 */
 
-	memset(&sockaddrSrc, 0, sizeof(struct sockaddr_in));
 	memset(&sockaddrDst, 0, sizeof(struct sockaddr_in));
-
-	sockaddrSrc.sin_family      = AF_INET;
-	sockaddrSrc.sin_addr.s_addr = INADDR_ANY;
-	sockaddrSrc.sin_port        = 0;
 
 	sockaddrDst.sin_family      = AF_INET;
 	sockaddrDst.sin_addr.s_addr = inet_addr(BLDMCAST_DST_IP);
 	sockaddrDst.sin_port        = htons(BLDMCAST_DST_PORT);
 
+#if 0	/* bind should not be necessary as this is xmit only */
+	{
+	struct sockaddr_in sockaddrSrc;
+	memset(&sockaddrSrc, 0, sizeof(struct sockaddr_in));
+	sockaddrSrc.sin_family      = AF_INET;
+	sockaddrSrc.sin_addr.s_addr = INADDR_ANY;
+	sockaddrSrc.sin_port        = 0;
 	if( bind( sFd, (struct sockaddr *) &sockaddrSrc, sizeof(struct sockaddr_in) ) == -1 )
 	{
 		errlogPrintf("Failed to bind local socket for multicast\n");
@@ -775,17 +782,13 @@ epicsUInt32     this_time;
 		epicsMutexDestroy(bldMutex);
 		return -1;
 	}
+	}
+#endif
 
 	if(BLD_MCAST_DEBUG >= 2)
 	{
-		struct sockaddr_in sockaddrName;
-#ifdef __linux__
-		unsigned int iLength = sizeof(sockaddrName);
-#elif defined(__rtems__)
-		socklen_t iLength = sizeof(sockaddrName);			
-#else
-		int iLength = sizeof(sockaddrName);
-#endif
+		struct sockaddr_in	sockaddrName;
+		socklen_t			iLength = sizeof(sockaddrName);
 		if(getsockname(sFd, (struct sockaddr*)&sockaddrName, &iLength) == 0)
 			printf( "Local addr: %s Port %u\n", inet_ntoa(sockaddrName.sin_addr), ntohs(sockaddrName.sin_port));
 	}
@@ -1579,9 +1582,9 @@ static long BLD_EPICS_Report(int level)
 		printf(             "  DEFINED (use multicast interface to send data)\n");
 #ifdef MULTICAST_UDPCOMM
 	printf("MULTICAST_UDPCOMM:");
-			printf(         "  DEFINED (use UDPCOMM/lanIpBasic, not BSD sockets for sending BLD multicast messages)\n");
+			printf(         "  DEFINED (use UDPCOMM, not BSD sockets for sending BLD multicast messages)\n");
 #else
-			printf(         "  DEFINED (use BSD sockets, not UDPCOMM/lanIpBasic for sending BLD multicast messages)\n");
+			printf(         "  DEFINED (use BSD sockets, not UDPCOMM for sending BLD multicast messages)\n");
 #endif
 #else
 		printf(             "  UNDEFINED (use of multicast interface to send data DISABLED)\n");
