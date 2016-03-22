@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.35 2015/10/16 09:49:14 bhill Exp $ */
+/* $Id: BLDMCast.h,v 1.36 2015/10/16 10:23:45 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.h
@@ -182,7 +182,6 @@ extern EBEAMINFO    bldEbeamInfo;
 extern epicsMutexId bldMutex;
 extern IOSCANPVT    bldIoscan;         /* Trigger full-rate EPICS records */
 
-#define BLDMCAST_DST_IP	    "239.255.24.0"
 #define BLDMCAST_DST_PORT	10148
 
 #ifdef __cplusplus

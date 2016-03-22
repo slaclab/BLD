@@ -16,6 +16,7 @@ epicsEnvSet("NMBR","502")
 
 setenv("IPADDR1","172.27.28.14",0)		# LCLS VME BD01 IOC ETH2 - ioc-sys0-bd01-fnet on LCLSFNET subnet
 setenv("NETMASK1","255.255.252.0",0)
+setenv("BLDMCAST_DST_IP", "239.255.24.0" )
 
 setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
 setenv("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")

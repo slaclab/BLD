@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.69 2016/03/03 02:42:17 bhill Exp $ */
+/* $Id: BLDMCast.c,v 1.70 2016/03/22 05:21:58 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -83,7 +83,7 @@ extern int	fcomUtilFlag;
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.69 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.70 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -732,7 +732,7 @@ epicsUInt32     this_time;
 		return -1;
 	}
 
-	if ( (rtncode = udpCommConnect( sFd, inet_addr(BLDMCAST_DST_IP), BLDMCAST_DST_PORT )) ) {
+	if ( (rtncode = udpCommConnect( sFd, inet_addr(getenv("BLDMCAST_DST_IP")), BLDMCAST_DST_PORT )) ) {
 		errlogPrintf("Failed to 'connect' to peer: %s\n", strerror(-rtncode));
 		epicsMutexDestroy( bldMutex );
 		bldMutex = 0;
@@ -765,7 +765,7 @@ epicsUInt32     this_time;
 	memset(&sockaddrDst, 0, sizeof(struct sockaddr_in));
 
 	sockaddrDst.sin_family      = AF_INET;
-	sockaddrDst.sin_addr.s_addr = inet_addr(BLDMCAST_DST_IP);
+	sockaddrDst.sin_addr.s_addr = inet_addr(getenv("BLDMCAST_DST_IP"));
 	sockaddrDst.sin_port        = htons(BLDMCAST_DST_PORT);
 
 #if 0	/* bind should not be necessary as this is xmit only */

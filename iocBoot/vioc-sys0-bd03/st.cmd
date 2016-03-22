@@ -12,6 +12,10 @@ epicsEnvSet("IPADDR1","172.27.29.101",0)	# LCLS LinuxRT BD03 ETH4 - cpu-sys0-bd0
 # epicsEnvSet("IPADDR1","172.27.3.78",0)	# LCLS LinuxRT BD03 ETH5 - cpu-sys0-bd03      on LCLSIOC subnet
 epicsEnvSet("NETMASK1","255.255.252.0",0)
 
+# BLD multicast group IP addr
+#epicsEnvSet("BLDMCAST_DST_IP", "239.255.24.0" )
+epicsEnvSet("BLDMCAST_DST_IP", "239.255.24.255" )
+
 epicsEnvSet("EPICS_CAS_INTF_ADDR_LIST","172.27.3.78")
 #epicsEnvSet("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
 #??? epicsEnvSet("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")

@@ -1,4 +1,4 @@
-/* $Id: devBLDMCastWfRecv.c,v 1.7.2.1 2015/10/16 09:16:31 bhill Exp $ */
+/* $Id: devBLDMCastWfRecv.c,v 1.8 2015/10/16 09:49:14 bhill Exp $ */
 
 /* Device support for a waveform record to receive
  * BLD multicast data and store all items in a waveform
@@ -80,7 +80,7 @@ char            *ifaddr;
 		errlogPrintf("Unable to create socket: %s\n", strerror(-sd));
 		goto bail;
 	}
-	if ( (err = udpCommJoinMcast( sd, inet_addr( BLDMCAST_DST_IP ) )) ) {
+	if ( (err = udpCommJoinMcast( sd, inet_addr( getenv("BLDMCAST_DST_IP") ) )) ) {
 		errlogPrintf("Unable to join MC group: %s\n", strerror(-err));
 		goto bail;
 	}
