@@ -8,7 +8,8 @@
 # For iocAdmin
 epicsEnvSet("LOCN","B005-2918")
 
-epicsEnvSet("IPADDR1","172.27.29.101",0)	# LCLS LinuxRT BD03 ETH? - cpu-sys0-bd03-fnet on LCLSFNET subnet
+epicsEnvSet("IPADDR1","172.27.29.101",0)	# LCLS LinuxRT BD03 ETH4 - cpu-sys0-bd03-fnet on LCLSFNET subnet
+# epicsEnvSet("IPADDR1","172.27.3.78",0)	# LCLS LinuxRT BD03 ETH5 - cpu-sys0-bd03      on LCLSIOC subnet
 epicsEnvSet("NETMASK1","255.255.252.0",0)
 
 epicsEnvSet("EPICS_CAS_INTF_ADDR_LIST","172.27.3.78")
@@ -158,7 +159,8 @@ BLDSender_registerRecordDeviceDriver(pdbbase)
 # Debug interest level for EVR Driver
 # ErDebugLevel(0)
 
-var BLD_MCAST_DEBUG 1
+var BLD_MCAST_ENABLE 1
+var BLD_MCAST_DEBUG  2
 
 # PMC-based EVR (EVR230)
 # These are the most popular

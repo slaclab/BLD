@@ -287,7 +287,7 @@ dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:BD01:BLDWAV, scan=Event, evn
 # sending BLD packets to the same multicast address
 BLD_MCAST_ENABLE=0
 
-#BLD_MCAST_DEBUG=2
+BLD_MCAST_DEBUG=2
 #DELAY_FOR_CA=30
 
 # Capture load addresses of all modules (essential for debugging if iocInit crashes...)
