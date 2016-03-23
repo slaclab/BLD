@@ -14,7 +14,7 @@ epicsEnvSet("NETMASK1","255.255.252.0",0)
 
 # BLD multicast group IP addr
 #epicsEnvSet("BLDMCAST_DST_IP", "239.255.24.0" )
-epicsEnvSet("BLDMCAST_DST_IP", "239.255.24.255" )
+epicsEnvSet("BLDMCAST_DST_IP", "239.255.24.254" )
 
 epicsEnvSet("EPICS_CAS_INTF_ADDR_LIST","172.27.3.78")
 #epicsEnvSet("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
@@ -70,7 +70,8 @@ epicsEnvSet("EPICS_IOC_LOG_CLIENT_INET","${IOC}")
 epicsEnvSet("LOCA","SYS0")
 epicsEnvSet("UNIT","BD03")
 epicsEnvSet("FAC", "SYS0")
-epicsEnvSet("NMBR","500")
+#epicsEnvSet("NMBR","500")
+epicsEnvSet("NMBR","502")
 
 epicsEnvSet("EVR_DEV1","EVR:${LOCA}:${UNIT}")
 epicsEnvSet("BSA_DEV1","BLD:${LOCA}:${NMBR}")
