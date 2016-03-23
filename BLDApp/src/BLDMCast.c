@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.70 2016/03/22 05:21:58 bhill Exp $ */
+/* $Id: BLDMCast.c,v 1.71 2016/03/22 05:31:56 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -83,7 +83,7 @@ extern int	fcomUtilFlag;
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.70 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.71 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -710,8 +710,8 @@ int		rtncode;
 int		sFd;
 #ifndef MULTICAST_UDPCOMM
 struct sockaddr_in sockaddrDst;
-unsigned char mcastTTL;
 #endif
+unsigned char mcastTTL;
 epicsTimeStamp *p_refTime;
 
 FcomBlobSetMask got_mask;
@@ -734,6 +734,15 @@ epicsUInt32     this_time;
 
 	if ( (rtncode = udpCommConnect( sFd, inet_addr(getenv("BLDMCAST_DST_IP")), BLDMCAST_DST_PORT )) ) {
 		errlogPrintf("Failed to 'connect' to peer: %s\n", strerror(-rtncode));
+		epicsMutexDestroy( bldMutex );
+		bldMutex = 0;
+		udpCommClose( sFd );
+		return -1;
+	}
+
+	mcastTTL = MCAST_TTL;
+	if ( ( rtncode = udpCommSetMcastTTL( sFd, mcastTTL ) ) ) {
+		errlogPrintf("Failed to set multicast TTL: %s\n", strerror(-rtncode));
 		epicsMutexDestroy( bldMutex );
 		bldMutex = 0;
 		udpCommClose( sFd );

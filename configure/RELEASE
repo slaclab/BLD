@@ -22,10 +22,10 @@
 # If you don't want to install into $(TOP) then
 # define INSTALL_LOCATION_APP here
 #INSTALL_LOCATION_APP=<fullpathname>
-
 # EPICS Templates
-TEMPLATE_TOP=/afs/slac/g/lcls/epics/R3-14-12-4_1-0/modules/icdTemplates/icdTemplates-R1-2-0
+TEMPLATE_TOP=$(MODULES_SITE_TOP)/icdTemplates/icdTemplates-R1-2-0
 
+#
 # =============================================================
 # All needed variables come in via the following include:
 # =============================================================
@@ -38,13 +38,6 @@ include $(TOP)/RELEASE_SITE
 
 EPICS_MODULES=$(MODULES_SITE_TOP)
 
-# ==============================================================
-# Define the cvs module version of EPICS BASE that you will use
-# =============================================================
-
-BASE_SITE_TOP=/afs/slac/g/lcls/epics/R3-14-12-4_1-0/base
-BASE_MODULE_VERSION=base-R3-14-12-4_1-0
-
 # =============================================================
 # Define the version of modules needed by
 # IOC apps or other Support apps
@@ -53,14 +46,14 @@ BASE_MODULE_VERSION=base-R3-14-12-4_1-0
 SEQ_MODULE_VERSION=seq-R2-1-6_1-3
 AUTOSAVE_MODULE_VERSION=autosave-R5-5_0-0
 CAPUTLOG_MODULE_VERSION=caPutLog-R3-3-0
-IOCADMIN_MODULE_VERSION=iocAdmin-R3-1-12_1-1
-DIAGTIMER_MODULE_VERSION=diagTimer-R1-6-0
+IOCADMIN_MODULE_VERSION=iocAdmin-R3-1-14_1-0
+DIAGTIMER_MODULE_VERSION=diagTimer-R1-7-0
 MISCUTILS_MODULE_VERSION=miscUtils-R2-2-2
 EVENT_MODULE_VERSION=event-R4-1-6
 RTEMSUTILS_MODULE_VERSION=rtemsutils-R1-0-0-lcls5
-UDPCOMM_MODULE_VERSION=udpComm-R2-5-9
-FCOM_MODULE_VERSION=fcom-R1-3-29
-FCOMUTIL_MODULE_VERSION=fcomUtil-R1-1-32
+UDPCOMM_MODULE_VERSION=udpComm-R2-7-0
+FCOM_MODULE_VERSION=fcom-R1-3-32
+FCOMUTIL_MODULE_VERSION=fcomUtil-R1-1-35
 
 DEVBUSMAPPED_MODULE_VERSION=devBusMapped-R3-1-0
 
@@ -96,9 +89,7 @@ DEVBUSMAPPED=$(EPICS_MODULES)/devBusMapped/$(DEVBUSMAPPED_MODULE_VERSION)
 CEXP=$(EPICS_MODULES)/cexpsh/$(CEXP_MODULE_VERSION)
 
 # EPICS_BASE usually appears last so other apps can override stuff:
-##EPICS_BASE=/afs/slac/g/lcls/epics/R3-14-12-4_1-0/base/base-R3-14-12-4_1-0
-
-EPICS_BASE=$(BASE_SITE_TOP)/$(BASE_MODULE_VERSION)
+EPICS_BASE=$(BASE_SITE_TOP)/$(EPICS_BASE_VER)
 
 # Location of Linux Kernel Modules:
 LINUX_KERNEL_MODULES=$(PACKAGE_SITE_TOP)/linuxKernel_Modules
@@ -106,3 +97,4 @@ LINUX_KERNEL_MODULES=$(PACKAGE_SITE_TOP)/linuxKernel_Modules
 # Set RULES here if you want to take build rules from somewhere
 # other than EPICS_BASE:
 #RULES=/path/to/epics/support/module/rules/x-y
+
