@@ -8,18 +8,17 @@
 # For iocAdmin
 epicsEnvSet("LOCN","B005-2918")
 
-epicsEnvSet("IPADDR1","172.27.29.101",0)	# LCLS LinuxRT BD03 ETH4 - cpu-sys0-bd03-fnet on LCLSFNET subnet
-# epicsEnvSet("IPADDR1","172.27.3.78",0)	# LCLS LinuxRT BD03 ETH5 - cpu-sys0-bd03      on LCLSIOC subnet
-epicsEnvSet("NETMASK1","255.255.252.0",0)
+epicsEnvSet("IPADDR1","172.27.29.101")	# LCLS LinuxRT BD03 ETH4 - cpu-sys0-bd03-fnet on LCLSFNET subnet
+# epicsEnvSet("IPADDR1","172.27.3.78")	# LCLS LinuxRT BD03 ETH5 - cpu-sys0-bd03      on LCLSIOC subnet
+epicsEnvSet("NETMASK1","255.255.252.0")
 
 # BLD multicast group IP addr
 #epicsEnvSet("BLDMCAST_DST_IP", "239.255.24.0" )
 epicsEnvSet("BLDMCAST_DST_IP", "239.255.24.254" )
 
 epicsEnvSet("EPICS_CAS_INTF_ADDR_LIST","172.27.3.78")
-#epicsEnvSet("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
-#??? epicsEnvSet("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 epicsEnvSet("EPICS_CAS_AUTO_BEACON_ADDR_LIST","YES")
+#epicsEnvSet("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 
 < envPaths
 # =====================================================================
@@ -27,14 +26,14 @@ epicsEnvSet("EPICS_CAS_AUTO_BEACON_ADDR_LIST","YES")
 # < "../st.fnetgeneric.lcls.cmd"
 
 # Set common fnet variables
-epicsEnvSet("NETMASK1","255.255.252.0",0)
+epicsEnvSet("NETMASK1","255.255.252.0")
 
 # Set the FCOM multicast prefix
 # Production FCOM group is mc-lcls-fcom,  239.219.8.0 on  MCAST-LCLS-FCOM subnet
-# epicsEnvSet("FCOM_MC_PREFIX", "mc-lcls-fcom",1)
-epicsEnvSet("FCOM_MC_PREFIX", "239.219.8.0", 1)
+# epicsEnvSet("FCOM_MC_PREFIX", "mc-lcls-fcom")
+epicsEnvSet("FCOM_MC_PREFIX", "239.219.8.0")
 # Development FCOM group is mc-b034-fcom, 239.219.248.0 on  MCAST-B034-FCOM subnet
-# Development epicsEnvSet("FCOM_MC_PREFIX", "mc-b034-fcom",1)      #  on  MCAST-B034-FCOM subnet
+# Development epicsEnvSet("FCOM_MC_PREFIX", "mc-b034-fcom")
 
 # execute generic part
 < "../st.linuxgeneric.cmd"
@@ -70,7 +69,6 @@ epicsEnvSet("EPICS_IOC_LOG_CLIENT_INET","${IOC}")
 epicsEnvSet("LOCA","SYS0")
 epicsEnvSet("UNIT","BD03")
 epicsEnvSet("FAC", "SYS0")
-#epicsEnvSet("NMBR","500")
 epicsEnvSet("NMBR","502")
 
 epicsEnvSet("EVR_DEV1","EVR:${LOCA}:${UNIT}")
@@ -107,7 +105,7 @@ epicsEnvSet("AUTOSAVE_MACRO","VIOC:${LOCA}:${UNIT}:")
 # ====================================================================
 # For iocAdmin
 epicsEnvSet("ENGINEER","Shantha Condamoor")
-epicsEnvSet("LOCATION",getenv("LOCN"),1)
+epicsEnvSet("LOCATION",getenv("LOCN"))
 
 # END: Additional environment variables
 # ====================================================================
@@ -252,7 +250,6 @@ dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU250_POS_X, EGU=mm")
 # the BLDMcastWfRecv waveform should be used instead)
 # to 'Passive' to effectively disable them.
 
-# 5 = '2 second'
 dbLoadRecords("db/BLDMCast.db","LOCA=${LOCA},NMBR=${NMBR}, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 dbLoadRecords("db/fcom_stats.db","LOCA=${LOCA},NMBR=${NMBR}, STAT_SCAN=5")
 

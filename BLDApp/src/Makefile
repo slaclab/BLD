@@ -23,7 +23,6 @@ USR_CPPFLAGS =
 
 # Comment this line to build a host-ioc; you'd need to exclude
 # several facilities (evr, micro, ...) for this to work.
-#BUILDFOR=_RTEMS
 
 LIBRARY_IOC		+= devBLDMCastWfRecv
 #LIBRARY_IOC$(BUILDFOR) += bldSndrSupport
@@ -49,7 +48,9 @@ devBLDMCastWfRecv_SRCS = devBLDMCastWfRecv.c
 
 PROD_IOC = $(PROD_IOC_$(T_A))
 PROD_IOC      += BLDSender
-# PROD_IOC      += bldget bldrx
+# PROD_IOC      += BLDReceiver
+# PROD_IOC      += bldget
+# PROD_IOC      += bldrx
 
 #=============================
 # BLDSender.dbd will be created and installed
@@ -101,21 +102,56 @@ BLDSender_SRCS_DEFAULT += BLDMain.cpp
 BLDSender_SRCS_vxWorks += -nil-
 
 #=============================
+# BLDReceiver product
+#=============================
+#DBD += BLDReceiver.dbd
 
-# bldget_SRCS = bldget.c
-# bldget_LIBS = udpCommBSDBSD Com
+# BLDReceiver.dbd will be made up from these files:
+#BLDReceiver_DBD += base.dbd
+#BLDReceiver_DBD += evrSupport.dbd
+#BLDReceiver_DBD += devMrfEr.dbd
+#BLDReceiver_DBD += autosave.dbd
+#BLDReceiver_DBD += iocAdmin.dbd
+#BLDReceiver_DBD += devBusMapped.dbd
+#BLDReceiver_DBD += devBLDRcvr.dbd
+
+
+#bldRcvrSupport_SRCS += BLDMCastReceiver.c
+#bldRcvrSupport_SRCS += BLDMCastReceiverPhaseCavity.c
+#bldRcvrSupport_SRCS += devBLDMCastReceiver.c
+#bldRcvrSupport_SRCS += BLDMCastReceiverImb.c
+#bldRcvrSupport_SRCS += BLDMCastReceiverGdet.c
+
+# Add all the support libraries needed by this IOC for BLDReceiver app
+#BLDReceiver_LIBS += evrSupport
+#BLDReceiver_LIBS += devMrfEr
+#BLDReceiver_LIBS += mrfVme64x
+#BLDReceiver_LIBS += autosave
+#BLDReceiver_LIBS += devIocStats
+#BLDReceiver_LIBS += devBusMapped
+#BLDReceiver_LIBS += bldRcvrSupport
 
 #=============================
+# bldget product
+#=============================
+# bldget_SRCS = bldget.c
+# bldget_LIBS = udpCommBSD Com
 
+
+#=============================
+# bldrx product
+#=============================
 #bldrx_DBD += base.dbd
+#bldrx_DBD += devBLDMCastWfRecv.dbd
 
-#bldrx_SRCS_DEFAULT += BLDMain.cpp
+#bldrx_SRCS += BLDMain.cpp
+#bldrx_SRCS += devBLDMCastStatus.c
 #bldrx_SRCS_RTEMS   += -nil-
 
 #bldrx_SRCS += bldrx_registerRecordDeviceDriver.cpp
 
-#bldrx_LIBS_DEFAULT += udpCommBSDBSD
-#bldrx_LIBS_RTEMS   += udpCommBSD
+#bldrx_LIBS_DEFAULT += udpCommBSD
+#bldrx_LIBS_RTEMS   += udpComm
 
 #bldrx_LIBS += $(EPICS_BASE_IOC_LIBS)
 

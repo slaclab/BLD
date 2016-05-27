@@ -11,14 +11,30 @@ include $(TOP)/configure/CONFIG
 # Create and install (or just install) into <top>/db
 # databases, templates, substitutions like this
 
-#DB += bsaBLDEdef.db
 #DB += bsaBLDReceiverPhaseCavityEdef.db
 #DB += bsaBLDReceiverImbEdef.db
 #DB += bsaBLDReceiverGdetEdef.db
+#DB += BLDMCastReceiverPcavs.db
+#DB += BLDMCastReceiverImbs.db
+#DB += BLDMCastReceiverGdets.db
+#DB += BLDMCastReceiver.db
 
+DB += bsaBLDEdef.db
 DB += BLDMCast.db
 DB += fcom_stats.db
 DB += BLDMCastWfRecv.db
+
+# EVR, BSA, Trigger related databases
+#DB += IOC-SYS0-BD02evr.db
+#DB += IOC-SYS0-BD02bsa.db
+#DB += IOC-SYS0-BD02trig.db
+
+DB += IOC-SYS0-BD01evr.db
+DB += IOC-SYS0-BD01bsa.db
+DB += IOC-SYS0-BD01trig.db
+
+# Measurement and calculation for LCLS IN20 RF04 IOC-IN20-RF04
+#DB += IOC-SYS0-BD02access.db
 
 # ========================================
 # Install timing/event related databases
@@ -32,11 +48,10 @@ DB_INSTALLS += $(EVENT)/db/VME-trig.db
 DB_INSTALLS += $(EVENT)/db/VME-TTB-trig.db
 DB_INSTALLS += $(EVENT)/db/Bsa.db
 
-# Measurement and calculation for LCLS IN20 RF04 IOC-IN20-RF04
-#DB += IOC-SYS0-BD02access.db
+DB += IOC-SYS0-BD01access.db
 
 # LCLS BSA and Timing
-#DB += lclsPattern.db
+DB += lclsPattern.db
 
 # ========================================================
 # Install databases from iocAdmin package

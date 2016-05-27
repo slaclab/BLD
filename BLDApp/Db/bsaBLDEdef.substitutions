@@ -1,0 +1,33 @@
+#==============================================================================
+#
+# Abs:  Beam Synchronous Acquisition records for the BLD
+#
+# Name: bsaBLDEdef.substitutions
+#
+# Note: Must follow the LCLS naming conventions.  
+#
+#==============================================================================
+#
+file bsaATTREdef.db
+{
+#           Device   Attribute  Input          EGU   HOPR  LOPR PREC ADEL  Link
+  pattern { D, ATTR, I, EG, HO, LO, PR, AD, LNK }
+	  	{ $(DEVICE), CHARGE, $(DEVICE):CHARGE, nC, 3, -3, 3, .001, "" }
+	  	{ $(DEVICE), ENERGY, $(DEVICE):ENERGY, MeV, 3, -3, 3, .001, "" }
+	  	{ $(DEVICE), POS_X, $(DEVICE):POS_X, mm, 3, -3, 3, .001, "" }
+	  	{ $(DEVICE), POS_Y, $(DEVICE):POS_Y, mm, 3, -3, 3, .001, "" }
+	  	{ $(DEVICE), ANG_X, $(DEVICE):ANG_X, mrad, 3, -3, 3, .001, "" }
+	  	{ $(DEVICE), ANG_Y, $(DEVICE):ANG_Y, mrad, 3, -3, 3, .001, "" }
+	  	{ $(DEVICE), BC2CHARGE, $(DEVICE):BC2CHARGE, Amps, 3, -3, 3, .001, "" }
+	  	{ $(DEVICE), BC2ENERGY, $(DEVICE):BC2ENERGY, mm, 3, -3, 3, .001, "" }
+	  	{ $(DEVICE), BC1CHARGE, $(DEVICE):BC1CHARGE, Amps, 3, -3, 3, .001, "" }
+	  	{ $(DEVICE), BC1ENERGY, $(DEVICE):BC1ENERGY, mm, 3, -3, 3, .001, "" }
+		{ $(DEVICE), UND_POS_X, $(DEVICE):UND_POS_X, mm, 3, -3, 3, .001, "" }
+		{ $(DEVICE), UND_POS_Y, $(DEVICE):UND_POS_Y, mm, 3, -3, 3, .001, "" }
+		{ $(DEVICE), UND_ANG_X, $(DEVICE):UND_ANG_X, mrad, 3, -3, 3, .001, "" }
+		{ $(DEVICE), UND_ANG_Y, $(DEVICE):UND_ANG_Y, mrad, 3, -3, 3, .001, "" }
+	  	{ $(DEVICE), PHOTONENERGY, $(DEVICE):PHOTONENERGY, eV, 0, 0, 3, .001, "" }	
+	  	{ $(DEVICE), LTU450_POS_X, $(DEVICE):LTU450_POS_X, mm, 3, -3, 3, .001, "" }
+	  	{ $(DEVICE), LTU250_POS_X, $(DEVICE):LTU250_POS_X, mm, 3, -3, 3, .001, "" }			
+}
+

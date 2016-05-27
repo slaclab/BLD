@@ -4,7 +4,7 @@
 #
 # Name: IOC-SYS0-BD01trig.substitutions
 #
-# Associated Display: evnt_sys0_bd02.edl
+# Associated Display: evnt_sys0_bd01.edl
 #
 # Rem:  Instantiate one line for every trigger channel including ones not used. 
 # There should be 3 lines for each PMC EVR without a transition module for the 3 front panel triggers.
