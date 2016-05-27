@@ -14,10 +14,10 @@ setenv("LOCN","B005-2930")
 setenv("IOC_MACRO","IOC=IOC:SYS0:BD01")
 
 # System Location:
-epicsEnvSet("LOCA","SYS0")
-epicsEnvSet("UNIT","BD01")
-epicsEnvSet("FAC", "SYS0")
-epicsEnvSet("NMBR","500")
+setenv("LOCA","SYS0")
+setenv("UNIT","BD01")
+setenv("FAC", "SYS0")
+setenv("NMBR","500")
 
 setenv("IPADDR1","172.27.28.14",0)		# LCLS VME BD01 IOC ETH2 - ioc-sys0-bd01-fnet on LCLSFNET subnet
 setenv("NETMASK1","255.255.252.0",0)
@@ -51,7 +51,7 @@ lsmod()
 epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES","1000000")
 
 #set fcom multicast prefix to mc-lcls-fcom for LCLS
-epicsEnvSet ("FCOM_MC_PREFIX", "239.219.8.0")
+epicsEnvSet("FCOM_MC_PREFIX", "239.219.8.0")
 
 #initialize FCOM now to work around RTEMS bug #2068
 fcomInit(getenv("FCOM_MC_PREFIX",0),1000)
@@ -93,8 +93,16 @@ dbLoadRecords("db/lclsPattern.db","IOC=IOC:SYS0:BD01",0)
 # bspExtMemProbe only durint init. clear this to avoid the lecture.
 bspExtVerbosity = 0
 
-# Load standard databases
-. "iocBoot/st.vmedb.cmd"
+# Load iocAdmin databases to support IOC Health and monitoring
+# =====================================================================
+dbLoadRecords("db/iocAdminRTEMS.db","IOC=IOC:SYS0:BD01",0)
+dbLoadRecords("db/iocAdminScanMon.db","IOC=IOC:SYS0:BD01",0)
+
+# The following database is a result of a python parser
+# which looks at RELEASE_SITE and RELEASE to discover
+# versions of software your IOC is referencing
+# The python parser is part of iocAdmin
+dbLoadRecords("db/iocRelease.db","IOC=IOC:SYS0:BD01",0)
 
 # Load BSA database
 dbLoadRecords("db/IOC-SYS0-BD01bsa.db",0)
@@ -145,13 +153,10 @@ dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:BD01:BLDWAV, scan=Event, evn
 
 #. "iocBoot/init_restore.cmd"
 
-cd("iocBoot")
 ## autosave/restore settings
 save_restoreSet_status_prefix( "IOC:SYS0:BD01:")
 save_restoreSet_IncompleteSetsOk(1)
 save_restoreSet_DatedBackupFiles(1)
-
-cd(pathSubstitute("%H"))
 
 set_requestfile_path("/data/autosave-req")
 set_savefile_path("/data/autosave")
