@@ -175,6 +175,7 @@ lsmod()
 # Start the EPICS IOC
 # =====================================================================
 
+BLD_MCAST_ENABLE=1
 #BLD_MCAST_DEBUG=2
 #DELAY_FOR_CA=30
 
@@ -208,7 +209,4 @@ bootConfigShow()
 
 # One more sleep to allow mutex to be created before crashing on dbior()
 epicsThreadSleep(5)
-
-#BLDMCastStart(0, 0)
-#BLDMCastStart(1, "172.27.225.21")
 

@@ -1,5 +1,25 @@
 # Put your release notes or change log information
 # in here.
+BLD-R2-7-7:
+	Bruce Hill: 27-May-2016: on MAIN_TRUNK
+		Fixed several problems w/ VME IOC files from bad commit.
+
+BLD-R2-7-6:
+	Bruce Hill: 23-Mar-2016: on MAIN_TRUNK
+		Having trouble w/ linuxRT system staying up, so changed
+		vioc-sys0-bd03 back to 502 pv series and 239.255.24.254 mcast group.
+		VME ioc-sys0-bd01 back to production 500 series pv's and eBeam BLDID.
+		Set BLDMCAST_DST_IP from env var
+		Added call to udpCommSetMCastTTL so our multicast BLD gets beyond local subnet.
+		Also added a reset_dispersal_pvs.sh script
+
+BLD-R2-7-5:
+	Bruce Hill: 09-Mar-2016: on MAIN_TRUNK
+		Added missing info autosaveFields for DSPR1, DSPR2, and FMTRX
+
+BLD-R2-7-4:
+	Bruce Hill: 02-Mar-2016: on MAIN_TRUNK
+		Use an EPICS initHook to call BLDMCastStart() to avoid race condition when called from st.cmd
 
 BLD-R2-7-3:
 	Bruce Hill: 16-Oct-2015: on MAIN_TRUNK
