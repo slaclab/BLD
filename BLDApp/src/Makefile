@@ -8,15 +8,8 @@ include $(TOP)/configure/CONFIG
 #=============================
 # Build the IOC application
 
-#=============================
-# These are for testing PCAV data coming from PCDS
-# -DSIGNAL_TEST: do not receive BLD multicast data, generate fake data for testing!
-# -DFB05_TEST  : used when running tests on FB05 - no
-#USR_CPPFLAGS = -DxxxSIGNAL_TEST -DFB05_TEST
-#USR_CFLAGS = -DxxxSIGNAL_TEST -DFB05_TEST
-
 # Production flags
-USR_CPPFLAGS =
+USR_CPPFLAGS +=
 
 #=============================
 # Build an IOC support library
@@ -25,28 +18,16 @@ USR_CPPFLAGS =
 # several facilities (evr, micro, ...) for this to work.
 
 LIBRARY_IOC		+= devBLDMCastWfRecv
-#LIBRARY_IOC$(BUILDFOR) += bldSndrSupport
-#LIBRARY_IOC$(BUILDFOR)	+= bldRcvrSupport
 
 # BLD*.dbd will be installed
-#DBD += devBLDRcvr.dbd
 DBD += devBLDSndr.dbd
-#DBD += bldrx.dbd
 
 #=============================
 # The following are compiled and added to the Support library for devBLDMCastWfRecv
 devBLDMCastWfRecv_SRCS = devBLDMCastWfRecv.c
 
-# The following are compiled and added to the Support library for BLD Sender
-
-# bldSndrSupport_LIBS_DEFAULT += -nil-
-# bldSndrSupport_LIBS_RTEMS   += -nil-
-#=============================
-
 # build an ioc application for Multicast Sender
 # PROD_IOC = $(PROD_IOC_$(T_A))
-
-PROD_IOC = $(PROD_IOC_$(T_A))
 PROD_IOC      += BLDSender
 # PROD_IOC      += BLDReceiver
 # PROD_IOC      += bldget
@@ -88,13 +69,12 @@ BLDSender_LIBS_RTEMS += udpComm
 BLDSender_LIBS_Linux += udpCommBSD 
 BLDSender_LIBS += $(EPICS_BASE_IOC_LIBS)
 
-
 # BLDSender_registerRecordDeviceDriver.cpp derives from BLDSender.dbd
 BLDSender_SRCS += BLDMCast.c
 BLDSender_SRCS += devBLDMCastStatus.c
-BLDSender_SRCS += catest.c
-BLDSender_SRCS += camon.c
-BLDSender_SRCS += getBLD.c
+#BLDSender_SRCS += catest.c
+#BLDSender_SRCS += camon.c
+#BLDSender_SRCS += getBLD.c
 
 # Build the main IOC entry point on workstation OSs.
 BLDSender_SRCS += BLDSender_registerRecordDeviceDriver.cpp
