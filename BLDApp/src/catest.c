@@ -17,6 +17,6 @@ int catest(char * name)
     SEVCHK(ca_get(DBR_DOUBLE,mychid,(void *)&data),"ca_get failure");
     SEVCHK(ca_pend_io(5.0),"ca_pend_io failure");
     printf("%s %f\n",name,data);
-    SEVCHK(ca_clear_channel(mychid),"ca_create_channel failure");
+    SEVCHK(ca_clear_channel(mychid),"ca_clear_channel failure");
     return(0);
 }

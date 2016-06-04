@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.71 2016/03/22 05:31:56 bhill Exp $ */
+/* $Id: BLDMCast.c,v 1.72 2016/03/23 03:55:03 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -83,7 +83,7 @@ extern int	fcomUtilFlag;
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.71 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.72 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -264,9 +264,9 @@ BLDBLOB bldPulseBlobs[] =
    * BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
    */
   /* BMENERGY1X: BlobSet mask bit 0x0002 */
-    [BMENERGY1X] = { name: "BPMS:LTU1:250:X", blob: 0, aMsk: AVAIL_BMENERGY1X},	/* Energy in MeV */
+    [BMENERGY1X] = { name: "BPMS:LTU1:250:X", blob: 0, aMsk: AVAIL_BMENERGY1X},	/* Actually X pos in mm */
   /* BMENERGY2X: BlobSet mask bit 0x0004 */
-    [BMENERGY2X] = { name: "BPMS:LTU1:450:X", blob: 0, aMsk: AVAIL_BMENERGY2X},	/* Energy in MeV */
+    [BMENERGY2X] = { name: "BPMS:LTU1:450:X", blob: 0, aMsk: AVAIL_BMENERGY2X},	/* Actually X pos in mm */
 
   /**
    * Position X, Y, Angle X, Y at LTU:
@@ -310,15 +310,13 @@ BLDBLOB bldPulseBlobs[] =
 /* BC1ENERGY:    BlobSet mask bit 0x0400 */
   [BC1ENERGY]    = { name: "BPMS:LI21:233:X"    , blob: 0, aMsk: AVAIL_BC1ENERGY },	/* BC1 Energy in mm */
 
-#if 1
   /**
    * Undulator Launch 120Hz Feedback States X, X', Y, Y' (running on FB03:TR05)
    * scondam: 11-Nov-2014: L.Piccoli moved Und Launch Feeback to FB05:TR05
-   * [UNDSTATE]     = { name: "FBCK:FB03:TR05:STATES", blob: 0, aMsk: AVAIL_UNDSTATE},    
+   * Blob name changed from FBCK:FB03:TR05:STATES
    */
 /* UNDSTATE:    BlobSet mask bit 0x0800 */
   [UNDSTATE]     = { name: "FBCK:FB05:TR05:STATES", blob: 0, aMsk: AVAIL_UNDSTATE}, 
-#endif
 
   /**
    * Charge at the DMP
@@ -519,10 +517,14 @@ static void evr_timer_isr(void *arg)
 
 static void printChIdInfo(chid pvChId, char *message)
 {
-    errlogPrintf("\n%s\n",message);
-    errlogPrintf("pv: %s  type(%d) nelements(%ld) host(%s)",
-	ca_name(pvChId),ca_field_type(pvChId),ca_element_count(pvChId),ca_host_name(pvChId));
-    errlogPrintf(" read(%d) write(%d) state(%d)\n", ca_read_access(pvChId),ca_write_access(pvChId),ca_state(pvChId));
+	if ( message && strlen(message) > 0 )
+    	errlogPrintf("\n%s\n",message);
+    errlogPrintf(	"pv: %s  type(%d) nelements(%ld) host(%s)\n",
+					ca_name(pvChId), ca_field_type(pvChId),
+					ca_element_count(pvChId), ca_host_name(pvChId) );
+    errlogPrintf(	"    read(%d) write(%d) state(%d)\n",
+					ca_read_access(pvChId), ca_write_access(pvChId),
+					ca_state(pvChId) );
 }
 
 static void exceptionCallback(struct exception_handler_args args)
@@ -542,8 +544,6 @@ static void eventCallback(struct event_handler_args args)
 {
     BLDPV * pPV = args.usr;
 
-    if(BLD_MCAST_DEBUG >= 3) errlogPrintf("Event Callback: %s, status %d\n", ca_name(args.chid), args.status);
-
     epicsMutexLock(bldMutex);
     if (args.status == ECA_NORMAL)
     {
@@ -562,6 +562,7 @@ static void eventCallback(struct event_handler_args args)
     }
     else
     {
+    	if(BLD_MCAST_DEBUG >= 1) errlogPrintf("Event Callback: %s, CA Error %s\n", ca_name(args.chid), ca_message(args.status) );
 		dataAvailable &= ~ pPV->availMask;
     }
     epicsMutexUnlock(bldMutex);
@@ -615,7 +616,7 @@ int rtncode;
 					continue;
 				}
 			} else {
-				errlogPrintf("ea_pend_io() returned %i\n", rtncode);
+				errlogPrintf("ca_pend_io() returned %i\n", rtncode);
 			}
 			return -1;
 		}
@@ -908,7 +909,7 @@ epicsUInt32     this_time;
 			FcomBlobSetMask	waitFor	= (1<<N_PULSE_BLOBS) - 1;
 			status = fcomGetBlobSet( bldBlobSet, &got_mask, waitFor, FCOM_SET_WAIT_ALL, timer_delay_ms );
 			t_HiResTime		tickAfterGet	= GetHiResTicks();
-			double			usInFCom		= HiResTicksToSeconds( tickAfterGet - tickBeforeGet ) * 1e6;
+			double			usInFcom		= HiResTicksToSeconds( tickAfterGet - tickBeforeGet ) * 1e6;
 			if ( status && FCOM_ERR_TIMEDOUT != status )
 			{
 				errlogPrintf("fcomGetBlobSet failed: %s; sleeping for 2 seconds\n", fcomStrerror(status));
@@ -922,11 +923,11 @@ epicsUInt32     this_time;
 				/* If a timeout happened then fall through; there still might be good
 				 * blobs...
 				 */
-				if(BLD_MCAST_DEBUG >= 3) errlogPrintf("fcomGetBlobSet %u ms timeout in %.1fus! req 0x%X, got 0x%X\n", (unsigned int) timer_delay_ms, usInFCom, (unsigned int)waitFor, (unsigned int)got_mask );
+				if(BLD_MCAST_DEBUG >= 3) errlogPrintf("fcomGetBlobSet %u ms timeout in %.1fus! req 0x%X, got 0x%X\n", (unsigned int) timer_delay_ms, usInFcom, (unsigned int)waitFor, (unsigned int)got_mask );
 			}
 			else
 			{
-				if(BLD_MCAST_DEBUG >= 4) errlogPrintf("fcomGetBlobSet succeeeded.\n");
+				if(BLD_MCAST_DEBUG >= 4) errlogPrintf( "fcomGetBlobSet succeeded in %.1fus.\n", usInFcom );
 			}
 		}
 
@@ -1009,6 +1010,11 @@ passed:
 						tsMismatch[3]=b1->fc_tsLo;
 						tsCatch = -1;
 					}
+					if ( BLD_MCAST_DEBUG >= 2 )
+						errlogPrintf(	"Blob %s tsMismatch %d sec, %d fid instead of %d sec, %d fid\n",
+										bldPulseBlobs[loop].name,
+										b1->fc_tsHi,			 b1->fc_tsLo	 & PULSEID_INVALID,
+										p_refTime->secPastEpoch, p_refTime->nsec & PULSEID_INVALID );
 					bldUnmatchedTSCount[loop]++;
 					dataAvailable &= ~bldPulseBlobs[loop].aMsk;
 				}
@@ -1043,7 +1049,8 @@ passed:
 				bldEbeamInfo.uDamageMask |= __le32(EBEAML3ENERGY_DAMAGEMASK);
 			}
 			
-#define AVAIL_LTUPOS ( AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y | \
+#define AVAIL_LTUPOS	\
+	(	AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y | \
 		AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y | \
 		AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y | \
 		AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y | \
@@ -1516,6 +1523,7 @@ static long BLD_EPICS_Init()
 				     bldPulseBlobs[loop].name );
 			return -1;
 		}
+		/* Why are we not using FCOM_SYNC_GET here? */
 		rtncode = fcomSubscribe( fcomBlobIDs[loop], FCOM_ASYNC_GET );
 		if ( 0 != rtncode ) {
 			errlogPrintf("FATAL ERROR: Unable to subscribe %s (0x%08"PRIx32") to FCOM: %s\n",
@@ -1607,8 +1615,17 @@ static long BLD_EPICS_Report(int level)
 
 	printf("Latest PULSEID   : %d\n", __ld_le32(&bldEbeamInfo.uFiducialId));
 
-	if ( level > 3 ) {
+	if ( level > 1 ) {
 	  BLD_report_EBEAMINFO();
+	}
+	
+	if ( level > 2 ) {
+		unsigned int	loop;
+    	for(loop=0; loop<N_STATIC_PVS; loop++) {
+			chid	pvChId	= bldStaticPVs[loop].pvChId;
+			if ( pvChId )
+				printChIdInfo( pvChId, "" );
+		}
 	}
 
     return 0;
@@ -1637,7 +1654,7 @@ static long BLD_report_EBEAMINFO()
   printf("uExtentSize2: %d\n", __ld_le32(&bldEbeamInfo.uExtentSize2));
 
   /* Data */
-  printf("uDamageMask: %d\n", __ld_le32(&bldEbeamInfo.uDamageMask));
+  printf("uDamageMask: 0x%0X\n", (unsigned int) __ld_le32(&bldEbeamInfo.uDamageMask));
   printf("ebeamCharge: %f\n", __ld_le64(&bldEbeamInfo.ebeamCharge));
   printf("ebeamL3Energy: %f\n", __ld_le64(&bldEbeamInfo.ebeamL3Energy));
   printf("ebeamLTUPosX: %f\n", __ld_le64(&bldEbeamInfo.ebeamLTUPosX));
