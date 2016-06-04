@@ -1,0 +1,236 @@
+#
+# Sample substitutions file to create and send dummy fcom blob groups
+#
+# Data values alternate between sin and cos calc records
+# advancing 1 degree per upate at 120hz
+#
+
+file fcomBlobAo.template
+{
+	pattern
+	{	P,			R,		INDEX,	GROUP,	BLOB				}
+	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:LTU1:910:X		}
+	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:LTU1:910:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:LTU1:910:T		}
+
+	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:LTU1:960:X		}
+	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:LTU1:960:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:LTU1:960:T		}
+
+	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:UND1:100:X		}
+	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:UND1:100:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:UND1:100:T		}
+
+	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:UND1:190:X		}
+	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:UND1:190:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:UND1:190:T		}
+
+	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:UND1:290:X		}
+	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:UND1:290:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:UND1:290:T		}
+
+	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:UND1:390:X		}
+	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:UND1:390:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:UND1:390:T		}
+
+	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UND1:490:X		}
+	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UND1:490:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UND1:490:T		}
+
+	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UND1:590:X		}
+	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UND1:590:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UND1:590:T		}
+
+	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UND1:690:X		}
+	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UND1:690:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UND1:690:T		}
+
+	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UND1:790:X		}
+	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UND1:790:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UND1:790:T		}
+
+	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UND1:890:X		}
+	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UND1:890:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UND1:890:T		}
+
+	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UND1:990:X		}
+	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UND1:990:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UND1:990:T		}
+
+}
+
+file fcomBlobAdd.template
+{
+	pattern
+	{	P,			R,		GROUP,	BLOB				}
+	{	"$(BLOB)",	"_ADD",		0,	BPMS:LTU1:910:ALL	}
+	{	"$(BLOB)",	"_ADD",		0,	BPMS:LTU1:960:ALL	}
+	{	"$(BLOB)",	"_ADD",		0,	BPMS:UND1:100:ALL	}
+	{	"$(BLOB)",	"_ADD",		0,	BPMS:UND1:190:ALL	}
+	{	"$(BLOB)",	"_ADD",		0,	BPMS:UND1:290:ALL	}
+	{	"$(BLOB)",	"_ADD",		0,	BPMS:UND1:390:ALL	}
+
+	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:490:ALL	}
+	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:590:ALL	}
+	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:690:ALL	}
+	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:790:ALL	}
+	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:890:ALL	}
+	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:990:ALL	}
+}
+
+# Leave P macro to be defined at dbLoadRecord time
+file fcomGroupSend.template
+{
+	pattern
+	{	R,				GROUP	}
+	{	"ALL_G0_SEND",		0	}
+	{	"ALL_G1_SEND",		1	}
+}
+
+# Each group should set SCAN = Event and EC = event code
+# for the first blob in each group, and use the FLNK
+# macros to link each blob in the group, and finally
+# to process the group send
+file fcomBlobSim.template
+{
+# group 0, six blobs
+	{
+		SCAN	= "Event",
+		EC		= "40",
+		P		= "$(BLOB)",
+		R		= "ALL_SIM",
+		L1		= "$(BLOB)X_SIM",
+		L2		= "$(BLOB)Y_SIM",
+		L3		= "$(BLOB)T_SIM",
+		ADD		= "$(BLOB)ALL_ADD",
+		BLOB	= "BPMS:LTU1:910:",
+		GROUP	= "0",
+		FLNK	= "BPMS:LTU1:960:ALL_SIM_SIN"
+	}
+	{
+		P		= "$(BLOB)"
+		R		= "ALL_SIM",
+		L1		= "$(BLOB)X_SIM",
+		L2		= "$(BLOB)Y_SIM",
+		L3		= "$(BLOB)T_SIM",
+		ADD		= "$(BLOB)ALL_ADD",
+		BLOB	= "BPMS:LTU1:960:",
+		GROUP	= "0",
+		FLNK	= "BPMS:UND1:100:ALL_SIM_SIN"
+	}
+	{
+		P		= "$(BLOB)"
+		R		= "ALL_SIM",
+		L1		= "$(BLOB)X_SIM",
+		L2		= "$(BLOB)Y_SIM",
+		L3		= "$(BLOB)T_SIM",
+		ADD		= "$(BLOB)ALL_ADD",
+		BLOB	= "BPMS:UND1:100:",
+		GROUP	= "0",
+		FLNK	= "BPMS:UND1:190:ALL_SIM_SIN"
+	}
+	{
+		P		= "$(BLOB)"
+		R		= "ALL_SIM",
+		L1		= "$(BLOB)X_SIM",
+		L2		= "$(BLOB)Y_SIM",
+		L3		= "$(BLOB)T_SIM",
+		ADD		= "$(BLOB)ALL_ADD",
+		BLOB	= "BPMS:UND1:190:",
+		GROUP	= "0",
+		FLNK	= "BPMS:UND1:290:ALL_SIM_SIN"
+	}
+	{
+		P		= "$(BLOB)"
+		R		= "ALL_SIM",
+		L1		= "$(BLOB)X_SIM",
+		L2		= "$(BLOB)Y_SIM",
+		L3		= "$(BLOB)T_SIM",
+		ADD		= "$(BLOB)ALL_ADD",
+		BLOB	= "BPMS:UND1:290:",
+		GROUP	= "0",
+		FLNK	= "BPMS:UND1:390:ALL_SIM_SIN"
+	}
+	{
+		P		= "$(BLOB)"
+		R		= "ALL_SIM",
+		L1		= "$(BLOB)X_SIM",
+		L2		= "$(BLOB)Y_SIM",
+		L3		= "$(BLOB)T_SIM",
+		ADD		= "$(BLOB)ALL_ADD",
+		BLOB	= "BPMS:UND1:390:",
+		GROUP	= "0",
+		FLNK	= "\$(P)ALL_G0_SEND"
+	}
+
+# Second group, six blobs
+	{
+		SCAN	= "Event",
+		EC		= "40",
+		P		= "$(BLOB)",
+		R		= "ALL_SIM",
+		L1		= "$(BLOB)X_SIM",
+		L2		= "$(BLOB)Y_SIM",
+		L3		= "$(BLOB)T_SIM",
+		ADD		= "$(BLOB)ALL_ADD",
+		BLOB	= "BPMS:UND1:490:",
+		GROUP	= "1",
+		FLNK	= "BPMS:UND1:590:ALL_SIM_SIN"
+	}
+	{
+		P		= "$(BLOB)",
+		R		= "ALL_SIM",
+		L1		= "$(BLOB)X_SIM",
+		L2		= "$(BLOB)Y_SIM",
+		L3		= "$(BLOB)T_SIM",
+		ADD		= "$(BLOB)ALL_ADD",
+		BLOB	= "BPMS:UND1:590:",
+		GROUP	= "1",
+		FLNK	= "BPMS:UND1:690:ALL_SIM_SIN"
+	}
+	{
+		P		= "$(BLOB)",
+		R		= "ALL_SIM",
+		L1		= "$(BLOB)X_SIM",
+		L2		= "$(BLOB)Y_SIM",
+		L3		= "$(BLOB)T_SIM",
+		ADD		= "$(BLOB)ALL_ADD",
+		BLOB	= "BPMS:UND1:690:",
+		GROUP	= "1",
+		FLNK	= "BPMS:UND1:790:ALL_SIM_SIN"
+	}
+	{
+		P		= "$(BLOB)",
+		R		= "ALL_SIM",
+		L1		= "$(BLOB)X_SIM",
+		L2		= "$(BLOB)Y_SIM",
+		L3		= "$(BLOB)T_SIM",
+		ADD		= "$(BLOB)ALL_ADD",
+		BLOB	= "BPMS:UND1:790:",
+		GROUP	= "1",
+		FLNK	= "BPMS:UND1:890:ALL_SIM_SIN"
+	}
+	{
+		P		= "$(BLOB)",
+		R		= "ALL_SIM",
+		L1		= "$(BLOB)X_SIM",
+		L2		= "$(BLOB)Y_SIM",
+		L3		= "$(BLOB)T_SIM",
+		ADD		= "$(BLOB)ALL_ADD",
+		BLOB	= "BPMS:UND1:890:",
+		GROUP	= "1",
+		FLNK	= "BPMS:UND1:990:ALL_SIM_SIN"
+	}
+	{
+		P		= "$(BLOB)",
+		R		= "ALL_SIM",
+		L1		= "$(BLOB)X_SIM",
+		L2		= "$(BLOB)Y_SIM",
+		L3		= "$(BLOB)T_SIM",
+		ADD		= "$(BLOB)ALL_ADD",
+		BLOB	= "BPMS:UND1:990:",
+		GROUP	= "1",
+		FLNK	= "\$(P)ALL_G1_SEND"
+	}
+
+}

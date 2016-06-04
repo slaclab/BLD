@@ -23,6 +23,7 @@ DB += bsaBLDEdef.db
 DB += BLDMCast.db
 DB += fcom_stats.db
 DB += BLDMCastWfRecv.db
+DB += eOrbitsFcomSim.db
 
 # EVR, BSA, Trigger related databases
 #DB += IOC-SYS0-BD02evr.db
