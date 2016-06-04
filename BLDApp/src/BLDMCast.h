@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.h,v 1.36 2015/10/16 10:23:45 bhill Exp $ */
+/* $Id: BLDMCast.h,v 1.37 2016/03/22 05:31:56 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.h
@@ -120,6 +120,7 @@ typedef struct EBEAMINFO
     /* Data */
     Uint32_LE     uDamageMask;
 
+    /* Added in VERSION_0 */
     Flt64_LE      ebeamCharge;   /* in nC */
     Flt64_LE      ebeamL3Energy; /* in MeV */
     Flt64_LE      ebeamLTUPosX;  /* in mm */
@@ -127,25 +128,28 @@ typedef struct EBEAMINFO
     Flt64_LE      ebeamLTUAngX;  /* in mrad */
     Flt64_LE      ebeamLTUAngY;  /* in mrad */
 
+    /* Added in VERSION_1 */
     Flt64_LE      ebeamBC2Current; /* in Amps */
 
-    /* Added in VERSION_1 */
+    /* Added in VERSION_2 */
     Flt64_LE      ebeamBC2Energy; /* in mm */
+
+    /* Added in VERSION_3 */
     Flt64_LE      ebeamBC1Current; /* in Amps */
     Flt64_LE      ebeamBC1Energy; /* in mm */
 
-    /* Added in VERSION_2 */
+    /* Added in VERSION_4 */
     Flt64_LE      ebeamUndPosX; /* in mm */
     Flt64_LE      ebeamUndPosY; /* in mm */
     Flt64_LE      ebeamUndAngX; /* in mrad */
     Flt64_LE      ebeamUndAngY; /* in mrad */
 
-    /* Added in VERSION_3 */
+    /* Added in VERSION_5 */
     Flt64_LE      ebeamXTCAVAmpl; /* in MeV */
     Flt64_LE      ebeamXTCAVPhase; /* in deg */
     Flt64_LE      ebeamDMP502Charge; /* in Nel */
 	
-    /* Added in VERSION_4 */	
+    /* Added in VERSION_6 */	
 	/* Shantha Condamoor: 7-Jul-2014 */
 	/* shot-to-shot Photon Energy Calculation added */
 	/* Addition of shot-to-shot X position of BPMS:LTU1:[250/450]:X  */	
