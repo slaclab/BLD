@@ -1,0 +1,209 @@
+# BLD MCAST Sender App RTEMS startup script for VME crate for the LCLS B34 BD01 IOC
+# LCLS Multicast and BSA capable
+#=============================================================================================
+# Author:
+#       scondam: 10-Jun-2014:	Common scripts created for iocAdmin, autosave/restore etc.
+#=============================================================================================
+
+# Startup script for LCLS BLD development
+
+# For iocAdmin
+setenv("LOCN","B34-R253")
+setenv("IOC_MACRO","IOC=IOC:B34:BD01")
+
+# System Location:
+setenv("LOCA","B34")
+setenv("UNIT","BD01")
+setenv("FAC", "B34")
+setenv("NMBR","504")
+
+setenv("IPADDR1","172.27.160.23",0)                 # ioc-b34-bd01-fnet
+# setenv("IPADDR1","172.27.28.14",0)                # LCLS VME BD01 IOC ETH2 - ioc-b34-bd01-fnet on LCLSFNET subnet
+setenv("NETMASK1","255.255.252.0",0)
+setenv("BLDMCAST_DST_IP", "239.255.24.254" )
+
+# Why are these being set?
+# setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
+# setenv("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
+# setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
+
+# =====================================================================
+# Execute common fnet st.cmd
+. "../st.fnetgeneric.b34.cmd"
+
+# execute generic part
+. "../st.vmegeneric.cmd"
+
+# Load obj file
+ld("bin/RTEMS-beatnik/BLDSender.obj")
+
+# =====================================================================
+# Turn Off BSP Verbosity
+# =====================================================================
+bspExtVerbosity=0
+
+## Configure 2nd NIC using lanIpBasic
+lanIpSetup(getenv("IPADDR1"),getenv("NETMASK1"),0,0)
+lanIpDebug=0
+
+lsmod()
+
+epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES","1000000")
+
+#set fcom multicast prefix to mc-lcls-fcom for LCLS
+epicsEnvSet("FCOM_MC_PREFIX", "239.219.248.0")
+
+#initialize FCOM now to work around RTEMS bug #2068
+fcomInit(getenv("FCOM_MC_PREFIX",0),1000)
+
+# Set IOC Shell Prompt as well:
+epicsEnvSet("IOCSH_PS1","ioc-b34-bd01>")
+
+## Register all support components
+dbLoadDatabase("dbd/BLDSender.dbd")
+BLDSender_registerRecordDeviceDriver(pdbbase)
+
+###########################
+# initialize all hardware #
+###########################
+
+bspExtVerbosity=0
+ErDebugLevel(1)
+
+# Init VME EVR
+#ErConfigure( 0, 0x300000, 0x60, 4, 0 )
+# Init PMC EVR
+ErConfigure( 0, 0, 0, 0, 1 )
+
+evrInitialize()
+
+bspExtVerbosity = 1
+
+###########################
+## Load record instances ##
+###########################
+
+# Load EVR and Pattern databases
+# Old style
+#dbLoadRecords("db/IOC-B34-BD01evr.db","EVR=EVR:B34:BD01")  # EVR CARD 0
+#dbLoadRecords("db/lclsPattern.db","IOC=IOC:B34:BD01",0)
+#dbLoadRecords("db/IOC-B34-BD01bsa.db",0)
+#dbLoadRecords("db/IOC-B34-BD01trig.db")    # has only one EVRs' triggers
+# New style
+dbLoadRecords( "db/EvrPmc.db",       "EVR=EVR:B34:BD01,CRD=0,SYS=SYS0" )
+dbLoadRecords( "db/PMC-trig.db", "IOC=IOC:B34:BD01,SYS=SYS0,LOCA=B34,UNIT=01" )
+dbLoadRecords( "db/Pattern.db",  "IOC=IOC:B34:BD01,SYS=SYS0" )
+
+# bspExtMemProbe only durint init. clear this to avoid the lecture.
+bspExtVerbosity = 0
+
+# Load iocAdmin databases to support IOC Health and monitoring
+# =====================================================================
+dbLoadRecords("db/iocAdminRTEMS.db","IOC=IOC:B34:BD01",0)
+dbLoadRecords("db/iocAdminScanMon.db","IOC=IOC:B34:BD01",0)
+
+# The following database is a result of a python parser
+# which looks at RELEASE_SITE and RELEASE to discover
+# versions of software your IOC is referencing
+# The python parser is part of iocAdmin
+dbLoadRecords("db/iocRelease.db","IOC=IOC:B34:BD01",0)
+
+# Load BSA database
+# dbLoadRecords("db/IOC-B34-BD01bsa.db",0)
+
+# Load access database
+# dbLoadRecords("db/IOC-B34-BD01access.db")
+
+## Load record instances
+# 5 = '2 second'
+
+# Set the BLDSender data records (which are now deprecated,
+# the BLDMcastWfRecv waveform should be used instead)
+# to 'Passive' to effectively disable them.
+
+dbLoadRecords("db/BLDMCast.db","LOCA=B34,NMBR=504, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+dbLoadRecords("db/fcom_stats.db","LOCA=B34,NMBR=504, STAT_SCAN=5")
+
+# Have a BLD listener running on this IOC and fill a waveform
+# with the BLD data.
+# We scan with event 146 (beam + .5Hz)
+#
+# NOTE: There must be one of the EVR:IOC:B34:BD01:EVENTxyCTRL
+#       records holding the event number we use here and it
+#       must have VME interrupts (.VME field) enabled.
+#
+#       Furthermore, you cannot use any event but only 
+#       such ones for which an event record has been
+#       instantiated with MRF ER device support -- this
+#       is thanks to the great MRF software design, yeah!
+#
+# The erEvent record enables interrupts for an event
+# the interrupt handler calls scanIoRequest(lists[event]) and
+# there must be an event record registered on that list which
+# then does post_event().
+# (Well, the VME ISR firing 'event' could IMHO directly post_event(event)
+# which would be faster, simpler and more flexible)
+# 
+
+dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:B34:BD01:BLDWAV, scan=Event, evnt=146, rarm=2")
+
+dbLoadRecords("db/eOrbitsFcomSim.db","P=IOC:B34:BD01:")
+
+# END: Loading the record databases
+# =====================================================================
+# Setup autosave/restore
+# =====================================================================
+
+#. "iocBoot/init_restore.cmd"
+
+## autosave/restore settings
+save_restoreSet_status_prefix( "IOC:B34:BD01:")
+save_restoreSet_IncompleteSetsOk(1)
+save_restoreSet_DatedBackupFiles(1)
+
+set_requestfile_path("/data/autosave-req")
+set_savefile_path("/data/autosave")
+
+#set_pass1_restoreFile("info_positions.sav")
+#set_pass1_restoreFile("info_settings.sav")
+set_pass0_restoreFile( "autoSettings.sav" )
+set_pass1_restoreFile( "autoSettings.sav" )
+
+#BLD_MCAST_DEBUG=2
+#DELAY_FOR_CA=30
+
+# Capture load addresses of all modules (essential for debugging if iocInit crashes...)
+
+lsmod()
+
+# =====================================================================
+# Start the EPICS IOC
+# =====================================================================
+
+BLD_MCAST_ENABLE=0
+BLD_MCAST_DEBUG=2
+#DELAY_FOR_CA=30
+
+iocInit()
+
+# =====================================================
+# Turn on caPutLogging:
+# Log values only on change to the iocLogServer:
+#caPutLogInit("172.27.8.31:7004")
+#caPutLogShow(2)
+# =====================================================
+
+# Generate the autosave PV list
+makeAutosaveFileFromDbInfo( "/data/autosave-req/autoSettings.req", "autosaveFields" )
+
+create_monitor_set( "autoSettings.req", 5, "" )
+
+epicsEnvShow()
+
+nvramConfigShow()
+
+bootConfigShow()
+
+# Start rtems spy utility:
+#iocshCmd("spy(2)")
+
