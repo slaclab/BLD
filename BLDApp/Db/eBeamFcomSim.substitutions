@@ -1,0 +1,230 @@
+#
+# Sample substitutions file to create and send dummy fcom blob groups
+#
+# Data values alternate between sin and cos calc records
+# advancing 1 degree per upate at 120hz
+#
+
+# Each fcomBlobSim.template can be used to assign
+# alternating SIN and COS values to each value in the blob,
+# for up to 10 values per blob
+#
+# Blob macros here should truncate the value name and end w/ a colon
+# i.e. BPMS:LTU0:910: instead of BPMS:LTU0:910:X 
+# 
+# The first blob in each group should define these macros
+# to initiate processing of each blob where EC must be
+# defined later via a dbLoadRecord macro.
+#		SCAN	= "Event",	EC = "\$(EC)"
+#
+# Each blob in a group should specify the next
+# blob in the group via a NEXT macro to force them to
+# be processed sequentially.
+# Set NEXT to the next blob's root plus SIM_SEQ
+# Ex:		NEXT	= "BPMS:DMP1:502:SIM_SEQ"
+#
+# Leave NEXT undefined for the last blob in the group
+# and it will default to an FLNK to the group's send record
+file fcomBlobBPMS_SIM.db
+{
+# Group 2, 1 blobs
+	{
+		GROUP	= "2",
+		SCAN	= "Event",	EC = "\$(EC)"
+		BLOB	= "BPMS:IN20:221:",
+	}
+# Group 3, 1 blob
+	{
+		GROUP	= "3",
+		SCAN	= "Event",	EC = "\$(EC)"
+		BLOB	= "BPMS:LI21:233:",
+	}
+# Group 4, 1 blob
+	{
+		GROUP	= "4",
+		SCAN	= "Event",	EC = "\$(EC)"
+		BLOB	= "BPMS:LI24:801:",
+	}
+}
+
+file fcomBlobBPMS_SIM.db
+{
+# Group 5, 6 blobs
+	{
+		GROUP	= "5",
+		SCAN	= "Event",	EC = "\$(EC)"
+		BLOB	= "BPMS:LTU1:250:",
+		NEXT	= "BPMS:LTU1:450:SIM_SEQ"
+	}
+	{
+		GROUP	= "5",
+		BLOB	= "BPMS:LTU1:450:",
+		NEXT	= "BPMS:LTU1:720:SIM_SEQ"
+	}
+	{
+		GROUP	= "5",
+		BLOB	= "BPMS:LTU1:720:",
+		NEXT	= "BPMS:LTU1:730:SIM_SEQ",
+	}
+	{
+		GROUP	= "5",
+		BLOB	= "BPMS:LTU1:730:",
+		NEXT	= "BPMS:LTU1:740:SIM_SEQ",
+	}
+	{
+		GROUP	= "5",
+		BLOB	= "BPMS:LTU1:740:",
+		NEXT	= "BPMS:LTU1:750:SIM_SEQ",
+	}
+	{
+		GROUP	= "5",
+		BLOB	= "BPMS:LTU1:750:",
+		NEXT	= "BPMS:LTU1:750:ALL_SEND",
+	}
+}
+
+file fcomBlobBPMS_SIM.db
+{
+# Group 6, 12 blobs
+	{
+		GROUP	= "6",
+		SCAN	= "Event",	EC = "\$(EC)"
+		BLOB	= "BPMS:LTU1:910:",
+		NEXT	= "BPMS:LTU1:960:SIM_SEQ"
+	}
+	{
+		GROUP	= "6",
+		BLOB	= "BPMS:LTU1:960:",
+		NEXT	= "BPMS:UND1:100:SIM_SEQ"
+	}
+	{
+		GROUP	= "6",
+		BLOB	= "BPMS:UND1:100:",
+		NEXT	= "BPMS:UND1:190:SIM_SEQ"
+	}
+	{
+		GROUP	= "6",
+		BLOB	= "BPMS:UND1:190:",
+		NEXT	= "BPMS:UND1:290:SIM_SEQ"
+	}
+	{
+		GROUP	= "6",
+		BLOB	= "BPMS:UND1:290:",
+		NEXT	= "BPMS:UND1:390:SIM_SEQ"
+	}
+	{
+		GROUP	= "6",
+		BLOB	= "BPMS:UND1:390:",
+		NEXT	= "BPMS:UND1:490:SIM_SEQ"
+	}
+	{
+		GROUP	= "6",
+		BLOB	= "BPMS:UND1:490:",
+		NEXT	= "BPMS:UND1:590:SIM_SEQ"
+	}
+	{
+		GROUP	= "6",
+		BLOB	= "BPMS:UND1:590:",
+		NEXT	= "BPMS:UND1:690:SIM_SEQ"
+	}
+	{
+		GROUP	= "6",
+		BLOB	= "BPMS:UND1:690:",
+		NEXT	= "BPMS:UND1:790:SIM_SEQ"
+	}
+	{
+		GROUP	= "6",
+		BLOB	= "BPMS:UND1:790:",
+		NEXT	= "BPMS:UND1:890:SIM_SEQ"
+	}
+	{
+		GROUP	= "6",
+		BLOB	= "BPMS:UND1:890:",
+		NEXT	= "BPMS:UND1:990:SIM_SEQ"
+	}
+	{
+		GROUP	= "6",
+		BLOB	= "BPMS:UND1:990:",
+		NEXT	= "BPMS:UND1:990:ALL_SEND",
+	}
+}
+
+file fcomBlobBPMS_SIM.db
+{
+# Group 7, 1 blobs
+	{
+		GROUP	= "7",
+		SCAN	= "Event",	EC = "\$(EC)"
+		BLOB	= "BPMS:DMP1:502:",
+	}
+}
+
+file fcomBlobBLEN_SIM.db
+{
+# Group 8, 1 blob
+	{
+		GROUP	= "8",
+		SCAN	= "Event",	EC = "\$(EC)"
+		BLOB	= "BLEN:LI21:265:",
+	}
+# Group 9, 1 blob
+	{
+		GROUP	= "9",
+		SCAN	= "Event",	EC = "\$(EC)"
+		BLOB	= "BLEN:LI24:886:",
+	}
+}
+
+file fcomBlobFBCK_SIM.db
+{
+# Group 10, 1 blob
+	{
+		GROUP	= "10",
+		SCAN	= "Event",	EC = "\$(EC)"
+		BLOB	= "FBCK:FB05:TR05:",
+	}
+}
+
+# Each group needs a SEND record
+# LAST should match the truncated BLOB macro
+# from above for the last blob in the group
+file fcomGroupSend.template
+{
+	{
+		GROUP	= "2",
+		LAST	= "BPMS:IN20:221:",
+	}
+	{
+		GROUP	= "3",
+		LAST	= "BPMS:LI21:233:",
+	}
+	{
+		GROUP	= "4",
+		LAST	= "BPMS:LI24:801:",
+	}
+	{
+		GROUP	= "5",
+		LAST	= "BPMS:LTU1:750:",
+	}
+	{
+		GROUP	= "6",
+		LAST	= "BPMS:UND1:990:",
+	}
+	{
+		GROUP	= "7",
+		LAST	= "BPMS:DMP1:502:",
+	}
+	{
+		GROUP	= "8",
+		LAST	= "BLEN:LI21:265:",
+	}
+	{
+		GROUP	= "9",
+		LAST	= "BLEN:LI24:886:",
+	}
+	{
+		GROUP	= "10",
+		LAST	= "FBCK:FB05:TR05:",
+	}
+}
+

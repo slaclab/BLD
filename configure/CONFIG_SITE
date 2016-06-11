@@ -26,6 +26,8 @@ CHECK_RELEASE = YES
 # will be built.  Remember EPICS will build for the HOST ARCH by default.
 #CROSS_COMPILER_TARGET_ARCHS =
 CROSS_COMPILER_TARGET_ARCHS = RTEMS-beatnik linuxRT_glibc-x86_64
+#CROSS_COMPILER_TARGET_ARCHS = linuxRT_glibc-x86_64
+#BUILD_FOR_HOST_ARCH = ""
 
 # To install files into a location other than $(TOP) define
 #   INSTALL_LOCATION here.
@@ -41,3 +43,8 @@ IOCS_APPL_TOP  = $(INSTALL_LOCATION)
 
 INSTALL_LOCATION_STARTUP += $(INSTALL_LOCATION)/startup
 DIRECTORY_TARGETS += $(INSTALL_LOCATION_STARTUP)
+
+# STATIC_BUILD = YES
+# 
+USR_CFLAGS += -g
+USR_LDFLAGS += -g

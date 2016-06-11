@@ -1,0 +1,38 @@
+# BPM Dispersion parameters and FIR matrix
+# These PV names are hard coded into the app
+# and this are not macroized.
+# 
+# Make sure NOT to load this db file into and BLDSender
+# IOC which is running tests on the production network
+# as they will conflict w/ the production BLDSender IOC.
+# 
+
+record (ai, "BLD:SYS0:500:DSPR1")
+{
+  field(DESC, "BPM dispersion")
+  field(EGU, "m/MeV")
+  field(PREC,"4")
+  field(PINI,"YES")
+  info( autosaveFields, "VAL" )
+}
+
+record (ai, "BLD:SYS0:500:DSPR2")
+{
+  field(DESC, "BPM dispersion")
+  field(EGU, "m/MeV")
+  field(PREC,"4")
+  field(PINI,"YES")
+  info( autosaveFields, "VAL" )
+}
+
+record (waveform, "BLD:SYS0:500:FMTRX")
+{
+  field(DESC,"position fir matrix")
+  field(FTVL,"DOUBLE")
+  field(NELM,"32")
+  field(EGU,"")
+  field(PREC,"4")
+  field(PINI,"YES")
+  info( autosaveFields, "VAL" )
+}
+

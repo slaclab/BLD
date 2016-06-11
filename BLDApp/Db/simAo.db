@@ -1,0 +1,14 @@
+# Simulated ao
+# 
+# Make sure to be carefule loading this db file into a BLDSender
+# IOC which is running tests on the production network
+# as it could conflict w/ production PV's.
+# 
+record( ao, "$(PV)" )
+{
+  field( VAL,  "$(VAL=0.0)" )
+  field( EGU, "$(EGU=)" )
+  field( PREC, "$(PREC=3)" )
+  field( PINI, "YES" )
+  info( autosaveFields, "VAL" )
+}

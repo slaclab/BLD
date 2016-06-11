@@ -1,0 +1,8 @@
+# -include $(TOP)/configure/CONFIG_SITE
+
+### NOTE: SETTABLE_CONFIG
+EVRMA_VERSION	= evrma-R1-0-p4
+EVRMA_ARCH		= rhel6-linux-x86_64
+
+evrma_DIR		= $(PACKAGE_SITE_TOP)/evrma/$(EVRMA_VERSION)/$(EVRMA_ARCH)/lib
+

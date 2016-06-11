@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.72 2016/03/23 03:55:03 bhill Exp $ */
+/* $Id: BLDMCast.c,v 1.73 2016/06/04 10:55:28 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -61,6 +61,7 @@
 #include <cantProceed.h>
 #include <errlog.h>
 #include <epicsExit.h>
+#include <iocsh.h>
 
 #include "HiResTime.h"
 #include "ContextTimer.h"
@@ -83,7 +84,7 @@ extern int	fcomUtilFlag;
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.72 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.73 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -363,6 +364,7 @@ epicsExportAddress(int, DELAY_FOR_CA);
 volatile int bldAllPVsConnected   = 0;
 volatile int bldConnectAbort      = 1;
 epicsExportAddress(int, bldConnectAbort);
+epicsUInt32  bldGoodBlobCount[N_PULSE_BLOBS] = {0};
 epicsUInt32  bldInvalidAlarmCount[N_PULSE_BLOBS] = {0};
 epicsUInt32  bldUnmatchedTSCount[N_PULSE_BLOBS]  = {0};
 epicsUInt32  bldFcomTimeoutCount[N_PULSE_BLOBS]  = {0};
@@ -831,16 +833,6 @@ epicsUInt32     this_time;
 
 	/************************************************************************* Prepare CA *************************************************************************/
 
-	if ( DELAY_FOR_CA > 0 ) {
-		printf("Delay %d seconds to wait CA ready!\n", DELAY_FOR_CA);
-		printf("TODO: Try InitHookRegister here!\n" );
-		for(loop=DELAY_FOR_CA;loop>0;loop--) {
-			printf("\r%d seconds left!\n", loop);
-			epicsThreadSleep(1.0);
-		}
-		printf("\n");
-	}
-
 	SEVCHK(ca_context_create(ca_enable_preemptive_callback),"ca_context_create");
 	SEVCHK(ca_add_exception_event(exceptionCallback,NULL), "ca_add_exception_event");		
 
@@ -860,7 +852,7 @@ epicsUInt32     this_time;
 	evrTimeRegister(EVRFire, bldBlobSet);
 
 	bldAllPVsConnected       = 1;
-	printf("All PVs are successfully connected!\n");
+	/* printf("All PVs are successfully connected!\n"); Maybe, maybe not. */
 
 	/* Prefill EBEAMINFO with constant values */
 	bldEbeamInfo.uMBZ1       = __le32(0);
@@ -962,8 +954,13 @@ epicsUInt32     this_time;
 					rtncode = ! (got_mask & 1);
 					bldPulseBlobs[loop].blob = bldBlobSet->memb[loop].blob;
 					/* If there was no data then it was probably too late */
-					if ( rtncode )
-						bldUnmatchedTSCount[loop]++;
+					if ( rtncode ) {
+						bldFcomTimeoutCount[loop]++;
+						if ( BLD_MCAST_DEBUG >= 3 )
+							errlogPrintf(	"Blob %s tsMismatch, no blob for %u sec, %u fid\n",
+											bldPulseBlobs[loop].name,
+											p_refTime->secPastEpoch, p_refTime->nsec & PULSEID_INVALID );
+					}
 				} else {
 					/* No blob set, just fetch current blob status one by one */
 					rtncode = fcomGetBlob( fcomBlobIDs[loop], &bldPulseBlobs[loop].blob, 0 );
@@ -1011,12 +1008,15 @@ passed:
 						tsCatch = -1;
 					}
 					if ( BLD_MCAST_DEBUG >= 2 )
-						errlogPrintf(	"Blob %s tsMismatch %d sec, %d fid instead of %d sec, %d fid\n",
+						errlogPrintf(	"Blob %s tsMismatch %d sec, %u fid instead of %u sec, %u fid\n",
 										bldPulseBlobs[loop].name,
 										b1->fc_tsHi,			 b1->fc_tsLo	 & PULSEID_INVALID,
 										p_refTime->secPastEpoch, p_refTime->nsec & PULSEID_INVALID );
 					bldUnmatchedTSCount[loop]++;
 					dataAvailable &= ~bldPulseBlobs[loop].aMsk;
+				}
+				else {
+					bldGoodBlobCount[loop]++;
 				}
 			}
 
@@ -1368,23 +1368,28 @@ passed:
 	return(0);
 }
 
-void
-dumpTsMismatchStats(FILE *f, int reset)
+void bldDumpStats(FILE *f, int reset)
 {
 	int      i;
 	epicsUInt32 cnt [N_PULSE_BLOBS];
 	epicsUInt32 cnt1[N_PULSE_BLOBS];
 	epicsUInt32 cnt2[N_PULSE_BLOBS];
 	epicsUInt32 cnt3[N_PULSE_BLOBS];
+	epicsUInt32 cnt4[N_PULSE_BLOBS];
 
 	if ( bldMutex ) epicsMutexLock( bldMutex );
 		memcpy(cnt,  bldUnmatchedTSCount,  sizeof(cnt));
 		memcpy(cnt1, bldInvalidAlarmCount, sizeof(cnt1));
 		memcpy(cnt2, bldFcomGetErrs,       sizeof(cnt2));
 		memcpy(cnt3, bldFcomTimeoutCount,  sizeof(cnt3));
+		memcpy(cnt4, bldGoodBlobCount,     sizeof(cnt4));
 	if ( bldMutex ) epicsMutexUnlock( bldMutex );
 	if ( !f )
 		f = stdout;
+	fprintf(f,"FCOM Good Blob count:\n");
+	for ( i=0; i<N_PULSE_BLOBS; i++ ) {
+		fprintf(f,"  %40s: %9lu times\n", bldPulseBlobs[i].name, (unsigned long)cnt4[i]);
+	}
 	fprintf(f,"FCOM Data timestamp mismatch:\n");
 	for ( i=0; i<N_PULSE_BLOBS; i++ ) {
 		fprintf(f,"  %40s: %9lu times\n", bldPulseBlobs[i].name, (unsigned long)cnt[i]);
@@ -1409,10 +1414,27 @@ dumpTsMismatchStats(FILE *f, int reset)
 				bldUnmatchedTSCount[i]  = 0;
 				bldInvalidAlarmCount[i] = 0;
 				bldFcomGetErrs[i]       = 0;
+				bldGoodBlobCount[i]		= 0;
 			}
 			bldMcastMsgSent = 0;
 		if ( bldMutex ) epicsMutexUnlock( bldMutex );
 	}
+}
+
+static const iocshArg		bldDumpStatsArg0	= { "filename", iocshArgString };
+static const iocshArg		bldDumpStatsArg1	= { "reset",	iocshArgInt };
+static const iocshArg	*	bldDumpStatsArgs[2]	= { &bldDumpStatsArg0, &bldDumpStatsArg1 };
+static const iocshFuncDef	bldDumpStatsFuncDef = { "bldDumpStats", 2,  bldDumpStatsArgs };
+static void bldDumpStatsCallFunc( const iocshArgBuf * args )
+{
+	FILE	*	fp	= NULL;
+	if ( args[0].sval != NULL )
+	{
+		fp = fopen( args[0].sval, "w" );
+		if ( fp == NULL )
+			printf( "bldDumpStats Error: Unable to open %s\n", args[0].sval );
+	}
+	bldDumpStats( fp, args[1].ival );
 }
 
 
@@ -1504,6 +1526,15 @@ static long BLD_EPICS_Init()
 	int enable_broadcast = 0;
 	int name_len = 100;
 	char name[name_len];
+	printf("BLD_EPICS_Init: Intializing BLD driver.\n" );
+
+#if 0
+	if ( enable_broadcast == 0 )
+	{
+		printf("BLD_EPICS_Init: BLD driver disabled temporarily!\n" );
+		return 0;	/* HACK to disable BLD driver temporarily */
+	}
+#endif
 
 	rtncode = gethostname(name, name_len);
 	if (rtncode == 0) {
@@ -1515,7 +1546,9 @@ static long BLD_EPICS_Init()
 		printf("ERROR: Unable to get hostname (errno=%d, rtncode=%d)\n", errno, rtncode);
 	}
 
-	/* fcomUtilFlag = DP_DEBUG; */
+#if 0
+	fcomUtilFlag = DP_DEBUG;
+#endif
 	for ( loop=0; loop < N_PULSE_BLOBS; loop++) {
 		printf( "INFO: Looking up fcom ID for %s\n", bldPulseBlobs[loop].name );
 		if ( FCOM_ID_NONE == (fcomBlobIDs[loop] = fcomLCLSPV2FcomID(bldPulseBlobs[loop].name)) ) {
@@ -1554,6 +1587,7 @@ static long BLD_EPICS_Init()
                      "SOFTWARE MAY NOT WORK PROPERLY\n");
 
 	/* These are simple local memory devBus devices for showing fcom status in PV's */
+	checkDevBusMappedRegister("bld_stat_good", &bldGoodBlobCount);
 	checkDevBusMappedRegister("bld_stat_bad_ts", &bldUnmatchedTSCount);
 	checkDevBusMappedRegister("bld_stat_timeout", &bldFcomTimeoutCount);
 	checkDevBusMappedRegister("bld_stat_bad_d", &bldInvalidAlarmCount);
@@ -1579,6 +1613,7 @@ static long BLD_EPICS_Init()
 	  errlogPrintf("WARN: *** Not starting BLDMCast task ***\n");
 	}
 
+	iocshRegister( &bldDumpStatsFuncDef, bldDumpStatsCallFunc );
 	return 0;
 }
 
@@ -1616,16 +1651,16 @@ static long BLD_EPICS_Report(int level)
 	printf("Latest PULSEID   : %d\n", __ld_le32(&bldEbeamInfo.uFiducialId));
 
 	if ( level > 1 ) {
-	  BLD_report_EBEAMINFO();
-	}
-	
-	if ( level > 2 ) {
 		unsigned int	loop;
     	for(loop=0; loop<N_STATIC_PVS; loop++) {
 			chid	pvChId	= bldStaticPVs[loop].pvChId;
 			if ( pvChId )
 				printChIdInfo( pvChId, "" );
 		}
+	}
+
+	if ( level > 2 ) {
+		BLD_report_EBEAMINFO();
 	}
 
     return 0;

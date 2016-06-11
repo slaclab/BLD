@@ -23,6 +23,9 @@ DB += bsaBLDEdef.db
 DB += BLDMCast.db
 DB += fcom_stats.db
 DB += BLDMCastWfRecv.db
+DB += dispersion.db
+DB += simAo.db
+DB += eBeamFcomSim.db
 DB += eOrbitsFcomSim.db
 
 # EVR, BSA, Trigger related databases

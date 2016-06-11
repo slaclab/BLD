@@ -1,28 +1,3 @@
-record (ai, "BLD:$(LOCA):$(NMBR):DSPR1") {
-  field(DESC, "BPM dispersion")
-  field(EGU, "m/MeV")
-  field(PREC,"4")
-  field(PINI,"YES")
-  info( autosaveFields, "VAL" )
-}
-
-record (ai, "BLD:$(LOCA):$(NMBR):DSPR2") {
-  field(DESC, "BPM dispersion")
-  field(EGU, "m/MeV")
-  field(PREC,"4")
-  field(PINI,"YES")
-  info( autosaveFields, "VAL" )
-}
-
-record (waveform, "BLD:$(LOCA):$(NMBR):FMTRX") {
-  field(DESC,"position fir matrix")
-  field(FTVL,"DOUBLE")
-  field(NELM,"32")
-  field(EGU,"")
-  field(PREC,"4")
-  field(PINI,"YES")
-  info( autosaveFields, "VAL" )
-}
 
 record(ai, "BLD:$(LOCA):$(NMBR):CHARGE") {
   field(DESC, "Beam Charge")

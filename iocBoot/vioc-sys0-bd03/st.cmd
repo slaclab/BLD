@@ -253,6 +253,11 @@ dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU250_POS_X, EGU=mm")
 dbLoadRecords("db/BLDMCast.db","LOCA=${LOCA},NMBR=${NMBR}, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 dbLoadRecords("db/fcom_stats.db","LOCA=${LOCA},NMBR=${NMBR}, STAT_SCAN=5")
 
+# Load these only on the production IOC or in a development environment as they
+# may confict w/ the production BLDSender IOC due to fixed PV names
+# dbLoadRecords( "db/dispersion.db" );
+# dbLoadRecords( "db/simAo.db", "PV=BEND:LTU0:125:BDES,EGU=GeV/c,VAL=13.5" );
+
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.
 # We scan with event 146 (beam + .5Hz)

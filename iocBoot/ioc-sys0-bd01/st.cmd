@@ -123,6 +123,9 @@ dbLoadRecords("db/IOC-SYS0-BD01trig.db")	# has only one EVRs' triggers
 dbLoadRecords("db/BLDMCast.db","LOCA=SYS0,NMBR=500, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 dbLoadRecords("db/fcom_stats.db","LOCA=SYS0,NMBR=500, STAT_SCAN=5")
 
+# Only load this on the production IOC
+dbLoadRecords( "db/dispersion.db" );
+
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.
 # We scan with event 146 (beam + .5Hz)

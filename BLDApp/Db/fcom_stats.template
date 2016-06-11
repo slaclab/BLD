@@ -2,6 +2,14 @@
 # FCOM statistics template
 #
 
+record( longin, "BLD:$(LOCA):$(NMBR):$(BLOB)_GOOD" )
+{
+	field( DESC, "Fcom good blob count" )
+	field( SCAN, "$(STAT_SCAN)" )
+	field( DTYP, "BusAddress" )
+	field( INP,  "#C$(NUM)S2@bld_stat_good,m32" )
+}
+
 record( longin, "BLD:$(LOCA):$(NMBR):$(BLOB)_TIMEOUT" )
 {
 	field( DESC, "Fcom timeout on blob" )

@@ -8,7 +8,7 @@
 file fcomBlobAo.template
 {
 	pattern
-	{	P,			R,		INDEX,	GROUP,	BLOB				}
+	{	P,			SIM,	INDEX,	GROUP,	BLOB				}
 	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:LTU1:910:X		}
 	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:LTU1:910:Y		}
 	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:LTU1:910:T		}
@@ -59,178 +59,159 @@ file fcomBlobAo.template
 
 }
 
-file fcomBlobAdd.template
-{
-	pattern
-	{	P,			R,		GROUP,	BLOB				}
-	{	"$(BLOB)",	"_ADD",		0,	BPMS:LTU1:910:ALL	}
-	{	"$(BLOB)",	"_ADD",		0,	BPMS:LTU1:960:ALL	}
-	{	"$(BLOB)",	"_ADD",		0,	BPMS:UND1:100:ALL	}
-	{	"$(BLOB)",	"_ADD",		0,	BPMS:UND1:190:ALL	}
-	{	"$(BLOB)",	"_ADD",		0,	BPMS:UND1:290:ALL	}
-	{	"$(BLOB)",	"_ADD",		0,	BPMS:UND1:390:ALL	}
+#file fcomBlobAdd.template
+#{
+#	pattern
+#	{	P,			R,		GROUP,	BLOB				}
+#	{	"$(BLOB)",	"_ADD",		0,	BPMS:LTU1:910:ALL	}
+#	{	"$(BLOB)",	"_ADD",		0,	BPMS:LTU1:960:ALL	}
+#	{	"$(BLOB)",	"_ADD",		0,	BPMS:UND1:100:ALL	}
+#	{	"$(BLOB)",	"_ADD",		0,	BPMS:UND1:190:ALL	}
+#	{	"$(BLOB)",	"_ADD",		0,	BPMS:UND1:290:ALL	}
+#	{	"$(BLOB)",	"_ADD",		0,	BPMS:UND1:390:ALL	}
+#
+#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:490:ALL	}
+#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:590:ALL	}
+#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:690:ALL	}
+#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:790:ALL	}
+#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:890:ALL	}
+#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:990:ALL	}
+#}
 
-	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:490:ALL	}
-	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:590:ALL	}
-	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:690:ALL	}
-	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:790:ALL	}
-	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:890:ALL	}
-	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:990:ALL	}
-}
 
-# Leave P macro to be defined at dbLoadRecord time
-file fcomGroupSend.template
-{
-	pattern
-	{	R,				GROUP	}
-	{	"ALL_G0_SEND",		0	}
-	{	"ALL_G1_SEND",		1	}
-}
-
-# Each group should set SCAN = Event and EC = event code
-# for the first blob in each group, and use the FLNK
-# macros to link each blob in the group, and finally
-# to process the group send
-file fcomBlobSim.template
+# Each fcomBlobBPMS_SIM.db can be used to assign
+# alternating SIN and COS values to each value in the blob,
+# for up to 10 values per blob
+#
+# Blob macros here should truncate the value name and end w/ a colon
+# i.e. BPMS:LTU0:910: instead of BPMS:LTU0:910:X 
+# 
+# The first blob in each group should define these macros
+# to initiate processing of each blob where EC must be
+# defined later via a dbLoadRecord macro.
+#		SCAN	= "Event",	EC = "\$(EC)"
+#
+# Each blob in a group should specify the next
+# blob in the group via a NEXT macro to force them to
+# be processed sequentially.
+# Leave NEXT undefined for the last blob in the group
+# and it will default an FLNK to the group's send record
+file fcomBlobBPMS_SIM.db
 {
 # group 0, six blobs
 	{
-		SCAN	= "Event",
-		EC		= "40",
-		P		= "$(BLOB)",
-		R		= "ALL_SIM",
-		L1		= "$(BLOB)X_SIM",
-		L2		= "$(BLOB)Y_SIM",
-		L3		= "$(BLOB)T_SIM",
-		ADD		= "$(BLOB)ALL_ADD",
+		GROUP	= "0",
+		SCAN	= "Event",	EC = "\$(EC)"
 		BLOB	= "BPMS:LTU1:910:",
-		GROUP	= "0",
-		FLNK	= "BPMS:LTU1:960:ALL_SIM_SIN"
+		L1		= "$(BLOB)X_SIM PP",
+		L2		= "$(BLOB)Y_SIM PP",
+		L3		= "$(BLOB)T_SIM PP",
+		NEXT	= "BPMS:LTU1:960:SIM_SEQ"
 	}
 	{
-		P		= "$(BLOB)"
-		R		= "ALL_SIM",
-		L1		= "$(BLOB)X_SIM",
-		L2		= "$(BLOB)Y_SIM",
-		L3		= "$(BLOB)T_SIM",
-		ADD		= "$(BLOB)ALL_ADD",
+		GROUP	= "0",
 		BLOB	= "BPMS:LTU1:960:",
-		GROUP	= "0",
-		FLNK	= "BPMS:UND1:100:ALL_SIM_SIN"
+		L1		= "$(BLOB)X_SIM PP",
+		L2		= "$(BLOB)Y_SIM PP",
+		L3		= "$(BLOB)T_SIM PP",
+		NEXT	= "BPMS:UND1:100:SIM_SEQ"
 	}
 	{
-		P		= "$(BLOB)"
-		R		= "ALL_SIM",
-		L1		= "$(BLOB)X_SIM",
-		L2		= "$(BLOB)Y_SIM",
-		L3		= "$(BLOB)T_SIM",
-		ADD		= "$(BLOB)ALL_ADD",
+		GROUP	= "0",
 		BLOB	= "BPMS:UND1:100:",
-		GROUP	= "0",
-		FLNK	= "BPMS:UND1:190:ALL_SIM_SIN"
+		L1		= "$(BLOB)X_SIM PP",
+		L2		= "$(BLOB)Y_SIM PP",
+		L3		= "$(BLOB)T_SIM PP",
+		NEXT	= "BPMS:UND1:190:SIM_SEQ"
 	}
 	{
-		P		= "$(BLOB)"
-		R		= "ALL_SIM",
-		L1		= "$(BLOB)X_SIM",
-		L2		= "$(BLOB)Y_SIM",
-		L3		= "$(BLOB)T_SIM",
-		ADD		= "$(BLOB)ALL_ADD",
+		GROUP	= "0",
 		BLOB	= "BPMS:UND1:190:",
-		GROUP	= "0",
-		FLNK	= "BPMS:UND1:290:ALL_SIM_SIN"
+		L1		= "$(BLOB)X_SIM PP",
+		L2		= "$(BLOB)Y_SIM PP",
+		L3		= "$(BLOB)T_SIM PP",
+		NEXT	= "BPMS:UND1:290:SIM_SEQ"
 	}
 	{
-		P		= "$(BLOB)"
-		R		= "ALL_SIM",
-		L1		= "$(BLOB)X_SIM",
-		L2		= "$(BLOB)Y_SIM",
-		L3		= "$(BLOB)T_SIM",
-		ADD		= "$(BLOB)ALL_ADD",
+		GROUP	= "0",
 		BLOB	= "BPMS:UND1:290:",
-		GROUP	= "0",
-		FLNK	= "BPMS:UND1:390:ALL_SIM_SIN"
+		L1		= "$(BLOB)X_SIM PP",
+		L2		= "$(BLOB)Y_SIM PP",
+		L3		= "$(BLOB)T_SIM PP",
+		NEXT	= "BPMS:UND1:390:SIM_SEQ"
 	}
 	{
-		P		= "$(BLOB)"
-		R		= "ALL_SIM",
-		L1		= "$(BLOB)X_SIM",
-		L2		= "$(BLOB)Y_SIM",
-		L3		= "$(BLOB)T_SIM",
-		ADD		= "$(BLOB)ALL_ADD",
-		BLOB	= "BPMS:UND1:390:",
 		GROUP	= "0",
-		FLNK	= "\$(P)ALL_G0_SEND"
+		BLOB	= "BPMS:UND1:390:",
+		L1		= "$(BLOB)X_SIM PP",
+		L2		= "$(BLOB)Y_SIM PP",
+		L3		= "$(BLOB)T_SIM PP",
+		NEXT	= "BPMS:UND1:390:ALL_SEND",
 	}
 
 # Second group, six blobs
 	{
-		SCAN	= "Event",
-		EC		= "40",
-		P		= "$(BLOB)",
-		R		= "ALL_SIM",
-		L1		= "$(BLOB)X_SIM",
-		L2		= "$(BLOB)Y_SIM",
-		L3		= "$(BLOB)T_SIM",
-		ADD		= "$(BLOB)ALL_ADD",
+		SCAN	= "Event",	EC = "\$(EC)"
+		GROUP	= "1",
 		BLOB	= "BPMS:UND1:490:",
-		GROUP	= "1",
-		FLNK	= "BPMS:UND1:590:ALL_SIM_SIN"
+		L1		= "$(BLOB)X_SIM PP",
+		L2		= "$(BLOB)Y_SIM PP",
+		L3		= "$(BLOB)T_SIM PP",
+		NEXT	= "BPMS:UND1:590:SIM_SEQ"
 	}
 	{
-		P		= "$(BLOB)",
-		R		= "ALL_SIM",
-		L1		= "$(BLOB)X_SIM",
-		L2		= "$(BLOB)Y_SIM",
-		L3		= "$(BLOB)T_SIM",
-		ADD		= "$(BLOB)ALL_ADD",
+		GROUP	= "1",
 		BLOB	= "BPMS:UND1:590:",
-		GROUP	= "1",
-		FLNK	= "BPMS:UND1:690:ALL_SIM_SIN"
+		L1		= "$(BLOB)X_SIM PP",
+		L2		= "$(BLOB)Y_SIM PP",
+		L3		= "$(BLOB)T_SIM PP",
+		NEXT	= "BPMS:UND1:690:SIM_SEQ"
 	}
 	{
-		P		= "$(BLOB)",
-		R		= "ALL_SIM",
-		L1		= "$(BLOB)X_SIM",
-		L2		= "$(BLOB)Y_SIM",
-		L3		= "$(BLOB)T_SIM",
-		ADD		= "$(BLOB)ALL_ADD",
+		GROUP	= "1",
 		BLOB	= "BPMS:UND1:690:",
-		GROUP	= "1",
-		FLNK	= "BPMS:UND1:790:ALL_SIM_SIN"
+		L1		= "$(BLOB)X_SIM PP",
+		L2		= "$(BLOB)Y_SIM PP",
+		L3		= "$(BLOB)T_SIM PP",
+		NEXT	= "BPMS:UND1:790:SIM_SEQ"
 	}
 	{
-		P		= "$(BLOB)",
-		R		= "ALL_SIM",
-		L1		= "$(BLOB)X_SIM",
-		L2		= "$(BLOB)Y_SIM",
-		L3		= "$(BLOB)T_SIM",
-		ADD		= "$(BLOB)ALL_ADD",
+		GROUP	= "1",
 		BLOB	= "BPMS:UND1:790:",
-		GROUP	= "1",
-		FLNK	= "BPMS:UND1:890:ALL_SIM_SIN"
+		L1		= "$(BLOB)X_SIM PP",
+		L2		= "$(BLOB)Y_SIM PP",
+		L3		= "$(BLOB)T_SIM PP",
+		NEXT	= "BPMS:UND1:890:SIM_SEQ"
 	}
 	{
-		P		= "$(BLOB)",
-		R		= "ALL_SIM",
-		L1		= "$(BLOB)X_SIM",
-		L2		= "$(BLOB)Y_SIM",
-		L3		= "$(BLOB)T_SIM",
-		ADD		= "$(BLOB)ALL_ADD",
+		GROUP	= "1",
 		BLOB	= "BPMS:UND1:890:",
-		GROUP	= "1",
-		FLNK	= "BPMS:UND1:990:ALL_SIM_SIN"
+		L1		= "$(BLOB)X_SIM PP",
+		L2		= "$(BLOB)Y_SIM PP",
+		L3		= "$(BLOB)T_SIM PP",
+		NEXT	= "BPMS:UND1:990:SIM_SEQ"
 	}
 	{
-		P		= "$(BLOB)",
-		R		= "ALL_SIM",
-		L1		= "$(BLOB)X_SIM",
-		L2		= "$(BLOB)Y_SIM",
-		L3		= "$(BLOB)T_SIM",
-		ADD		= "$(BLOB)ALL_ADD",
-		BLOB	= "BPMS:UND1:990:",
 		GROUP	= "1",
-		FLNK	= "\$(P)ALL_G1_SEND"
+		BLOB	= "BPMS:UND1:990:",
+		L1		= "$(BLOB)X_SIM PP",
+		L2		= "$(BLOB)Y_SIM PP",
+		L3		= "$(BLOB)T_SIM PP",
+		NEXT	= "BPMS:UND1:990:ALL_SEND",
 	}
+}
 
+# Each group needs a SEND record
+# LAST should match the truncated BLOB macro
+# from above for the last blob in the group
+file fcomGroupSend.template
+{
+	{
+		GROUP	= "0",
+		LAST	= "BPMS:UND1:390:",
+	}
+	{
+		GROUP	= "1",
+		LAST	= "BPMS:UND1:990:",
+	}
 }

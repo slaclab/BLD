@@ -1,39 +1,28 @@
 #!../../bin/linuxRT_glibc-x86_64/BLDSender
-
-# Network configuration for this IOC
-# 134.79.218.198	LCLSDEV
-# 172.25.160.32		B034-LCLSFBCK
-# 172.25.160.78		B034-LCLSBLD
-
 # For iocAdmin
-epicsEnvSet("LOCN","B034-2930")
+epicsEnvSet("LOCN","B34-R253")
 
-# epicsEnvSet("IPADDR1","172.27.28.14")	# LCLS LinuxRT BD03 IOC ETH2 (ETH5) - ioc-sys0-bd03-fnet on LCLSFNET subnet
-epicsEnvSet("IPADDR1","172.25.160.32")	# LCLS LinuxRT BD03 IOC ETH2 (ETH5) - ioc-b34-bd03-fnet on B034-LCLSFBCK subnet
+epicsEnvSet("IPADDR1","172.25.160.17")	# cpu-b34-fb01-fnet
 epicsEnvSet("NETMASK1","255.255.252.0")
 
 # BLD multicast group IP addr
 #epicsEnvSet("BLDMCAST_DST_IP", "239.255.24.0" )
 epicsEnvSet("BLDMCAST_DST_IP", "239.255.24.254" )
 
-epicsEnvSet("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
-epicsEnvSet("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
-epicsEnvSet("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
+# epicsEnvSet("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
+# epicsEnvSet("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
+# epicsEnvSet("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 
 < envPaths
 # =====================================================================
 # Execute common fnet st.cmd
 # < "../st.fnetgeneric.lcls.cmd"
 
-# Set common fnet variables
-epicsEnvSet("NETMASK1","255.255.252.0")
-
 # Set the FCOM multicast prefix
 # Production FCOM group is mc-lcls-fcom,  239.219.8.0 on  MCAST-LCLS-FCOM subnet
 # epicsEnvSet("FCOM_MC_PREFIX", "mc-lcls-fcom")
 #epicsEnvSet("FCOM_MC_PREFIX", "239.219.8.0")
 epicsEnvSet("FCOM_MC_PREFIX", "239.219.248.0")
-epicsEnvSet("FCOMMCGRP", "mc-b034-fcom")      #  on  MCAST-B034-FCOM subnet
 
 # execute generic part
 < "../st.linuxgeneric.cmd"
@@ -49,24 +38,13 @@ epicsEnvSet("FCOMMCGRP", "mc-b034-fcom")      #  on  MCAST-B034-FCOM subnet
 # So, uncomment the following and remove the backslash
 epicsEnvSet("EPICS_IOC_LOG_CLIENT_INET","${IOC}")
 
-# =====================================================================
-# Set some facility specific MACROs for database instantiation below
-# This is in effort to make IOCs Applications facility agnostic
-# Some of the following variables may be defined in
-# $IOC/<cpuName>/<epicsIOCName>/iocStartup.cmd
-# =====================================================================
-# Override the TOP variable set by envPaths:
-# This is now past in via $IOC/<cpuName>/<epicsIOCName>/iocStartup.cmd
-# epicsEnvSet(TOP,"${IOC_APP}")
-
-# ============================================
 # Set MACROS for EVRs
 # ============================================
 # FAC = SYS0 ==> LCLS1
 # FAC = SYS1 ==> FACET
 
 # System Location:
-epicsEnvSet("LOCA","B034")
+epicsEnvSet("LOCA","B34")
 epicsEnvSet("UNIT","BD03")
 epicsEnvSet("FAC", "SYS0")
 epicsEnvSet("NMBR","502")
@@ -162,12 +140,17 @@ BLDSender_registerRecordDeviceDriver(pdbbase)
 # Debug interest level for EVR Driver
 # ErDebugLevel(0)
 
-var BLD_MCAST_ENABLE 1
+var BLD_MCAST_ENABLE 0
 var BLD_MCAST_DEBUG  2
+var DEBUG_DRV_FCOM_RECV 2
+var DEBUG_DRV_FCOM_SEND 2
+var DEBUG_DEV_FCOM_RECV 2
+var DEBUG_DEV_FCOM_SEND 2
 
 # PMC-based EVR (EVR230)
 # These are the most popular
-ErConfigure(0, 0, 0, 0, 1)       # PMC EVR
+#ErConfigure(0, 0, 0, 0, 1)       # PMC EVR
+eevrmaConfigure(0, "/dev/vevr4" )
 
 # PCIe-based EVR (EVR300)
 # For Industrial PCs, these desired.
@@ -253,6 +236,11 @@ dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU250_POS_X, EGU=mm")
 dbLoadRecords("db/BLDMCast.db","LOCA=${LOCA},NMBR=${NMBR}, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 dbLoadRecords("db/fcom_stats.db","LOCA=${LOCA},NMBR=${NMBR}, STAT_SCAN=5")
 
+# Load these only on the production IOC or in a development environment as they
+# may confict w/ the production BLDSender IOC due to fixed PV names
+dbLoadRecords( "db/dispersion.db" );
+dbLoadRecords( "db/simAo.db", "PV=BEND:LTU0:125:BDES,EGU=GeV/c,VAL=13.5" );
+
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.
 # We scan with event 146 (beam + .5Hz)
@@ -274,7 +262,10 @@ dbLoadRecords("db/fcom_stats.db","LOCA=${LOCA},NMBR=${NMBR}, STAT_SCAN=5")
 # which would be faster, simpler and more flexible)
 # 
 
-dbLoadRecords("db/BLDMCastWfRecv.db","name=VIOC:${LOCA}:${UNIT}:BLDWAV, scan=Event, evnt=146, rarm=2")
+dbLoadRecords( "db/BLDMCastWfRecv.db", "name=VIOC:${LOCA}:${UNIT}:BLDWAV, scan=Event, evnt=146, rarm=2")
+
+dbLoadRecords( "db/eBeamFcomSim.db",   "EC=40")
+dbLoadRecords( "db/eOrbitsFcomSim.db", "EC=40")
 
 # END: Loading the record databases
 ########################################################################
@@ -356,10 +347,37 @@ create_monitor_set("info_settings.req",10,"")
 
 # ===========================================================================
 
-epicsThreadShowAll()
+# epicsThreadShowAll()
 
 # ===========================================================================
 # Setup Real-time priorities after iocInit for driver threads
 # ===========================================================================
 # system("/bin/su root -c `pwd`/rtPrioritySetup.cmd")
 
+dbpf BPMS:DMP1:502:SIM_SEQ.DISA 0
+dbpf BPMS:IN20:221:SIM_SEQ.DISA 0
+dbpf BPMS:LI21:233:SIM_SEQ.DISA 0
+dbpf BPMS:LI24:801:SIM_SEQ.DISA 0
+dbpf BPMS:LTU1:250:SIM_SEQ.DISA 0
+dbpf BPMS:LTU1:450:SIM_SEQ.DISA 0
+dbpf BPMS:LTU1:720:SIM_SEQ.DISA 0
+dbpf BPMS:LTU1:730:SIM_SEQ.DISA 0
+dbpf BPMS:LTU1:740:SIM_SEQ.DISA 0
+dbpf BPMS:LTU1:750:SIM_SEQ.DISA 0
+dbpf BPMS:LTU1:910:SIM_SEQ.DISA 0
+dbpf BPMS:LTU1:960:SIM_SEQ.DISA 0
+dbpf BPMS:UND1:100:SIM_SEQ.DISA 0
+dbpf BPMS:UND1:190:SIM_SEQ.DISA 0
+dbpf BPMS:UND1:290:SIM_SEQ.DISA 0
+dbpf BPMS:UND1:390:SIM_SEQ.DISA 0
+dbpf BPMS:UND1:490:SIM_SEQ.DISA 0
+dbpf BPMS:UND1:590:SIM_SEQ.DISA 0
+dbpf BPMS:UND1:690:SIM_SEQ.DISA 0
+dbpf BPMS:UND1:790:SIM_SEQ.DISA 0
+dbpf BPMS:UND1:890:SIM_SEQ.DISA 0
+dbpf BPMS:UND1:990:SIM_SEQ.DISA 0
+# Hack, shutdown error producing records after a while so I can debug
+epicsThreadSleep( 10 )
+dbpf BPMS:IN20:221:SIM_SEQ.DISA 0
+epicsThreadSleep( 10 )
+dbpf BPMS:IN20:221:SIM_SEQ.DISA 0
