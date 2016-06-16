@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.73 2016/06/04 10:55:28 bhill Exp $ */
+/* $Id: BLDMCast.c,v 1.74 2016/06/11 08:53:00 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -84,7 +84,7 @@ extern int	fcomUtilFlag;
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.73 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.74 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -95,13 +95,6 @@ extern int	fcomUtilFlag;
 
 #define MCAST_TTL	8
 
-#define	CONNECT_PV
-#undef  USE_CA_ADD_EVENT    /* ca_create_subscription seems buggy */
-/* T.S: I doubt that ca_create_subscription works any different. 
- * ca_add_array_event is just a macro mapping to the
- * ca_add_masked_array_event() wrapper which calls
- * ca_create_subscription with the DBE_VALUE | DBE_ALARM mask ...
- */
 #define MULTICAST           /* Use multicast interface */
 #ifdef RTEMS
 #define MULTICAST_UDPCOMM   /* Use UDPCOMM for data output; BSD sockets otherwise */
@@ -209,9 +202,11 @@ typedef struct BLDPV
   
   unsigned int	         availMask;
 
-  chid		             pvChId;
+  chid		             caChId;
 
   struct dbr_time_double * pTD;
+  unsigned int			subscribed;
+  int					status;
 
 /* No need for eventId, never cancel subscription *\
    evid  pvEvId;
@@ -344,6 +339,12 @@ FcomBlobSetRef  bldBlobSet = 0;
 static epicsInt32 bldUseFcomSet = 0;
 
 static unsigned int dataAvailable = 0;
+
+int EBEAM_ENABLE = 1;
+epicsExportAddress(int, EBEAM_ENABLE);
+
+int EORBITS_ENABLE = 0;
+epicsExportAddress(int, EORBITS_ENABLE);
 
 int BLD_MCAST_ENABLE = 0;
 epicsExportAddress(int, BLD_MCAST_ENABLE);
@@ -517,32 +518,32 @@ static void evr_timer_isr(void *arg)
 }
 #endif
 
-static void printChIdInfo(chid pvChId, char *message)
+static void printChIdInfo( chid caChId, char *message )
 {
 	if ( message && strlen(message) > 0 )
     	errlogPrintf("\n%s\n",message);
     errlogPrintf(	"pv: %s  type(%d) nelements(%ld) host(%s)\n",
-					ca_name(pvChId), ca_field_type(pvChId),
-					ca_element_count(pvChId), ca_host_name(pvChId) );
+					ca_name(caChId), ca_field_type(caChId),
+					ca_element_count(caChId), ca_host_name(caChId) );
     errlogPrintf(	"    read(%d) write(%d) state(%d)\n",
-					ca_read_access(pvChId), ca_write_access(pvChId),
-					ca_state(pvChId) );
+					ca_read_access(caChId), ca_write_access(caChId),
+					ca_state(caChId) );
 }
 
-static void exceptionCallback(struct exception_handler_args args)
+static void exceptionCallback( struct exception_handler_args args )
 {
-    chid	pvChId = args.chid;
+    chid	caChId = args.chid;
     long	stat = args.stat; /* Channel access status code*/
     const char  *channel;
     static char *noname = "unknown";
 
-    channel = (pvChId ? ca_name(pvChId) : noname);
+    channel = (caChId ? ca_name(caChId) : noname);
 
-    if(pvChId) printChIdInfo(pvChId,"exceptionCallback");
+    if(caChId) printChIdInfo(caChId,"exceptionCallback");
     errlogPrintf("exceptionCallback stat %s channel %s\n", ca_message(stat),channel);
 }
 
-static void eventCallback(struct event_handler_args args)
+static void eventCallback( struct event_handler_args args )
 {
     BLDPV * pPV = args.usr;
 
@@ -570,88 +571,143 @@ static void eventCallback(struct event_handler_args args)
     epicsMutexUnlock(bldMutex);
 }
 
-
-#ifdef CONNECT_PV
-static int
-connectCaPv(const char *name, chid *p_chid)
+/****************************************************************************
+ *
+ * Function:	connectionCallback
+ *
+ * Description:	CA connectionCallback 
+ *
+ * Arg(s) In:	args  -  connection_handler_args (see CA manual)
+ *
+ **************************************************************************-*/
+static void connectionCallback( struct connection_handler_args args )
 {
-int rtncode;
+    BLDPV	*	pPv	= ( BLDPV * ) ca_puser ( args.chid );
+    if ( args.op == CA_OP_CONN_UP )
+	{
+        if ( !pPv->subscribed )
+		{
+			unsigned long		cnt;
 
-	do {
+            /* Set up pv structure */
+            /* ------------------- */
 
-		rtncode = ECA_NORMAL;
-
-		/* No need for connectionCallback since we want to wait till connected */
-		if ( BLD_MCAST_DEBUG >= 1 ) {
-			printf("creating channel for %s ...\n", name ); fflush(stdout);
-		}
-
-		SEVCHK(ca_create_channel(name, NULL/*connectionCallback*/, NULL, CA_PRIORITY , p_chid), "ca_create_channel");
-
-		if ( BLD_MCAST_DEBUG >= 2 ) {
-			printf(" ca_create_channel successful for %s\n", name );
-			fflush(stdout);
-		}
-
-		/* Not very necessary */
-		/* SEVCHK(ca_replace_access_rights_event(bldStaticPVs[loop].pvChId, accessRightsCallback), "ca_replace_access_rights_event"); */
-
-		/* We could do subscription in connetion callback. But in this case, better to enforce all connection */
-		if ( BLD_MCAST_DEBUG >= 2 ) {
-			printf("pending for IO ...\n");
-			fflush(stdout);
-		}
-
-		rtncode = ca_pend_io(10.0);
-
-		if ( ECA_NORMAL != rtncode ) {
-
-			ca_clear_channel(*p_chid);
-			*p_chid = 0;
-
-			if (rtncode == ECA_TIMEOUT) {
-
-				errlogPrintf("Channel connect timed out: '%s' not found.\n", name);
-				fflush(stdout);
-				if ( ! bldConnectAbort ) {
-					errlogPrintf("Continuing to try -- set bldConnectAbort nonzero to abort\n");
-					continue;
-				}
-			} else {
-				errlogPrintf("ca_pend_io() returned %i\n", rtncode);
+			/* BLD CA connections only support native data type double */
+			if ( DBF_DOUBLE != ca_field_type( pPv->caChId ) )
+			{
+				errlogPrintf( "Native data type of '%s' is not double.\n", pPv->name );
 			}
-			return -1;
-		}
 
-	} while ( ECA_TIMEOUT == rtncode );
+			/* Check request count */
+			cnt = ca_element_count( pPv->caChId );
+			if ( pPv->nElems != cnt )
+			{
+				errlogPrintf("Number of elements [%ld] of '%s' does not match expectation.\n", cnt, pPv->name);
+			}
+
+			/* Allocate time_double storage for each PV element */
+			if ( pPv->pTD == NULL )
+			{
+				pPv->pTD = callocMustSucceed(1, dbr_size_n(DBR_TIME_DOUBLE, pPv->nElems), "callocMustSucceed");
+			}
+
+            /* Create subscription on first connect */
+            pPv->status = ca_create_subscription(	DBR_TIME_DOUBLE, pPv->nElems, pPv->caChId,
+                                                	DBE_VALUE | DBE_ALARM, eventCallback, pPv, NULL );
+			SEVCHK( pPv->status, "ca_create_subscription");
+			if ( pPv->status == ECA_NORMAL )
+            	pPv->subscribed = 1;
+		}
+    }
+    else if ( args.op == CA_OP_CONN_DOWN )
+	{
+        pPv->status = ECA_DISCONN;
+    }
+}
+
+/* was connectCaPv(const char *name, chid *p_chid) */
+static int
+connectCaPv( BLDPV * pPv )
+{
+	int rtncode;
+
+	if ( pPv == NULL )
+		return -1;
+
+	rtncode = ECA_NORMAL;
+
+	/* We need a connectionCallback as CA PV's may come and go while IOC is running */
+	if ( BLD_MCAST_DEBUG >= 1 ) {
+		printf("creating channel for %s ...\n", pPv->name ); fflush(stdout);
+	}
+
+	pPv->subscribed	= 0;
+	pPv->status		= ECA_DISCONN;
+	rtncode = ca_create_channel( pPv->name, connectionCallback, pPv, CA_PRIORITY , &pPv->caChId );
+	SEVCHK( rtncode, "ca_create_channel" );
+	if ( rtncode != ECA_NORMAL )
+	{
+		printf( "Error: ca_create_channel failed for %s\n", pPv->name );
+		return -1;
+	}
+
+	if ( BLD_MCAST_DEBUG >= 2 ) {
+		printf(" ca_create_channel successful for %s\n", pPv->name );
+		fflush(stdout);
+	}
+
+#if 0
+	{
+	/* We could do subscription in connection callback. But in this case, better to enforce all connection */
+	if ( BLD_MCAST_DEBUG >= 2 ) {
+		printf("pending for IO ...\n");
+		fflush(stdout);
+	}
+	rtncode = ca_pend_io(10.0);
+	if ( ECA_NORMAL != rtncode )
+	{
+		ca_clear_channel( pPV->caChId );
+		pPv->caChId = 0;
+		if (rtncode == ECA_TIMEOUT) {
+			errlogPrintf("Channel connect timed out: '%s' not found.\n", pPv->name);
+			fflush(stdout);
+			if ( ! bldConnectAbort ) {
+				errlogPrintf("Continuing to try -- set bldConnectAbort nonzero to abort\n");
+				continue;
+			}
+		} else {
+			errlogPrintf("ca_pend_io() returned %i\n", rtncode);
+		}
+		return -1;
+	}
+	}
+#endif
 
 	return 0;
 }
-#endif /* CONNECT_PV */
 
 static int
 init_pvarray(BLDPV *p_pvs, int n_pvs, int subscribe)
 {
 	int           loop;
-	unsigned long cnt;
 	unsigned int	nFailedConnections = 0;
 
 	for(loop=0; loop<n_pvs; loop++)
 	{
-#ifndef CONNECT_PV
-		printf( "init_pvarray disabled.  Not connecting to PV %s\n", p_pvs[loop].name );
-#else
-		if ( connectCaPv( p_pvs[loop].name, &p_pvs[loop].pvChId ) ) {
+		if ( connectCaPv( &p_pvs[loop] ) ) {
 			nFailedConnections++;
 			continue;
 		}
 
-		if ( p_pvs[loop].nElems != (cnt = ca_element_count(p_pvs[loop].pvChId)) ) {
+#if 0
+		{
+		unsigned long cnt;
+		if ( p_pvs[loop].nElems != (cnt = ca_element_count(p_pvs[loop].caChId)) ) {
 			errlogPrintf("Number of elements [%ld] of '%s' does not match expectation.\n", cnt, p_pvs[loop].name);
 			return -1;
 		}
 
-		if ( DBF_DOUBLE != ca_field_type(p_pvs[loop].pvChId) ) {/* Native data type has to be double */
+		if ( DBF_DOUBLE != ca_field_type(p_pvs[loop].caChId) ) {/* Native data type has to be double */
 			errlogPrintf("Native data type of '%s' is not double.\n", p_pvs[loop].name);
 			return -1;
 		}
@@ -660,11 +716,8 @@ init_pvarray(BLDPV *p_pvs, int n_pvs, int subscribe)
 		p_pvs[loop].pTD = callocMustSucceed(1, dbr_size_n(DBR_TIME_DOUBLE, p_pvs[loop].nElems), "callocMustSucceed");
 
 		if ( subscribe ) {
-#ifdef USE_CA_ADD_EVENT
-			SEVCHK(ca_add_array_event(DBR_TIME_DOUBLE, p_pvs[loop].nElems, p_pvs[loop].pvChId, eventCallback, &(p_pvs[loop]), 0.0, 0.0, 0.0, NULL), "ca_add_array_event");
-#else
-			SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, p_pvs[loop].nElems, p_pvs[loop].pvChId, DBE_VALUE|DBE_ALARM, eventCallback, &(p_pvs[loop]), NULL), "ca_create_subscription");
-#endif
+			SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, p_pvs[loop].nElems, p_pvs[loop].caChId, DBE_VALUE|DBE_ALARM, eventCallback, &(p_pvs[loop]), NULL), "ca_create_subscription");
+		}
 		}
 #endif
 	}
@@ -687,10 +740,10 @@ static void BLDMCastTaskEnd(void * parg)
     epicsMutexLock(bldMutex);
     for(loop=0; loop<N_STATIC_PVS; loop++)
     {
-        if(bldStaticPVs[loop].pvChId)
+        if(bldStaticPVs[loop].caChId)
         {
-            ca_clear_channel(bldStaticPVs[loop].pvChId);
-            bldStaticPVs[loop].pvChId = NULL;
+            ca_clear_channel(bldStaticPVs[loop].caChId);
+            bldStaticPVs[loop].caChId = NULL;
         }
         if(bldStaticPVs[loop].pTD)
         {
@@ -847,7 +900,7 @@ epicsUInt32     this_time;
 
 	/* All ready to go, create event and register with EVR */
 	EVRFireEvent = epicsEventMustCreate(epicsEventEmpty);
-		
+
 	/* Register EVRFire */
 	evrTimeRegister(EVRFire, bldBlobSet);
 
@@ -1008,9 +1061,10 @@ passed:
 						tsCatch = -1;
 					}
 					if ( BLD_MCAST_DEBUG >= 2 )
-						errlogPrintf(	"Blob %s tsMismatch %d sec, %u fid instead of %u sec, %u fid\n",
+						errlogPrintf(	"Blob %s tsMismatch %u sec, %u fid instead of %u sec, %u fid\n",
 										bldPulseBlobs[loop].name,
-										b1->fc_tsHi,			 b1->fc_tsLo	 & PULSEID_INVALID,
+										(unsigned int) (b1->fc_tsHi),
+										(unsigned int) (b1->fc_tsLo	 & PULSEID_INVALID),
 										p_refTime->secPastEpoch, p_refTime->nsec & PULSEID_INVALID );
 					bldUnmatchedTSCount[loop]++;
 					dataAvailable &= ~bldPulseBlobs[loop].aMsk;
@@ -1303,7 +1357,7 @@ passed:
 
 #ifdef MULTICAST
 		/* do MultiCast */
-		if(BLD_MCAST_ENABLE)
+		if ( BLD_MCAST_ENABLE )
 		{
 #ifdef MULTICAST_UDPCOMM
 			rtncode = udpCommSend( sFd, &bldEbeamInfo, sizeof(bldEbeamInfo) );
@@ -1510,6 +1564,8 @@ checkDevBusMappedRegister(char *nm, void *ptr)
 	}
 }
 
+extern void  eOrbitsStart( initHookState state );
+
 void  initHookBLDMCastStart( initHookState state )
 {
 	if ( state == initHookAfterIocRunning )
@@ -1523,27 +1579,23 @@ static long BLD_EPICS_Init()
 {
 	int loop;
 	int rtncode;
-	int enable_broadcast = 0;
-	int name_len = 100;
-	char name[name_len];
+	int enable_broadcast = BLD_MCAST_ENABLE;
+
 	printf("BLD_EPICS_Init: Intializing BLD driver.\n" );
 
-#if 0
-	if ( enable_broadcast == 0 )
-	{
-		printf("BLD_EPICS_Init: BLD driver disabled temporarily!\n" );
-		return 0;	/* HACK to disable BLD driver temporarily */
-	}
-#endif
-
-	rtncode = gethostname(name, name_len);
-	if (rtncode == 0) {
-		printf("INFO: BLD hostname is %s\n", name);
-		enable_broadcast = 1;
-		printf("INFO: *** Enabling Multicast ***\n");
-	}
-	else {
-		printf("ERROR: Unable to get hostname (errno=%d, rtncode=%d)\n", errno, rtncode);
+	if ( enable_broadcast ) {
+		int name_len = 100;
+		char name[name_len];
+		rtncode = gethostname(name, name_len);
+		if (rtncode == 0) {
+			printf("INFO: BLD hostname is %s\n", name);
+			printf("INFO: *** Multicast Enabled ***\n");
+		}
+		else {
+			printf("ERROR: Unable to get hostname (errno=%d, rtncode=%d)\n", errno, rtncode);
+			printf("INFO: *** Multicast Disabled ***\n");
+			enable_broadcast = 0;
+		}
 	}
 
 #if 0
@@ -1604,13 +1656,20 @@ static long BLD_EPICS_Init()
 
 	bldMutex = epicsMutexMustCreate();
 
-	if (enable_broadcast) {
+	if (enable_broadcast && EBEAM_ENABLE ) {
 		int	initHookStatus = initHookRegister( initHookBLDMCastStart );
 		if ( initHookStatus != 0 )
 			errlogPrintf( "Error %d from initHookRegister of BLDMCastStart!\n", initHookStatus );
 	}
 	else {
-	  errlogPrintf("WARN: *** Not starting BLDMCast task ***\n");
+	  errlogPrintf("WARN: *** Not starting eBEAM BLDMCast task ***\n");
+	}
+
+	if (enable_broadcast && EORBITS_ENABLE ) {
+		printf( "*** Starting eORBITS task ***\n");
+		int	initHookStatus = initHookRegister( eOrbitsStart );
+		if ( initHookStatus != 0 )
+			errlogPrintf( "Error %d from initHookRegister of eOrbitsStart!\n", initHookStatus );
 	}
 
 	iocshRegister( &bldDumpStatsFuncDef, bldDumpStatsCallFunc );
@@ -1621,13 +1680,6 @@ static long BLD_EPICS_Report(int level)
 {
     printf("\n"BLD_DRV_VERSION"\n\n");
 	printf("Compiled with options:\n");
-
-	printf("USE_CA_ADD_EVENT :");
-#ifdef  USE_CA_ADD_EVENT
-		printf(             "  DEFINED (use ca_add_array_event, not ca_create_subscription)\n");
-#else
-		printf(             "  UNDEFINED (use ca_create_subscription, not ca_add_array_event)\n");
-#endif
 
 	printf("MULTICAST        :");
 #ifdef MULTICAST
@@ -1653,9 +1705,9 @@ static long BLD_EPICS_Report(int level)
 	if ( level > 1 ) {
 		unsigned int	loop;
     	for(loop=0; loop<N_STATIC_PVS; loop++) {
-			chid	pvChId	= bldStaticPVs[loop].pvChId;
-			if ( pvChId )
-				printChIdInfo( pvChId, "" );
+			chid	caChId	= bldStaticPVs[loop].caChId;
+			if ( caChId )
+				printChIdInfo( caChId, "" );
 		}
 	}
 

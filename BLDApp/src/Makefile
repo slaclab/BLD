@@ -65,7 +65,7 @@ BLDSender_LIBS += evrSupport
 BLDSender_LIBS += devMrfEr
 BLDSender_LIBS_RTEMS += mrfVme64x
 BLDSender_LIBS_Linux += drvMrf
-#BLDSender_LIBS_Linux += evrma
+BLDSender_LIBS_Linux += evrma
 BLDSender_LIBS += devBusMapped
 BLDSender_LIBS_RTEMS += udpComm
 BLDSender_LIBS_Linux += udpCommBSD 
@@ -73,6 +73,7 @@ BLDSender_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 # BLDSender_registerRecordDeviceDriver.cpp derives from BLDSender.dbd
 BLDSender_SRCS += BLDMCast.c
+BLDSender_SRCS += multicast_eOrbits.c
 BLDSender_SRCS += devBLDMCastStatus.c
 #BLDSender_SRCS += catest.c
 #BLDSender_SRCS += camon.c

@@ -6,5 +6,9 @@ variable(BLD_MCAST_DEBUG)
 variable(BLD_MCAST_ENABLE)
 variable(DELAY_FOR_CA)
 
+variable(EBEAM_ENABLE)
+variable(EORBITS_DEBUG)
+variable(EORBITS_ENABLE)
+
 function(subInit)
 function(subProcess)
