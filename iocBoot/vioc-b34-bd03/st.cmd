@@ -140,8 +140,11 @@ BLDSender_registerRecordDeviceDriver(pdbbase)
 # Debug interest level for EVR Driver
 # ErDebugLevel(0)
 
-var BLD_MCAST_ENABLE 0
+var EBEAM_ENABLE 0
+var EORBITS_ENABLE 1
+var BLD_MCAST_ENABLE 1
 var BLD_MCAST_DEBUG  2
+var EORBITS_MCAST_DEBUG  3
 var DEBUG_DRV_FCOM_RECV 2
 var DEBUG_DRV_FCOM_SEND 2
 var DEBUG_DEV_FCOM_RECV 2
@@ -264,7 +267,9 @@ dbLoadRecords( "db/simAo.db", "PV=BEND:LTU0:125:BDES,EGU=GeV/c,VAL=13.5" );
 
 dbLoadRecords( "db/BLDMCastWfRecv.db", "name=VIOC:${LOCA}:${UNIT}:BLDWAV, scan=Event, evnt=146, rarm=2")
 
-dbLoadRecords( "db/eBeamFcomSim.db",   "EC=40")
+# Load FCOM simulation databases
+# Only load in development environment to avoid conflicts w/ production FCOM traffix
+# dbLoadRecords( "db/eBeamFcomSim.db",   "EC=40")
 dbLoadRecords( "db/eOrbitsFcomSim.db", "EC=40")
 
 # END: Loading the record databases
@@ -354,30 +359,3 @@ create_monitor_set("info_settings.req",10,"")
 # ===========================================================================
 # system("/bin/su root -c `pwd`/rtPrioritySetup.cmd")
 
-dbpf BPMS:DMP1:502:SIM_SEQ.DISA 0
-dbpf BPMS:IN20:221:SIM_SEQ.DISA 0
-dbpf BPMS:LI21:233:SIM_SEQ.DISA 0
-dbpf BPMS:LI24:801:SIM_SEQ.DISA 0
-dbpf BPMS:LTU1:250:SIM_SEQ.DISA 0
-dbpf BPMS:LTU1:450:SIM_SEQ.DISA 0
-dbpf BPMS:LTU1:720:SIM_SEQ.DISA 0
-dbpf BPMS:LTU1:730:SIM_SEQ.DISA 0
-dbpf BPMS:LTU1:740:SIM_SEQ.DISA 0
-dbpf BPMS:LTU1:750:SIM_SEQ.DISA 0
-dbpf BPMS:LTU1:910:SIM_SEQ.DISA 0
-dbpf BPMS:LTU1:960:SIM_SEQ.DISA 0
-dbpf BPMS:UND1:100:SIM_SEQ.DISA 0
-dbpf BPMS:UND1:190:SIM_SEQ.DISA 0
-dbpf BPMS:UND1:290:SIM_SEQ.DISA 0
-dbpf BPMS:UND1:390:SIM_SEQ.DISA 0
-dbpf BPMS:UND1:490:SIM_SEQ.DISA 0
-dbpf BPMS:UND1:590:SIM_SEQ.DISA 0
-dbpf BPMS:UND1:690:SIM_SEQ.DISA 0
-dbpf BPMS:UND1:790:SIM_SEQ.DISA 0
-dbpf BPMS:UND1:890:SIM_SEQ.DISA 0
-dbpf BPMS:UND1:990:SIM_SEQ.DISA 0
-# Hack, shutdown error producing records after a while so I can debug
-epicsThreadSleep( 10 )
-dbpf BPMS:IN20:221:SIM_SEQ.DISA 0
-epicsThreadSleep( 10 )
-dbpf BPMS:IN20:221:SIM_SEQ.DISA 0

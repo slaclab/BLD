@@ -16,9 +16,9 @@ epicsEnvSet("NETMASK1","255.255.252.0")
 #epicsEnvSet("BLDMCAST_DST_IP", "239.255.24.0" )
 epicsEnvSet("BLDMCAST_DST_IP", "239.255.24.254" )
 
-epicsEnvSet("EPICS_CAS_INTF_ADDR_LIST","172.27.3.78")
-epicsEnvSet("EPICS_CAS_AUTO_BEACON_ADDR_LIST","YES")
-#epicsEnvSet("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
+# epicsEnvSet("EPICS_CAS_INTF_ADDR_LIST","172.27.3.78")
+# epicsEnvSet("EPICS_CAS_AUTO_BEACON_ADDR_LIST","YES")
+# epicsEnvSet("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 
 < envPaths
 # =====================================================================
@@ -49,17 +49,6 @@ epicsEnvSet("FCOM_MC_PREFIX", "239.219.8.0")
 # So, uncomment the following and remove the backslash
 epicsEnvSet("EPICS_IOC_LOG_CLIENT_INET","${IOC}")
 
-# =====================================================================
-# Set some facility specific MACROs for database instantiation below
-# This is in effort to make IOCs Applications facility agnostic
-# Some of the following variables may be defined in
-# $IOC/<cpuName>/<epicsIOCName>/iocStartup.cmd
-# =====================================================================
-# Override the TOP variable set by envPaths:
-# This is now past in via $IOC/<cpuName>/<epicsIOCName>/iocStartup.cmd
-# epicsEnvSet(TOP,"${IOC_APP}")
-
-# ============================================
 # Set MACROS for EVRs
 # ============================================
 # FAC = SYS0 ==> LCLS1
@@ -162,8 +151,15 @@ BLDSender_registerRecordDeviceDriver(pdbbase)
 # Debug interest level for EVR Driver
 # ErDebugLevel(0)
 
+var EBEAM_ENABLE 0
+var EORBITS_ENABLE 1
 var BLD_MCAST_ENABLE 1
 var BLD_MCAST_DEBUG  2
+var EORBITS_MCAST_DEBUG  3
+var DEBUG_DRV_FCOM_RECV 2
+var DEBUG_DRV_FCOM_SEND 2
+var DEBUG_DEV_FCOM_RECV 2
+var DEBUG_DEV_FCOM_SEND 2
 
 # PMC-based EVR (EVR230)
 # These are the most popular
@@ -361,7 +357,7 @@ create_monitor_set("info_settings.req",10,"")
 
 # ===========================================================================
 
-epicsThreadShowAll()
+# epicsThreadShowAll()
 
 # ===========================================================================
 # Setup Real-time priorities after iocInit for driver threads
