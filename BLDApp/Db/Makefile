@@ -26,7 +26,10 @@ DB += BLDMCastWfRecv.db
 DB += dispersion.db
 DB += simAo.db
 DB += eBeamFcomSim.db
+DB += eOrbitsFcom.db
 DB += eOrbitsFcomSim.db
+
+DB += evrFidTest.db
 
 # EVR, BSA, Trigger related databases
 #DB += IOC-SYS0-BD02evr.db
@@ -43,14 +46,14 @@ DB += IOC-SYS0-BD01trig.db
 # ========================================
 # Install timing/event related databases
 # ========================================
-DB_INSTALLS += $(EVENT)/db/EvrPmc.db
-DB_INSTALLS += $(EVENT)/db/EvrPci.db
-DB_INSTALLS += $(EVENT)/db/Pattern.db
-DB_INSTALLS += $(EVENT)/db/PCI-trig.db
-DB_INSTALLS += $(EVENT)/db/PMC-trig.db
-DB_INSTALLS += $(EVENT)/db/VME-trig.db
-DB_INSTALLS += $(EVENT)/db/VME-TTB-trig.db
-DB_INSTALLS += $(EVENT)/db/Bsa.db
+DB_INSTALLS += $(EVR_MODULE)/db/EvrPmc.db
+DB_INSTALLS += $(EVR_MODULE)/db/EvrPci.db
+DB_INSTALLS += $(EVR_MODULE)/db/Pattern.db
+DB_INSTALLS += $(EVR_MODULE)/db/PCI-trig.db
+DB_INSTALLS += $(EVR_MODULE)/db/PMC-trig.db
+DB_INSTALLS += $(EVR_MODULE)/db/VME-trig.db
+DB_INSTALLS += $(EVR_MODULE)/db/VME-TTB-trig.db
+DB_INSTALLS += $(EVR_MODULE)/db/Bsa.db
 
 DB += IOC-SYS0-BD01access.db
 

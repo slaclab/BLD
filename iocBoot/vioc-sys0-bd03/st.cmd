@@ -1,6 +1,6 @@
 #!../../bin/linuxRT_glibc-x86_64/BLDSender
 
-# Network configuration for this IOC
+# Network configuration for cpu-sys0-bd03
 # 172.27.3.78   	LCLSIOC
 # 172.27.29.101		LCLSFNET
 # 172.27.225.23		LCLSBLD
@@ -9,7 +9,6 @@
 epicsEnvSet("LOCN","B005-2918")
 
 epicsEnvSet("IPADDR1","172.27.29.101")	# LCLS LinuxRT BD03 ETH4 - cpu-sys0-bd03-fnet on LCLSFNET subnet
-# epicsEnvSet("IPADDR1","172.27.3.78")	# LCLS LinuxRT BD03 ETH5 - cpu-sys0-bd03      on LCLSIOC subnet
 epicsEnvSet("NETMASK1","255.255.252.0")
 
 # BLD multicast group IP addr
@@ -24,9 +23,6 @@ epicsEnvSet("BLDMCAST_DST_IP", "239.255.24.254" )
 # =====================================================================
 # Execute common fnet st.cmd
 # < "../st.fnetgeneric.lcls.cmd"
-
-# Set common fnet variables
-epicsEnvSet("NETMASK1","255.255.252.0")
 
 # Set the FCOM multicast prefix
 # Production FCOM group is mc-lcls-fcom,  239.219.8.0 on  MCAST-LCLS-FCOM subnet
@@ -151,19 +147,21 @@ BLDSender_registerRecordDeviceDriver(pdbbase)
 # Debug interest level for EVR Driver
 # ErDebugLevel(0)
 
-var EBEAM_ENABLE 0
+var EBEAM_ENABLE 1
 var EORBITS_ENABLE 1
 var BLD_MCAST_ENABLE 1
-var BLD_MCAST_DEBUG  2
-var EORBITS_MCAST_DEBUG  3
-var DEBUG_DRV_FCOM_RECV 2
-var DEBUG_DRV_FCOM_SEND 2
-var DEBUG_DEV_FCOM_RECV 2
-var DEBUG_DEV_FCOM_SEND 2
+var BLD_MCAST_DEBUG  1
+var EORBITS_DEBUG  1
+var DEBUG_DRV_FCOM_RECV 1
+var DEBUG_DRV_FCOM_SEND 1
+var DEBUG_DEV_FCOM_RECV 1
+var DEBUG_DEV_FCOM_SEND 1
+var DEBUG_DEV_FCOM_SUB  1
 
 # PMC-based EVR (EVR230)
 # These are the most popular
-ErConfigure(0, 0, 0, 0, 1)       # PMC EVR
+#ErConfigure(0, 0, 0, 0, 1)       # PMC EVR
+eevrmaConfigure(0, "/dev/vevr4" )
 
 # PCIe-based EVR (EVR300)
 # For Industrial PCs, these desired.
@@ -275,7 +273,15 @@ dbLoadRecords("db/fcom_stats.db","LOCA=${LOCA},NMBR=${NMBR}, STAT_SCAN=5")
 # which would be faster, simpler and more flexible)
 # 
 
-dbLoadRecords("db/BLDMCastWfRecv.db","name=VIOC:${LOCA}:${UNIT}:BLDWAV, scan=Event, evnt=146, rarm=2")
+dbLoadRecords( "db/BLDMCastWfRecv.db", "name=VIOC:${LOCA}:${UNIT}:BLDWAV, scan=Event, evnt=146, rarm=2" )
+
+# Load FCOM monitor databases
+dbLoadRecords( "db/eOrbitsFcom.db", "EC=40" )
+
+# Load FCOM simulation databases
+# Only load in development environment to avoid conflicts w/ production FCOM traffix
+#dbLoadRecords( "db/eBeamFcomSim.db",   "EC=40" )
+#dbLoadRecords( "db/eOrbitsFcomSim.db", "EC=40" )
 
 # END: Loading the record databases
 ########################################################################

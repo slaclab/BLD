@@ -27,6 +27,7 @@ just one host and as a receiver on all the other hosts
 #include <epicsEvent.h>
 #include <epicsExit.h>
 #include <epicsExport.h>
+#include <epicsMath.h>
 #include <epicsThread.h>
 #include <epicsTime.h>
 #include <epicsTypes.h>
@@ -36,6 +37,8 @@ just one host and as a receiver on all the other hosts
 #include "BLDTypes.h"
 #include "evrTime.h"
 #include "evrPattern.h"
+#include "fcom_api.h"
+#include "fcomUtil.h"
 
 #define POSIX_TIME_AT_EPICS_EPOCH 631152000u
 
@@ -84,6 +87,46 @@ typedef struct EORBITS
 	Flt64_LE	fBPM_T[N_BPMS];
 }	EORBITS;
 
+const char		*	blobNames[N_BPMS] =
+{
+	"BPMS:LTU1:910:X",
+	"BPMS:LTU1:960:X",
+	"BPMS:UND1:100:X",
+	"BPMS:UND1:190:X",
+	"BPMS:UND1:290:X",
+	"BPMS:UND1:390:X",
+	"BPMS:UND1:490:X",
+	"BPMS:UND1:590:X",
+	"BPMS:UND1:690:X",
+	"BPMS:UND1:790:X",
+	"BPMS:UND1:890:X",
+	"BPMS:UND1:990:X",
+	"BPMS:UND1:1090:X",
+	"BPMS:UND1:1190:X",
+	"BPMS:UND1:1290:X",
+	"BPMS:UND1:1390:X",
+	"BPMS:UND1:1490:X",
+	"BPMS:UND1:1590:X",
+	"BPMS:UND1:1690:X",
+	"BPMS:UND1:1790:X",
+	"BPMS:UND1:1890:X",
+	"BPMS:UND1:1990:X",
+	"BPMS:UND1:2090:X",
+	"BPMS:UND1:2190:X",
+	"BPMS:UND1:2290:X",
+	"BPMS:UND1:2390:X",
+	"BPMS:UND1:2490:X",
+	"BPMS:UND1:2590:X",
+	"BPMS:UND1:2690:X",
+	"BPMS:UND1:2790:X",
+	"BPMS:UND1:2890:X",
+	"BPMS:UND1:2990:X",
+	"BPMS:UND1:3090:X",
+	"BPMS:UND1:3190:X",
+	"BPMS:UND1:3290:X",
+	"BPMS:UND1:3390:X",
+};
+
 static epicsEventId eOrbitsSyncEvent = NULL;
 
 void EVRCallback( void * unused )
@@ -117,6 +160,9 @@ void EVRCallback( void * unused )
 	bldFiducialTsc	= GetHiResTicks();
 #endif
 
+	if ( EORBITS_DEBUG >= 5 )
+		printf( "Signaling eOrbitsSyncEvent ...\n" );
+
 	/* Signal the eOrbitsSyncEvent to trigger the fcomGetBlobSet call */
 	epicsEventSignal( eOrbitsSyncEvent );
 
@@ -139,9 +185,14 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 	uint32_t			ts_fid;
 	epicsTimeStamp		ts;
 	EORBITS				eOrbits;
+	FcomID				blobIds[N_BPMS];
 
 	if ( EORBITS_DEBUG >= 1 )
 		printf( "Starting eOrbits loop ...\n" );
+
+	/* Translate the blob names to id's */
+	for ( i = 0; i < N_BPMS; i++ )
+		blobIds[i] = fcomLCLSPV2FcomID( blobNames[i] );
 
 	/* Initialize header */
 	eOrbits.ts_nsec			= __le32( 0 );
@@ -232,6 +283,9 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 
 	while (1)
 	{
+		double		xVal	= epicsNAN;
+		double		yVal	= epicsNAN;
+		double		tVal	= epicsNAN;
 		double		sinVal	= sin(radians);
 		double		cosVal	= cos(radians);
 		radians += 2 * M_PI / 360;
@@ -245,7 +299,7 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 		nanosleep( &sendDelay, NULL );
 		status = epicsEventWaitOK;
 #else
-		status = epicsEventWaitWithTimeout( eOrbitsSyncEvent, 0.5 );
+		status = epicsEventWaitWithTimeout( eOrbitsSyncEvent, 10 );
 #endif
 		if(status != epicsEventWaitOK)
 		{
@@ -262,18 +316,80 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 			continue;
 		}
 
-		epicsTimeGetEvent( &ts, 40 );
-		ts_fid = ts.nsec & 0x1FFFF;
-
-		/* Update eOrbits w/ simulated data */
-		eOrbits.ts_sec		= __le32( ts.secPastEpoch );
-		eOrbits.ts_nsec		= __le32( ts.nsec );
-		eOrbits.uFiducialId	= __le32( ts_fid );
+		/* Update eOrbits data */
+		ts.secPastEpoch	= 0;
+		ts.nsec			= 0x1FFFF;
+		ts_fid			= 0x1FFFF;
 		for ( i = 0; i < N_BPMS; i++ )
 		{
+#if 1
+			FcomBlob	*	pBlob;
+			int				status;
+			status	= fcomGetBlob( blobIds[i], &pBlob, 0 );
+			xVal	= epicsNAN;
+			yVal	= epicsNAN;
+			tVal	= epicsNAN;
+			if (	status == 0
+				&&	pBlob != NULL
+				&&	pBlob->fc_stat == 0
+				&&	pBlob->fc_nelm >= 3 )
+			{
+				if ( pBlob->fc_type == FCOM_EL_DOUBLE )
+				{
+					xVal = pBlob->fc_dbl[0];
+					yVal = pBlob->fc_dbl[1];
+					tVal = pBlob->fc_dbl[2];
+				}
+				else if ( pBlob->fc_type == FCOM_EL_FLOAT )
+				{
+					xVal = pBlob->fc_flt[0];
+					yVal = pBlob->fc_flt[1];
+					tVal = pBlob->fc_flt[2];
+				}
+
+				if ( ts_fid == 0x1FFFF )
+				{	
+					/* Grab the timestamp for the first valid blob */
+					ts.secPastEpoch		= pBlob->fc_tsHi;
+					ts.nsec				= pBlob->fc_tsLo;
+					ts_fid				= ts.nsec & 0x1FFFF;
+					eOrbits.ts_sec		= __le32( ts.secPastEpoch );
+					eOrbits.ts_nsec		= __le32( ts.nsec );
+					eOrbits.uFiducialId	= __le32( ts_fid );
+				}
+				else
+				{
+					/* Compare the timestamps */
+					if (	ts.secPastEpoch != pBlob->fc_tsHi
+						||	ts_fid			!= (pBlob->fc_tsLo & 0x1FFFF ) )
+					{
+						if ( EORBITS_DEBUG >= 2 )
+							errlogPrintf(	"Blob 0x%X, %s, fid 0x%X tsMismatch vs prior 0x%X\n",
+											blobIds[i], blobNames[i], (pBlob->fc_tsLo & 0x1FFFF ), ts_fid );
+					}
+				}
+			}
+			if ( pBlob != NULL )
+				fcomReleaseBlob( &pBlob );
+
+			__st_le64( &eOrbits.fBPM_X[i], xVal );
+			__st_le64( &eOrbits.fBPM_Y[i], yVal );
+			__st_le64( &eOrbits.fBPM_T[i], tVal );
+#else
 			__st_le64( &eOrbits.fBPM_X[i], sinVal );
 			__st_le64( &eOrbits.fBPM_Y[i], cosVal );
 			__st_le64( &eOrbits.fBPM_T[i], sinVal );
+#endif
+		}
+
+		/* Fallback timestamp */
+		if ( ts.secPastEpoch == 0 || ts.nsec == 0x1FFFF )
+		{
+			epicsTimeGetEvent( &ts, 40 );
+			ts_fid = ts.nsec & 0x1FFFF;
+			eOrbits.ts_sec		= __le32( ts.secPastEpoch );
+			eOrbits.ts_nsec		= __le32( ts.nsec );
+			eOrbits.uFiducialId	= __le32( ts_fid );
 		}
 
 		if ( EORBITS_DEBUG >= 3 )
@@ -321,6 +437,18 @@ static void eOrbitsTaskEnd(void * parg)
 
 static int eOrbitsTask(void * parg)
 {
+	FcomID			blobId;
+	unsigned int	i;
+
+	/* Subscribe to the blobs */
+	for ( i = 0; i < N_BPMS; i++ )
+	{
+		blobId = fcomLCLSPV2FcomID( blobNames[i] );
+		if ( blobId != FCOM_ID_NONE )
+			fcomSubscribe( blobId, FCOM_ASYNC_GET );
+		else
+			printf( "Error: Invalid blob name %s\n", blobNames[i] );
+	}
 	return ( eOrbitsLoop( DEF_GROUP, DEF_PORT, getenv("IPADDR1") ) );
 }
 

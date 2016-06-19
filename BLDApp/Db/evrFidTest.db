@@ -1,0 +1,41 @@
+# A template with various calc records for testing EVR
+# timestamping and Event processing
+
+record( calc, "$(PRE):SIN" )
+{
+	field( CALC, "sin(a); a:=a+d2r" )
+	field( SCAN, "$(SCAN=Event)" )
+	field( EVNT, "$(EC=40)" )
+	field( TSE,  "$(EC=40)" )
+	field( PREC, "5" )
+}
+
+record( calc, "$(PRE):COS" )
+{
+	field( CALC, "cos(a); a:=a+d2r" )
+	field( SCAN, "$(SCAN=Event)" )
+	field( EVNT, "$(EC=40)" )
+	field( TSE,  "$(EC=40)" )
+	field( PREC, "5" )
+}
+
+record( calc, "$(PRE):COUNT" )
+{
+	field( INPA, "1" )
+	field( CALC, "a; a:=(a<99?a+1:1)" )
+	field( SCAN, "$(SCAN=Event)" )
+	field( EVNT, "$(EC=40)" )
+	field( TSE,  "$(EC=40)" )
+	field( PREC, "0" )
+}
+
+record( calc, "$(PRE):FID" )
+{
+	field( INPA, "$(IOC):PATTERN.L NPP" )
+	field( CALC, "a" )
+	field( SCAN, "$(SCAN=Event)" )
+	field( EVNT, "$(EC=40)" )
+	field( TSE,  "$(EC=40)" )
+	field( PREC, "0" )
+}
+

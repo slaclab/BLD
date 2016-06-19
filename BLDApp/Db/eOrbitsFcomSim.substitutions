@@ -98,105 +98,66 @@ file fcomBlobAo.template
 # and it will default an FLNK to the group's send record
 file fcomBlobBPMS_SIM.db
 {
-# group 0, six blobs
+# group 0, 12 blobs
 	{
 		GROUP	= "0",
 		SCAN	= "Event",	EC = "\$(EC)"
 		BLOB	= "BPMS:LTU1:910:",
-		L1		= "$(BLOB)X_SIM PP",
-		L2		= "$(BLOB)Y_SIM PP",
-		L3		= "$(BLOB)T_SIM PP",
 		NEXT	= "BPMS:LTU1:960:SIM_SEQ"
 	}
 	{
 		GROUP	= "0",
 		BLOB	= "BPMS:LTU1:960:",
-		L1		= "$(BLOB)X_SIM PP",
-		L2		= "$(BLOB)Y_SIM PP",
-		L3		= "$(BLOB)T_SIM PP",
 		NEXT	= "BPMS:UND1:100:SIM_SEQ"
 	}
 	{
 		GROUP	= "0",
 		BLOB	= "BPMS:UND1:100:",
-		L1		= "$(BLOB)X_SIM PP",
-		L2		= "$(BLOB)Y_SIM PP",
-		L3		= "$(BLOB)T_SIM PP",
 		NEXT	= "BPMS:UND1:190:SIM_SEQ"
 	}
 	{
 		GROUP	= "0",
 		BLOB	= "BPMS:UND1:190:",
-		L1		= "$(BLOB)X_SIM PP",
-		L2		= "$(BLOB)Y_SIM PP",
-		L3		= "$(BLOB)T_SIM PP",
 		NEXT	= "BPMS:UND1:290:SIM_SEQ"
 	}
 	{
 		GROUP	= "0",
 		BLOB	= "BPMS:UND1:290:",
-		L1		= "$(BLOB)X_SIM PP",
-		L2		= "$(BLOB)Y_SIM PP",
-		L3		= "$(BLOB)T_SIM PP",
 		NEXT	= "BPMS:UND1:390:SIM_SEQ"
 	}
 	{
 		GROUP	= "0",
 		BLOB	= "BPMS:UND1:390:",
-		L1		= "$(BLOB)X_SIM PP",
-		L2		= "$(BLOB)Y_SIM PP",
-		L3		= "$(BLOB)T_SIM PP",
-		NEXT	= "BPMS:UND1:390:ALL_SEND",
+		NEXT	= "BPMS:UND1:490:SIM_SEQ"
 	}
-
-# Second group, six blobs
 	{
-		SCAN	= "Event",	EC = "\$(EC)"
-		GROUP	= "1",
+		GROUP	= "0",
 		BLOB	= "BPMS:UND1:490:",
-		L1		= "$(BLOB)X_SIM PP",
-		L2		= "$(BLOB)Y_SIM PP",
-		L3		= "$(BLOB)T_SIM PP",
 		NEXT	= "BPMS:UND1:590:SIM_SEQ"
 	}
 	{
-		GROUP	= "1",
+		GROUP	= "0",
 		BLOB	= "BPMS:UND1:590:",
-		L1		= "$(BLOB)X_SIM PP",
-		L2		= "$(BLOB)Y_SIM PP",
-		L3		= "$(BLOB)T_SIM PP",
 		NEXT	= "BPMS:UND1:690:SIM_SEQ"
 	}
 	{
-		GROUP	= "1",
+		GROUP	= "0",
 		BLOB	= "BPMS:UND1:690:",
-		L1		= "$(BLOB)X_SIM PP",
-		L2		= "$(BLOB)Y_SIM PP",
-		L3		= "$(BLOB)T_SIM PP",
 		NEXT	= "BPMS:UND1:790:SIM_SEQ"
 	}
 	{
-		GROUP	= "1",
+		GROUP	= "0",
 		BLOB	= "BPMS:UND1:790:",
-		L1		= "$(BLOB)X_SIM PP",
-		L2		= "$(BLOB)Y_SIM PP",
-		L3		= "$(BLOB)T_SIM PP",
 		NEXT	= "BPMS:UND1:890:SIM_SEQ"
 	}
 	{
-		GROUP	= "1",
+		GROUP	= "0",
 		BLOB	= "BPMS:UND1:890:",
-		L1		= "$(BLOB)X_SIM PP",
-		L2		= "$(BLOB)Y_SIM PP",
-		L3		= "$(BLOB)T_SIM PP",
 		NEXT	= "BPMS:UND1:990:SIM_SEQ"
 	}
 	{
-		GROUP	= "1",
+		GROUP	= "0",
 		BLOB	= "BPMS:UND1:990:",
-		L1		= "$(BLOB)X_SIM PP",
-		L2		= "$(BLOB)Y_SIM PP",
-		L3		= "$(BLOB)T_SIM PP",
 		NEXT	= "BPMS:UND1:990:ALL_SEND",
 	}
 }
@@ -208,10 +169,6 @@ file fcomGroupSend.template
 {
 	{
 		GROUP	= "0",
-		LAST	= "BPMS:UND1:390:",
-	}
-	{
-		GROUP	= "1",
 		LAST	= "BPMS:UND1:990:",
 	}
 }

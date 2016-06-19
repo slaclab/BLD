@@ -10,7 +10,7 @@ include $(TOP)/configure/CONFIG
 #INSTALL_LOCATION=
 
 #EDLS += example.edl
-EDLS += $(wildcard *.edl)
+#EDLS += $(wildcard *.edl)
 
 # Install images to be used by EDM (Gif and Png are supported)
 # PNG is better and preferred.

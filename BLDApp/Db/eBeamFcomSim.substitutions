@@ -85,72 +85,6 @@ file fcomBlobBPMS_SIM.db
 
 file fcomBlobBPMS_SIM.db
 {
-# Group 6, 12 blobs
-	{
-		GROUP	= "6",
-		SCAN	= "Event",	EC = "\$(EC)"
-		BLOB	= "BPMS:LTU1:910:",
-		NEXT	= "BPMS:LTU1:960:SIM_SEQ"
-	}
-	{
-		GROUP	= "6",
-		BLOB	= "BPMS:LTU1:960:",
-		NEXT	= "BPMS:UND1:100:SIM_SEQ"
-	}
-	{
-		GROUP	= "6",
-		BLOB	= "BPMS:UND1:100:",
-		NEXT	= "BPMS:UND1:190:SIM_SEQ"
-	}
-	{
-		GROUP	= "6",
-		BLOB	= "BPMS:UND1:190:",
-		NEXT	= "BPMS:UND1:290:SIM_SEQ"
-	}
-	{
-		GROUP	= "6",
-		BLOB	= "BPMS:UND1:290:",
-		NEXT	= "BPMS:UND1:390:SIM_SEQ"
-	}
-	{
-		GROUP	= "6",
-		BLOB	= "BPMS:UND1:390:",
-		NEXT	= "BPMS:UND1:490:SIM_SEQ"
-	}
-	{
-		GROUP	= "6",
-		BLOB	= "BPMS:UND1:490:",
-		NEXT	= "BPMS:UND1:590:SIM_SEQ"
-	}
-	{
-		GROUP	= "6",
-		BLOB	= "BPMS:UND1:590:",
-		NEXT	= "BPMS:UND1:690:SIM_SEQ"
-	}
-	{
-		GROUP	= "6",
-		BLOB	= "BPMS:UND1:690:",
-		NEXT	= "BPMS:UND1:790:SIM_SEQ"
-	}
-	{
-		GROUP	= "6",
-		BLOB	= "BPMS:UND1:790:",
-		NEXT	= "BPMS:UND1:890:SIM_SEQ"
-	}
-	{
-		GROUP	= "6",
-		BLOB	= "BPMS:UND1:890:",
-		NEXT	= "BPMS:UND1:990:SIM_SEQ"
-	}
-	{
-		GROUP	= "6",
-		BLOB	= "BPMS:UND1:990:",
-		NEXT	= "BPMS:UND1:990:ALL_SEND",
-	}
-}
-
-file fcomBlobBPMS_SIM.db
-{
 # Group 7, 1 blobs
 	{
 		GROUP	= "7",
@@ -205,10 +139,6 @@ file fcomGroupSend.template
 	{
 		GROUP	= "5",
 		LAST	= "BPMS:LTU1:750:",
-	}
-	{
-		GROUP	= "6",
-		LAST	= "BPMS:UND1:990:",
 	}
 	{
 		GROUP	= "7",

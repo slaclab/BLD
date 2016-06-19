@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.74 2016/06/11 08:53:00 bhill Exp $ */
+/* $Id: BLDMCast.c,v 1.75 2016/06/16 02:56:50 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -84,7 +84,7 @@ extern int	fcomUtilFlag;
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.74 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.75 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -236,6 +236,7 @@ BLDPV bldStaticPVs[]=
 	[PHOTONEV]={"SIOC:SYS0:ML00:AO627",1, AVAIL_PHOTONEV,  NULL, NULL},	/* For shot-to-shot Photon Energy */
 	[X450AVE]= {"SIOC:SYS0:ML02:AO041",1, AVAIL_X450AVE,  NULL, NULL},	/* Average of last few hundred data points of X POS in LTU BPM x450 */		
 	[X250AVE]= {"SIOC:SYS0:ML02:AO040",1, AVAIL_X250AVE,  NULL, NULL},	/* Average of last few hundred data points of X POS in LTU BPM x250 */	
+	[7]= { "EVR:B34:EVR05:LINK", 1, 0,  NULL, NULL},	/* Test only */
 };
 
 #define N_STATIC_PVS (sizeof(bldStaticPVs)/sizeof(bldStaticPVs[0]))
@@ -585,6 +586,9 @@ static void connectionCallback( struct connection_handler_args args )
     BLDPV	*	pPv	= ( BLDPV * ) ca_puser ( args.chid );
     if ( args.op == CA_OP_CONN_UP )
 	{
+		if ( BLD_MCAST_DEBUG >= 2 ) {
+			printf("CA connection up: %s\n", pPv->name ); fflush(stdout);
+		}
         if ( !pPv->subscribed )
 		{
 			unsigned long		cnt;
@@ -615,12 +619,19 @@ static void connectionCallback( struct connection_handler_args args )
             pPv->status = ca_create_subscription(	DBR_TIME_DOUBLE, pPv->nElems, pPv->caChId,
                                                 	DBE_VALUE | DBE_ALARM, eventCallback, pPv, NULL );
 			SEVCHK( pPv->status, "ca_create_subscription");
-			if ( pPv->status == ECA_NORMAL )
+			if ( pPv->status == ECA_NORMAL ) {
             	pPv->subscribed = 1;
+				if ( BLD_MCAST_DEBUG >= 3 ) {
+					printf("Subscribed to CA monitor: %s\n", pPv->name ); fflush(stdout);
+				}
+			}
 		}
     }
     else if ( args.op == CA_OP_CONN_DOWN )
 	{
+		if ( BLD_MCAST_DEBUG >= 2 ) {
+			printf("CA connection down: %s\n", pPv->name ); fflush(stdout);
+		}
         pPv->status = ECA_DISCONN;
     }
 }
@@ -638,7 +649,7 @@ connectCaPv( BLDPV * pPv )
 
 	/* We need a connectionCallback as CA PV's may come and go while IOC is running */
 	if ( BLD_MCAST_DEBUG >= 1 ) {
-		printf("creating channel for %s ...\n", pPv->name ); fflush(stdout);
+		printf("Creating CA channel: %s\n", pPv->name ); fflush(stdout);
 	}
 
 	pPv->subscribed	= 0;
@@ -651,7 +662,7 @@ connectCaPv( BLDPV * pPv )
 		return -1;
 	}
 
-	if ( BLD_MCAST_DEBUG >= 2 ) {
+	if ( BLD_MCAST_DEBUG >= 3 ) {
 		printf(" ca_create_channel successful for %s\n", pPv->name );
 		fflush(stdout);
 	}
@@ -1010,14 +1021,20 @@ epicsUInt32     this_time;
 					if ( rtncode ) {
 						bldFcomTimeoutCount[loop]++;
 						if ( BLD_MCAST_DEBUG >= 3 )
-							errlogPrintf(	"Blob %s tsMismatch, no blob for %u sec, %u fid\n",
+							errlogPrintf(	"Blob %s timeout, no blob for %u sec, %u fid\n",
 											bldPulseBlobs[loop].name,
 											p_refTime->secPastEpoch, p_refTime->nsec & PULSEID_INVALID );
 					}
 				} else {
 					/* No blob set, just fetch current blob status one by one */
 					rtncode = fcomGetBlob( fcomBlobIDs[loop], &bldPulseBlobs[loop].blob, 0 );
-					if ( rtncode )
+					if ( rtncode == FCOM_ERR_NO_DATA ) {
+						bldFcomTimeoutCount[loop]++;
+						if ( BLD_MCAST_DEBUG >= 3 )
+							errlogPrintf(	"Blob %s timeout, no blob for %u sec, %u fid\n",
+											bldPulseBlobs[loop].name,
+											p_refTime->secPastEpoch, p_refTime->nsec & PULSEID_INVALID );
+					} else if ( rtncode )
 						bldFcomGetErrs[loop]++;
 				}
 
@@ -1579,7 +1596,7 @@ static long BLD_EPICS_Init()
 {
 	int loop;
 	int rtncode;
-	int enable_broadcast = BLD_MCAST_ENABLE;
+	int enable_broadcast = 1;
 
 	printf("BLD_EPICS_Init: Intializing BLD driver.\n" );
 
@@ -1589,11 +1606,9 @@ static long BLD_EPICS_Init()
 		rtncode = gethostname(name, name_len);
 		if (rtncode == 0) {
 			printf("INFO: BLD hostname is %s\n", name);
-			printf("INFO: *** Multicast Enabled ***\n");
 		}
 		else {
 			printf("ERROR: Unable to get hostname (errno=%d, rtncode=%d)\n", errno, rtncode);
-			printf("INFO: *** Multicast Disabled ***\n");
 			enable_broadcast = 0;
 		}
 	}
@@ -1602,7 +1617,7 @@ static long BLD_EPICS_Init()
 	fcomUtilFlag = DP_DEBUG;
 #endif
 	for ( loop=0; loop < N_PULSE_BLOBS; loop++) {
-		printf( "INFO: Looking up fcom ID for %s\n", bldPulseBlobs[loop].name );
+		if ( BLD_MCAST_DEBUG >= 3 ) printf( "INFO: Looking up fcom ID for %s\n", bldPulseBlobs[loop].name );
 		if ( FCOM_ID_NONE == (fcomBlobIDs[loop] = fcomLCLSPV2FcomID(bldPulseBlobs[loop].name)) ) {
 			errlogPrintf("FATAL ERROR: Unable to determine FCOM ID for PV %s\n",
 				     bldPulseBlobs[loop].name );
@@ -1617,8 +1632,8 @@ static long BLD_EPICS_Init()
 					fcomStrerror(rtncode));
 			return -1;
 		}
-		printf( "INFO: Subscribed  to %s, fcom ID 0x%X\n", bldPulseBlobs[loop].name,
-				(unsigned int) fcomBlobIDs[loop] );
+		printf( "INFO: Subscribed to fcom ID 0x%X, %s\n",
+				(unsigned int) fcomBlobIDs[loop], bldPulseBlobs[loop].name );
 	}
 
 	/* Allocate blob set here so that the flag that is read

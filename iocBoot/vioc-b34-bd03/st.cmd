@@ -1,4 +1,9 @@
 #!../../bin/linuxRT_glibc-x86_64/BLDSender
+
+# Network configuration for cpu-b34-fb01
+# 134.79.218.26   	LCLSDEV
+# 172.25.160.17		B034-LCLSFBCK
+
 # For iocAdmin
 epicsEnvSet("LOCN","B34-R253")
 
@@ -144,11 +149,12 @@ var EBEAM_ENABLE 0
 var EORBITS_ENABLE 1
 var BLD_MCAST_ENABLE 1
 var BLD_MCAST_DEBUG  2
-var EORBITS_MCAST_DEBUG  3
+var EORBITS_DEBUG  2
 var DEBUG_DRV_FCOM_RECV 2
-var DEBUG_DRV_FCOM_SEND 2
+var DEBUG_DRV_FCOM_SEND 0
 var DEBUG_DEV_FCOM_RECV 2
-var DEBUG_DEV_FCOM_SEND 2
+var DEBUG_DEV_FCOM_SEND 0
+var DEBUG_DEV_FCOM_SUB  2
 
 # PMC-based EVR (EVR230)
 # These are the most popular
@@ -202,6 +208,8 @@ dbLoadRecords("db/Pattern.db","IOC=${IOC_NAME},SYS=${FAC}")
 # Databases for the PMC EVR230
 dbLoadRecords("db/EvrPmc.db","EVR=${EVR_DEV1},CRD=0,SYS=${FAC}")
 dbLoadRecords("db/PMC-trig.db","IOC=${IOC_NAME},LOCA=${LOCA},UNIT=${UNIT},SYS=${FAC}")
+
+dbLoadRecords("db/evrFidTest.db","PRE=${EVR_DEV1},IOC=${IOC_NAME}")
 
 # Support for Beam Synchronous Acquisition (BSA)
 # BSA Database for each data source from above
@@ -265,12 +273,15 @@ dbLoadRecords( "db/simAo.db", "PV=BEND:LTU0:125:BDES,EGU=GeV/c,VAL=13.5" );
 # which would be faster, simpler and more flexible)
 # 
 
-dbLoadRecords( "db/BLDMCastWfRecv.db", "name=VIOC:${LOCA}:${UNIT}:BLDWAV, scan=Event, evnt=146, rarm=2")
+dbLoadRecords( "db/BLDMCastWfRecv.db", "name=VIOC:${LOCA}:${UNIT}:BLDWAV, scan=Event, evnt=146, rarm=2" )
+
+# Load FCOM monitor databases
+dbLoadRecords( "db/eOrbitsFcom.db", "EC=40" )
 
 # Load FCOM simulation databases
 # Only load in development environment to avoid conflicts w/ production FCOM traffix
-# dbLoadRecords( "db/eBeamFcomSim.db",   "EC=40")
-dbLoadRecords( "db/eOrbitsFcomSim.db", "EC=40")
+#dbLoadRecords( "db/eBeamFcomSim.db",   "EC=40" )
+dbLoadRecords( "db/eOrbitsFcomSim.db", "EC=40" )
 
 # END: Loading the record databases
 ########################################################################
