@@ -1,21 +1,22 @@
 #!../../bin/linuxRT_glibc-x86_64/BLDSender
 
-# Network configuration for cpu-b34-fb01
-# 134.79.218.26   	LCLSDEV
-# 172.25.160.17		B034-LCLSFBCK
+# Network configuration for cpu-sys0-bd03
+# 172.27.3.78   	LCLSIOC
+# 172.27.29.101		LCLSFNET
+# 172.27.225.23		LCLSBLD
 
 # For iocAdmin
-epicsEnvSet("LOCN","B34-R253")
+epicsEnvSet("LOCN","B005-2918")
 
-epicsEnvSet("IPADDR1","172.25.160.17")	# cpu-b34-fb01-fnet
+epicsEnvSet("IPADDR1","172.27.29.101")	# LCLS LinuxRT BD03 ETH4 - cpu-sys0-bd03-fnet on LCLSFNET subnet
 epicsEnvSet("NETMASK1","255.255.252.0")
 
 # BLD multicast group IP addr
 #epicsEnvSet("BLDMCAST_DST_IP", "239.255.24.0" )
-epicsEnvSet("BLDMCAST_DST_IP", "239.255.24.254" )
+#epicsEnvSet("BLDMCAST_DST_IP", "239.255.24.254" )
 
-# epicsEnvSet("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
-# epicsEnvSet("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
+# epicsEnvSet("EPICS_CAS_INTF_ADDR_LIST","172.27.3.78")
+# epicsEnvSet("EPICS_CAS_AUTO_BEACON_ADDR_LIST","YES")
 # epicsEnvSet("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 
 < envPaths
@@ -26,8 +27,9 @@ epicsEnvSet("BLDMCAST_DST_IP", "239.255.24.254" )
 # Set the FCOM multicast prefix
 # Production FCOM group is mc-lcls-fcom,  239.219.8.0 on  MCAST-LCLS-FCOM subnet
 # epicsEnvSet("FCOM_MC_PREFIX", "mc-lcls-fcom")
-#epicsEnvSet("FCOM_MC_PREFIX", "239.219.8.0")
-epicsEnvSet("FCOM_MC_PREFIX", "239.219.248.0")
+epicsEnvSet("FCOM_MC_PREFIX", "239.219.8.0")
+# Development FCOM group is mc-b034-fcom, 239.219.248.0 on  MCAST-B034-FCOM subnet
+# Development epicsEnvSet("FCOM_MC_PREFIX", "mc-b034-fcom")
 
 # execute generic part
 < "../st.linuxgeneric.cmd"
@@ -38,9 +40,6 @@ epicsEnvSet("FCOM_MC_PREFIX", "239.219.248.0")
 # Setup environment variables
 
 # tag log messages with IOC name
-# How to escape the "vioc-sys0-bd03" as the PERL program
-# will try to replace it.
-# So, uncomment the following and remove the backslash
 epicsEnvSet("EPICS_IOC_LOG_CLIENT_INET","${IOC}")
 
 # Set MACROS for EVRs
@@ -49,10 +48,10 @@ epicsEnvSet("EPICS_IOC_LOG_CLIENT_INET","${IOC}")
 # FAC = SYS1 ==> FACET
 
 # System Location:
-epicsEnvSet("LOCA","B34")
-epicsEnvSet("UNIT","BD03")
+epicsEnvSet("LOCA","SYS0")
+epicsEnvSet("UNIT","BD03T")
 epicsEnvSet("FAC", "SYS0")
-epicsEnvSet("NMBR","502")
+epicsEnvSet("NMBR","505")
 
 epicsEnvSet("EVR_DEV1","EVR:${LOCA}:${UNIT}")
 epicsEnvSet("BSA_DEV1","BLD:${LOCA}:${NMBR}")
@@ -78,7 +77,7 @@ epicsEnvSet("BSA_DEV1","BLD:${LOCA}:${NMBR}")
 epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES","1000000")
 
 # Set IOC Shell Prompt as well:
-epicsEnvSet("IOCSH_PS1","vioc-sys0-bd03>")
+epicsEnvSet("IOCSH_PS1","vioc-sys0-bd03-test>")
 
 epicsEnvSet("IOC_NAME","VIOC:${LOCA}:${UNIT}")
 
@@ -87,7 +86,7 @@ epicsEnvSet("AUTOSAVE_MACRO","VIOC:${LOCA}:${UNIT}:")
 # Setup some additional environment variables
 # ====================================================================
 # For iocAdmin
-epicsEnvSet("ENGINEER","Shantha Condamoor")
+epicsEnvSet("ENGINEER","Bruce Hill")
 epicsEnvSet("LOCATION",getenv("LOCN"))
 
 # END: Additional environment variables
@@ -143,23 +142,23 @@ BLDSender_registerRecordDeviceDriver(pdbbase)
 #                        (0 for PMC)
 # ======================================================================
 # Debug interest level for EVR Driver
-# ErDebugLevel(0)
+ErDebugLevel(1)
 
-var EBEAM_ENABLE 1
-var EORBITS_ENABLE 1
-var BLD_MCAST_ENABLE 1
-var BLD_MCAST_DEBUG  2
-var EORBITS_DEBUG  2
-var DEBUG_DRV_FCOM_RECV 2
+var EBEAM_ENABLE 0
+var EORBITS_ENABLE 0
+var BLD_MCAST_ENABLE 0
+var BLD_MCAST_DEBUG  1
+var EORBITS_DEBUG  1
+var DEBUG_DRV_FCOM_RECV 1
 var DEBUG_DRV_FCOM_SEND 1
-var DEBUG_DEV_FCOM_RECV 2
+var DEBUG_DEV_FCOM_RECV 1
 var DEBUG_DEV_FCOM_SEND 1
-var DEBUG_DEV_FCOM_SUB  2
+var DEBUG_DEV_FCOM_SUB  1
 
 # PMC-based EVR (EVR230)
 # These are the most popular
 #ErConfigure(0, 0, 0, 0, 1)       # PMC EVR
-eevrmaConfigure(0, "/dev/vevr1" )
+eevrmaConfigure(0, "/dev/vevr0" )
 
 # PCIe-based EVR (EVR300)
 # For Industrial PCs, these desired.
@@ -209,29 +208,29 @@ dbLoadRecords("db/Pattern.db","IOC=${IOC_NAME},SYS=${FAC}")
 dbLoadRecords("db/EvrPmc.db","EVR=${EVR_DEV1},CRD=0,SYS=${FAC}")
 dbLoadRecords("db/PMC-trig.db","IOC=${IOC_NAME},LOCA=${LOCA},UNIT=${UNIT},SYS=${FAC}")
 
-dbLoadRecords("db/evrFidTest.db","PRE=${EVR_DEV1},IOC=${IOC_NAME}")
+dbLoadRecords("db/evrEventCode.template","DEV=${EVR_DEV1},CARD=0,ID=40,DELY=13004")
 
 # Support for Beam Synchronous Acquisition (BSA)
 # BSA Database for each data source from above
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=CHARGE,       EGU=nC")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=ENERGY,       EGU=MeV")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=POS_X,        EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=POS_Y,        EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=ANG_X,        EGU=mrad")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=ANG_Y,        EGU=mrad")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=BC2CHARGE,    EGU=Amps")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=BC2ENERGY,    EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=BC1CHARGE,    EGU=Amps")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=BC1ENERGY,    EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_POS_X,    EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_POS_Y,    EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_ANG_X,    EGU=mrad")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_ANG_Y,    EGU=mrad")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=DMP_CHARGE,   EGU=Nel")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=XTCAV_AMP,    EGU=MV")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=PHOTONENERGY, EGU=eV")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU450_POS_X, EGU=mm")
-dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU250_POS_X, EGU=mm")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=CHARGE,       EGU=nC")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=ENERGY,       EGU=MeV")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=POS_X,        EGU=mm")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=POS_Y,        EGU=mm")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=ANG_X,        EGU=mrad")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=ANG_Y,        EGU=mrad")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=BC2CHARGE,    EGU=Amps")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=BC2ENERGY,    EGU=mm")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=BC1CHARGE,    EGU=Amps")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=BC1ENERGY,    EGU=mm")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_POS_X,    EGU=mm")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_POS_Y,    EGU=mm")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_ANG_X,    EGU=mrad")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=UND_ANG_Y,    EGU=mrad")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=DMP_CHARGE,   EGU=Nel")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=XTCAV_AMP,    EGU=MV")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=PHOTONENERGY, EGU=eV")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU450_POS_X, EGU=mm")
+#dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU250_POS_X, EGU=mm")
 
 # ========================================================
 
@@ -244,13 +243,13 @@ dbLoadRecords("db/Bsa.db","DEVICE=${BSA_DEV1}, ATRB=LTU250_POS_X, EGU=mm")
 # the BLDMcastWfRecv waveform should be used instead)
 # to 'Passive' to effectively disable them.
 
-dbLoadRecords("db/BLDMCast.db","LOCA=${LOCA},NMBR=${NMBR}, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
-dbLoadRecords("db/fcom_stats.db","LOCA=${LOCA},NMBR=${NMBR}, STAT_SCAN=5")
+#dbLoadRecords("db/BLDMCast.db","LOCA=${LOCA},NMBR=${NMBR}, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+#dbLoadRecords("db/fcom_stats.db","LOCA=${LOCA},NMBR=${NMBR}, STAT_SCAN=5")
 
 # Load these only on the production IOC or in a development environment as they
 # may confict w/ the production BLDSender IOC due to fixed PV names
-dbLoadRecords( "db/dispersion.db" );
-dbLoadRecords( "db/simAo.db", "PV=BEND:LTU0:125:BDES,EGU=GeV/c,VAL=13.5" );
+# dbLoadRecords( "db/dispersion.db" );
+# dbLoadRecords( "db/simAo.db", "PV=BEND:LTU0:125:BDES,EGU=GeV/c,VAL=13.5" );
 
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.
@@ -273,15 +272,15 @@ dbLoadRecords( "db/simAo.db", "PV=BEND:LTU0:125:BDES,EGU=GeV/c,VAL=13.5" );
 # which would be faster, simpler and more flexible)
 # 
 
-dbLoadRecords( "db/BLDMCastWfRecv.db", "name=VIOC:${LOCA}:${UNIT}:BLDWAV, scan=Event, evnt=146, rarm=2" )
+#dbLoadRecords( "db/BLDMCastWfRecv.db", "name=VIOC:${LOCA}:${UNIT}:BLDWAV, scan=Event, evnt=146, rarm=2" )
 
 # Load FCOM monitor databases
-dbLoadRecords( "db/eOrbitsFcom.db", "EC=40" )
+#dbLoadRecords( "db/eOrbitsFcom.db", "EC=40" )
 
 # Load FCOM simulation databases
 # Only load in development environment to avoid conflicts w/ production FCOM traffix
 #dbLoadRecords( "db/eBeamFcomSim.db",   "EC=40" )
-dbLoadRecords( "db/eOrbitsFcomSim.db", "EC=40" )
+#dbLoadRecords( "db/eOrbitsFcomSim.db", "EC=40" )
 
 # END: Loading the record databases
 ########################################################################
