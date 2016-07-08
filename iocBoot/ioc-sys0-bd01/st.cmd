@@ -35,7 +35,11 @@ setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 . "../st.vmegeneric.cmd"
 
 # Load obj file
-ld("bin/RTEMS-beatnik/BLDSender.obj")
+ld("../../bin/RTEMS-beatnik/BLDSender.obj")
+
+# Load envPaths
+. envPaths
+chdir( "../.." )
 
 # =====================================================================
 # Turn Off BSP Verbosity

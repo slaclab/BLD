@@ -9,11 +9,14 @@ ld("lanIpBasic_mve.obj")
 ## So we just use second port and BSD  ##
 #########################################
 
-cd("../..")
 
 errlogPrintf("Alert! BLD.obj no longer being built by the BLD ioc!\n")
 # Load obj file
-ld("bin/RTEMS-beatnik/BLD.obj")
+ld("../../bin/RTEMS-beatnik/BLD.obj")
+
+# Load envPaths
+. envPaths
+chdir( "../.." )
 
 fcomUtilSetIPADDR1("-fnet")
 

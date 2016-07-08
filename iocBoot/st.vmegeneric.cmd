@@ -1,9 +1,5 @@
 # Generic piece of startup script for BLD VME IOC
 
-pwd()
-# /data now mapped by pre_st.cmd
-nfsMountsShow()
-
 # ld("watchdog.obj")
 # wdStart(20)
 
@@ -13,8 +9,5 @@ nfsMountsShow()
 
 # Dedicated ethernet + network stack driver
 ld("lanIpBasic_mve.obj")
-
-chdir("../../")
-pwd()
 
 # =====================================================================

@@ -30,7 +30,11 @@ setenv("NETMASK1","255.255.252.0",0)
 errlogPrintf("Alert! BLDReciever.obj no longer being built by the BLD ioc!\n")
 
 # Load IN20 RF01 VME IOC
-ld("bin/RTEMS-beatnik/BLDReceiver.obj")
+ld("../../bin/RTEMS-beatnik/BLDReceiver.obj")
+
+# Load envPaths
+. envPaths
+chdir( "../.." )
 
 lanIpSetup(getenv("IPADDR1"),getenv("NETMASK1"),0,0)
 lanIpDebug=0
