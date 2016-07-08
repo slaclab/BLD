@@ -18,3 +18,10 @@ file fcomBlobBPMS.db
 #	{	0,		"BPMS:UND1:990:",	"\$(EC=40)"		}
 }
 
+# Need one of these per set.  Pick one BLOB from the set to name it.
+file fcomBlobSet.template
+{
+	pattern
+	{	SET,	BLOB,				EC				}
+	{	0,		"BPMS:LTU1:910:",	"\$(EC=40)"		}
+}

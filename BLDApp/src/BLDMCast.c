@@ -1,4 +1,4 @@
-/* $Id: BLDMCast.c,v 1.75 2016/06/16 02:56:50 bhill Exp $ */
+/* $Id: BLDMCast.c,v 1.76 2016/06/19 00:07:58 bhill Exp $ */
 /*=============================================================================
 
   Name: BLDMCast.c
@@ -84,7 +84,7 @@ extern int	fcomUtilFlag;
 
 #include "BLDMCast.h"
 
-#define BLD_DRV_VERSION "BLD driver $Revision: 1.75 $/$Name:  $"
+#define BLD_DRV_VERSION "BLD driver $Revision: 1.76 $/$Name:  $"
 
 #define CA_PRIORITY     CA_PRIORITY_MAX         /* Highest CA priority */
 
@@ -344,8 +344,7 @@ static unsigned int dataAvailable = 0;
 int EBEAM_ENABLE = 1;
 epicsExportAddress(int, EBEAM_ENABLE);
 
-int EORBITS_ENABLE = 0;
-epicsExportAddress(int, EORBITS_ENABLE);
+extern	int EORBITS_ENABLE;
 
 int BLD_MCAST_ENABLE = 0;
 epicsExportAddress(int, BLD_MCAST_ENABLE);
@@ -466,6 +465,10 @@ epicsUInt32 idref, idcmp, diff;
  */
 void EVRFire( void * pBlobSet )
 {
+	epicsTimeStamp time40;
+/*	int		fidlast, fidLast40; */
+	int		fid40, fidpipeline;
+	unsigned long long	tscLast;
 	/* evrRWMutex is locked while calling these user functions so don't do anything that might block. */
 	epicsTimeStamp time_s;
 
@@ -484,16 +487,30 @@ void EVRFire( void * pBlobSet )
 	if ( (modifier_a[4] & MOD5_BEAMFULL_MASK) == 0 )
 	{
 		/* This is 360Hz. So printf will really screw timing. Only enable briefly */
-		if(BLD_MCAST_DEBUG >= 5) errlogPrintf("EVR fires (status %i, mod5 0x%08x, fid %d)\n", status, (unsigned)modifier_a[4], PULSEID(time_s) );
+		if(BLD_MCAST_DEBUG >= 6) errlogPrintf("EVR fires (status %i, mod5 0x%08x, fid %d)\n", status, (unsigned)modifier_a[4], PULSEID(time_s) );
 		/* No beam */
 		return;
 	}
-	/* This is 120Hz. So printf will screw timing. Only enable briefly. */
-	if(BLD_MCAST_DEBUG >= 4) errlogPrintf("EVR fires (status %i, mod5 0x%08x, fid %d)\n", status, (unsigned)modifier_a[4], PULSEID(time_s) );
+
+	fidpipeline = PULSEID(time_s);
+	tscLast	= evrGetFiducialTsc();
+	epicsTimeGetEvent( &time40, 40 );
+	fid40 = PULSEID(time40);
 
 	/* Get timestamps for beam fiducial */
 	bldFiducialTime = time_s;
 	bldFiducialTsc	= GetHiResTicks();
+
+	if(BLD_MCAST_DEBUG >= 5) {
+		double			deltaLastFid;
+		deltaLastFid	= HiResTicksToSeconds( bldFiducialTsc - tscLast   ) * 1e3;
+		errlogPrintf( "pipeline fid %d (-%0.2f)\n", fidpipeline, deltaLastFid );
+	/* HACK */
+		return;
+	}
+
+	/* This is 120Hz. So printf will screw timing. Only enable briefly. */
+	if(BLD_MCAST_DEBUG >= 4) errlogPrintf("EVR fires (status %i, mod5 0x%08x, fid %d, fid40 %d)\n", status, (unsigned)modifier_a[4], fidpipeline, fid40 );
 
 	/* Signal the EVRFireEvent to trigger the fcomGetBlobSet call */
 	epicsEventSignal( EVRFireEvent);
@@ -1613,59 +1630,61 @@ static long BLD_EPICS_Init()
 		}
 	}
 
+	if ( BLD_MCAST_ENABLE ) {
 #if 0
-	fcomUtilFlag = DP_DEBUG;
+		fcomUtilFlag = DP_DEBUG;
 #endif
-	for ( loop=0; loop < N_PULSE_BLOBS; loop++) {
-		if ( BLD_MCAST_DEBUG >= 3 ) printf( "INFO: Looking up fcom ID for %s\n", bldPulseBlobs[loop].name );
-		if ( FCOM_ID_NONE == (fcomBlobIDs[loop] = fcomLCLSPV2FcomID(bldPulseBlobs[loop].name)) ) {
-			errlogPrintf("FATAL ERROR: Unable to determine FCOM ID for PV %s\n",
-				     bldPulseBlobs[loop].name );
-			return -1;
+		for ( loop=0; loop < N_PULSE_BLOBS; loop++) {
+			if ( BLD_MCAST_DEBUG >= 3 ) printf( "INFO: Looking up fcom ID for %s\n", bldPulseBlobs[loop].name );
+			if ( FCOM_ID_NONE == (fcomBlobIDs[loop] = fcomLCLSPV2FcomID(bldPulseBlobs[loop].name)) ) {
+				errlogPrintf("FATAL ERROR: Unable to determine FCOM ID for PV %s\n",
+						 bldPulseBlobs[loop].name );
+				return -1;
+			}
+			/* Why are we not using FCOM_SYNC_GET here? */
+			rtncode = fcomSubscribe( fcomBlobIDs[loop], FCOM_ASYNC_GET );
+			if ( 0 != rtncode ) {
+				errlogPrintf("FATAL ERROR: Unable to subscribe %s (0x%08"PRIx32") to FCOM: %s\n",
+						bldPulseBlobs[loop].name,
+						fcomBlobIDs[loop],
+						fcomStrerror(rtncode));
+				return -1;
+			}
+			printf( "INFO: Subscribed to fcom ID 0x%X, %s\n",
+					(unsigned int) fcomBlobIDs[loop], bldPulseBlobs[loop].name );
 		}
-		/* Why are we not using FCOM_SYNC_GET here? */
-		rtncode = fcomSubscribe( fcomBlobIDs[loop], FCOM_ASYNC_GET );
-		if ( 0 != rtncode ) {
-			errlogPrintf("FATAL ERROR: Unable to subscribe %s (0x%08"PRIx32") to FCOM: %s\n",
-					bldPulseBlobs[loop].name,
-					fcomBlobIDs[loop],
-					fcomStrerror(rtncode));
-			return -1;
-		}
-		printf( "INFO: Subscribed to fcom ID 0x%X, %s\n",
-				(unsigned int) fcomBlobIDs[loop], bldPulseBlobs[loop].name );
+
+		/* Allocate blob set here so that the flag that is read
+		 * into a record already contains the final value, ready
+		 * for being picked up by PINI
+		 */
+		if ( (rtncode = fcomAllocBlobSet( fcomBlobIDs, sizeof(fcomBlobIDs)/sizeof(fcomBlobIDs[0]), &bldBlobSet)) ) {
+			errlogPrintf("ERROR: Unable to allocate blob set: %s; trying asynchronous mode\n", fcomStrerror(rtncode));
+			bldBlobSet = 0;
+			
+		} else
+		{
+			bldUseFcomSet = 1;			
 	}
 
-	/* Allocate blob set here so that the flag that is read
-	 * into a record already contains the final value, ready
-	 * for being picked up by PINI
-	 */
-	if ( (rtncode = fcomAllocBlobSet( fcomBlobIDs, sizeof(fcomBlobIDs)/sizeof(fcomBlobIDs[0]), &bldBlobSet)) ) {
-		errlogPrintf("ERROR: Unable to allocate blob set: %s; trying asynchronous mode\n", fcomStrerror(rtncode));
-		bldBlobSet = 0;
-		
-	} else
-	{
-		bldUseFcomSet = 1;			
+		if ( devBusMappedRegisterIO("bld_timer_io", &timer_delay_io) )
+			errlogPrintf("ERROR: Unable to register I/O methods for timer delay\n"
+						 "SOFTWARE MAY NOT WORK PROPERLY\n");
+
+		/* These are simple local memory devBus devices for showing fcom status in PV's */
+		checkDevBusMappedRegister("bld_stat_good", &bldGoodBlobCount);
+		checkDevBusMappedRegister("bld_stat_bad_ts", &bldUnmatchedTSCount);
+		checkDevBusMappedRegister("bld_stat_timeout", &bldFcomTimeoutCount);
+		checkDevBusMappedRegister("bld_stat_bad_d", &bldInvalidAlarmCount);
+		checkDevBusMappedRegister("bld_stat_bad_f", &bldFcomGetErrs);
+		checkDevBusMappedRegister("bld_stat_msg_s", &bldMcastMsgSent);
+		checkDevBusMappedRegister("bld_stat_min_f", &bldMinFcomDelayUs);
+		checkDevBusMappedRegister("bld_stat_max_f", &bldMaxFcomDelayUs);
+		checkDevBusMappedRegister("bld_stat_avg_f", &bldAvgFcomDelayUs);
+		checkDevBusMappedRegister("bld_stat_max_p", &bldMaxPostDelayUs);
+		checkDevBusMappedRegister("bld_stat_avg_p", &bldAvgPostDelayUs);
+		checkDevBusMappedRegister("bld_fcom_use_s", &bldUseFcomSet);
 	}
-
-	if ( devBusMappedRegisterIO("bld_timer_io", &timer_delay_io) )
-		errlogPrintf("ERROR: Unable to register I/O methods for timer delay\n"
-                     "SOFTWARE MAY NOT WORK PROPERLY\n");
-
-	/* These are simple local memory devBus devices for showing fcom status in PV's */
-	checkDevBusMappedRegister("bld_stat_good", &bldGoodBlobCount);
-	checkDevBusMappedRegister("bld_stat_bad_ts", &bldUnmatchedTSCount);
-	checkDevBusMappedRegister("bld_stat_timeout", &bldFcomTimeoutCount);
-	checkDevBusMappedRegister("bld_stat_bad_d", &bldInvalidAlarmCount);
-	checkDevBusMappedRegister("bld_stat_bad_f", &bldFcomGetErrs);
-	checkDevBusMappedRegister("bld_stat_msg_s", &bldMcastMsgSent);
-	checkDevBusMappedRegister("bld_stat_min_f", &bldMinFcomDelayUs);
-	checkDevBusMappedRegister("bld_stat_max_f", &bldMaxFcomDelayUs);
-	checkDevBusMappedRegister("bld_stat_avg_f", &bldAvgFcomDelayUs);
-	checkDevBusMappedRegister("bld_stat_max_p", &bldMaxPostDelayUs);
-	checkDevBusMappedRegister("bld_stat_avg_p", &bldAvgPostDelayUs);
-	checkDevBusMappedRegister("bld_fcom_use_s", &bldUseFcomSet);
 
 	scanIoInit(&bldIoscan);
 

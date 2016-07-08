@@ -49,6 +49,9 @@ just one host and as a receiver on all the other hosts
 #define EORBITS_ID	63
 #define LOGICAL_ID	0x06000000
 
+int			EORBITS_ENABLE = 0;
+epicsExportAddress(int, EORBITS_ENABLE);
+
 int			EORBITS_DEBUG = 1;
 epicsExportAddress(int, EORBITS_DEBUG);
 
@@ -132,7 +135,8 @@ static epicsEventId eOrbitsSyncEvent = NULL;
 void EVRCallback( void * unused )
 {
 	/* evrRWMutex is locked while calling these user functions so don't do anything that might block. */
-	epicsTimeStamp time_s;
+	epicsTimeStamp	time_s;
+	int				fid;
 
 	/* get the current pattern data - check for good status */
 	evrModifier_ta modifier_a;
@@ -141,6 +145,8 @@ void EVRCallback( void * unused )
 	if ( status != 0 )
 	{
 		/* Error from evrTimeGetFromPipeline! */
+		if ( EORBITS_DEBUG >= 3 )
+			printf( "EVRCallback: Error %d calling evrTimeGetFromPipeline!\n", status );
 #if 0
 		bldFiducialTime.nsec = PULSEID_INVALID;
 #endif
@@ -148,9 +154,12 @@ void EVRCallback( void * unused )
 	}
 
 	/* check for LCLS beam */
+	fid	= time_s.nsec & 0x1FFFF;
 	if ( (modifier_a[4] & MOD5_BEAMFULL_MASK) == 0 )
 	{
 		/* No beam */
+		if ( EORBITS_DEBUG >= 6 )
+			printf( "EVRCallback: No beam on fid %d.!\n", fid );
 		return;
 	}
 
@@ -161,7 +170,7 @@ void EVRCallback( void * unused )
 #endif
 
 	if ( EORBITS_DEBUG >= 5 )
-		printf( "Signaling eOrbitsSyncEvent ...\n" );
+		printf( "Signaling eOrbitsSyncEvent: fid %d\n", fid );
 
 	/* Signal the eOrbitsSyncEvent to trigger the fcomGetBlobSet call */
 	epicsEventSignal( eOrbitsSyncEvent );
@@ -229,7 +238,7 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock < 0)
 	{
-		perror("Socket creation failed!");
+		perror("eOrbits BLD Socket creation failed!");
 		exit(1);
 	}
 	memset((char *)&addr, 0, sizeof(addr));
@@ -279,33 +288,27 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 	eOrbitsSyncEvent = epicsEventMustCreate(epicsEventEmpty);
 
 	/* Register EVRCallback */
-	evrTimeRegister(EVRCallback, NULL);
+	status = evrTimeRegister(EVRCallback, NULL);
+	if ( status != 0 )
+	{
+		errlogPrintf( "eOrbitsLoop: Unable to register EVRCallback!\n");
+	}
 
 	while (1)
 	{
 		double		xVal	= epicsNAN;
 		double		yVal	= epicsNAN;
 		double		tVal	= epicsNAN;
-		double		sinVal	= sin(radians);
-		double		cosVal	= cos(radians);
 		radians += 2 * M_PI / 360;
    
    		if ( eOrbitsExit )
 			break;
-#if 0
-		/* set up nanosleep delay for approx 120hz */
-		sendDelay.tv_sec	= 0;
-		sendDelay.tv_nsec	= 8333333;
-		nanosleep( &sendDelay, NULL );
-		status = epicsEventWaitOK;
-#else
 		status = epicsEventWaitWithTimeout( eOrbitsSyncEvent, 10 );
-#endif
 		if(status != epicsEventWaitOK)
 		{
 			if(status == epicsEventWaitTimeout)
 			{
-				if(EORBITS_DEBUG >= 2) errlogPrintf("Timed out waiting for Beam event\n");
+				if(EORBITS_DEBUG >= 2) errlogPrintf("Timed out waiting for eOrbits sync\n");
 				continue;
 			}
 			else
@@ -322,7 +325,6 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 		ts_fid			= 0x1FFFF;
 		for ( i = 0; i < N_BPMS; i++ )
 		{
-#if 1
 			FcomBlob	*	pBlob;
 			int				status;
 			status	= fcomGetBlob( blobIds[i], &pBlob, 0 );
@@ -365,7 +367,9 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 					{
 						if ( EORBITS_DEBUG >= 2 )
 							errlogPrintf(	"Blob 0x%X, %s, fid 0x%X tsMismatch vs prior 0x%X\n",
-											blobIds[i], blobNames[i], (pBlob->fc_tsLo & 0x1FFFF ), ts_fid );
+											(unsigned int) blobIds[i], blobNames[i],
+											(unsigned int) (pBlob->fc_tsLo & 0x1FFFF ),
+											(unsigned int) ts_fid );
 					}
 				}
 			}
@@ -375,12 +379,10 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 			__st_le64( &eOrbits.fBPM_X[i], xVal );
 			__st_le64( &eOrbits.fBPM_Y[i], yVal );
 			__st_le64( &eOrbits.fBPM_T[i], tVal );
-#else
-			__st_le64( &eOrbits.fBPM_X[i], sinVal );
-			__st_le64( &eOrbits.fBPM_Y[i], cosVal );
-			__st_le64( &eOrbits.fBPM_T[i], sinVal );
-#endif
 		}
+
+		if ( EORBITS_ENABLE == 0 )
+			continue;
 
 		/* Fallback timestamp */
 		if ( ts.secPastEpoch == 0 || ts.nsec == 0x1FFFF )
@@ -394,13 +396,13 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 
 		if ( EORBITS_DEBUG >= 3 )
 		{
-			uint32_t	fid = __ld_le32( &eOrbits.ts_nsec ) & 0x1FFFF;
-			double		sec = __ld_le32( &eOrbits.ts_sec );
+			unsigned int	fid = __ld_le32( &eOrbits.ts_nsec ) & 0x1FFFF;
+			double			sec = __ld_le32( &eOrbits.ts_sec );
 			sec += __ld_le32( &eOrbits.ts_nsec ) / 1e9;
 			if ( interface )
-				printf("Sending: eOrbit BLD to %s port %d via %s, ts %.3f fid %d\n", group, port, interface, sec, fid );
+				printf("Sending: eOrbit BLD to %s port %d via %s, ts %.3f fid %u\n", group, port, interface, sec, fid );
 			else
-				printf("Sending: eOrbit BLD to %s port %d, ts %.3f fid %d\n", group, port, sec, fid );
+				printf("Sending: eOrbit BLD to %s port %d, ts %.3f fid %u\n", group, port, sec, fid );
 		}
 		cnt = sendto(	sock, &eOrbits, sizeof(eOrbits), 0,
 						(struct sockaddr *) &addr, addrlen );
