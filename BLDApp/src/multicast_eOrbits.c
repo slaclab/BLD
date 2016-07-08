@@ -37,6 +37,7 @@ just one host and as a receiver on all the other hosts
 #include "BLDTypes.h"
 #include "evrTime.h"
 #include "evrPattern.h"
+#include "udpComm.h"
 #include "fcom_api.h"
 #include "fcomUtil.h"
 
@@ -185,7 +186,8 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 	int					status;
 	unsigned int		i;
 	struct sockaddr_in	addr;
-	int					addrlen, sock, cnt;
+	int					addrlen	= sizeof(addr);
+	int					sFd, cnt;
 	int					mcastTTL = MCAST_TTL;
 #if 0
 	struct timespec		sendDelay;
@@ -235,35 +237,58 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 	}
 
 	/* set up socket */
-	sock = socket(AF_INET, SOCK_DGRAM, 0);
-	if (sock < 0)
+#if 1
+	sFd = udpCommSocket(0);
+	if (sFd < 0)
 	{
 		perror("eOrbits BLD Socket creation failed!");
-		exit(1);
+		return -1;
 	}
+
+	if ( (status = udpCommConnect( sFd, inet_addr(group), port )) ) {
+		errlogPrintf("Failed to 'connect' to peer: %s\n", strerror(-status));
+		udpCommClose( sFd );
+		return -1;
+	}
+
+	mcastTTL = MCAST_TTL;
+	if ( ( status = udpCommSetMcastTTL( sFd, mcastTTL ) ) ) {
+		errlogPrintf("Failed to set multicast TTL: %s\n", strerror(-status));
+		udpCommClose( sFd );
+		return -1;
+	}
+
+	if ( interface )
+	{
+		in_addr_t	mcastIntfIp = inet_addr(interface);
+		if ( mcastIntfIp < 0 || ( status = udpCommSetIfMcastOut( sFd, mcastIntfIp ) ) != 0 )
+		{
+			errlogPrintf("Failed to choose outgoing interface for multicast: %s\n", strerror(-status));
+			udpCommClose( sFd );
+			return -1;
+		}
+	}
+#else
+	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	memset((char *)&addr, 0, sizeof(addr));
 	addr.sin_family			= AF_INET;
 	addr.sin_addr.s_addr	= inet_addr(group);
 	addr.sin_port			= htons(port);
-	addrlen	= sizeof(addr);
-
 	if ( setsockopt( sock, IPPROTO_IP, IP_MULTICAST_TTL, (char*)&mcastTTL, sizeof(unsigned char) ) < 0 )
 	{
-		perror("setsockopt IP_MULTICAST_TTL failed!");
+		perror("setsockopt IP_MULTICAST_TTL failed!\n");
 		exit(1);
 	}
 	if ( interface )
 	{
 		struct in_addr		address;
 		static in_addr_t	mcastIntfIp;
-
 		mcastIntfIp = inet_addr( interface );
 		if ( mcastIntfIp == (in_addr_t)(-1) )
 		{
 			printf( "Invalid interface IP: %s\n", interface );
 			exit(1);
 		}
-
 		address.s_addr	= mcastIntfIp;
 		if ( setsockopt( sock, IPPROTO_IP, IP_MULTICAST_IF, (char*)&address, sizeof(struct in_addr) ) < 0 )
 		{
@@ -271,6 +296,7 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 			exit(1);
 		}
 	}
+#endif
 
 	if ( interface )
 		printf("Sending: eOrbit BLD to %s port %d via %s\n", group, port, interface );
@@ -404,12 +430,16 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 			else
 				printf("Sending: eOrbit BLD to %s port %d, ts %.3f fid %u\n", group, port, sec, fid );
 		}
-		cnt = sendto(	sock, &eOrbits, sizeof(eOrbits), 0,
+#if 1
+		cnt = udpCommSend( sFd, &eOrbits, sizeof(eOrbits) );
+#else
+		cnt = sendto(	sFd, &eOrbits, sizeof(eOrbits), 0,
 						(struct sockaddr *) &addr, addrlen );
+#endif
 		if (cnt < 0)
 		{
-			perror("sendto");
-			exit(1);
+			perror( "eOrbitsLoop: BLD send error\n" );
+			continue;
 		}
 
 #if 0
