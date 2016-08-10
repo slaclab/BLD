@@ -9,7 +9,15 @@ include $(TOP)/configure/CONFIG
 # Build the IOC application
 
 # Production flags
-USR_CPPFLAGS +=
+ifeq '$(OS_CLASS)' 'Linux'
+USR_CPPFLAGS += -I$(EPICS_MODULES)/evrClient/$(EVRCLIENT_MODULE_VERSION)/include
+USR_LDFLAGS  += -L$(EPICS_MODULES)/evrClient/$(EVRCLIENT_MODULE_VERSION)/lib/$(T_A)
+USR_LDFLAGS  += -Wl,-rpath,$(EPICS_MODULES)/evrClient/$(EVRCLIENT_MODULE_VERSION)/lib/$(T_A)
+else
+USR_CPPFLAGS += -I$(EPICS_MODULES)/event/$(EVENT_MODULE_VERSION)/include
+USR_LDFLAGS  += -L$(EPICS_MODULES)/event/$(EVENT_MODULE_VERSION)/lib/$(T_A)
+USR_LDFLAGS  += -Wl,-rpath,$(EPICS_MODULES)/event/$(EVENT_MODULE_VERSION)/lib/$(T_A)
+endif
 
 #=============================
 # Build an IOC support library
@@ -65,7 +73,7 @@ BLDSender_LIBS += evrSupport
 BLDSender_LIBS += devMrfEr
 BLDSender_LIBS_RTEMS += mrfVme64x
 BLDSender_LIBS_Linux += drvMrf
-BLDSender_LIBS_Linux += evrma
+#BLDSender_LIBS_Linux += evrma
 BLDSender_LIBS += devBusMapped
 BLDSender_LIBS_RTEMS += udpComm
 BLDSender_LIBS_Linux += udpCommBSD 

@@ -186,7 +186,6 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 	int					status;
 	unsigned int		i;
 	struct sockaddr_in	addr;
-	int					addrlen	= sizeof(addr);
 	int					sFd, cnt;
 	int					mcastTTL = MCAST_TTL;
 #if 0
@@ -433,8 +432,11 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 #if 1
 		cnt = udpCommSend( sFd, &eOrbits, sizeof(eOrbits) );
 #else
+		{
+		int					addrlen	= sizeof(addr);
 		cnt = sendto(	sFd, &eOrbits, sizeof(eOrbits), 0,
 						(struct sockaddr *) &addr, addrlen );
+		}
 #endif
 		if (cnt < 0)
 		{

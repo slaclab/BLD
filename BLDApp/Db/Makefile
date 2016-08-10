@@ -54,7 +54,7 @@ DB_INSTALLS += $(EVR_MODULE)/db/PMC-trig.db
 DB_INSTALLS += $(EVR_MODULE)/db/VME-trig.db
 DB_INSTALLS += $(EVR_MODULE)/db/VME-TTB-trig.db
 DB_INSTALLS += $(EVR_MODULE)/db/Bsa.db
-DB_INSTALLS += $(EVR_MODULE)/db/evrEventCode.template
+#DB_INSTALLS += $(EVR_MODULE)/db/evrEventCode.template
 
 DB += IOC-SYS0-BD01access.db
 
