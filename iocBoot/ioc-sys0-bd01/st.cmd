@@ -97,6 +97,18 @@ dbLoadRecords("db/lclsPattern.db","IOC=IOC:SYS0:BD01",0)
 # bspExtMemProbe only durint init. clear this to avoid the lecture.
 bspExtVerbosity = 0
 
+# Set eBeam and eOrbits debug and enable variables
+EBEAM_ENABLE=1
+EORBITS_ENABLE=1
+BLD_MCAST_ENABLE=1
+BLD_MCAST_DEBUG=1
+EORBITS_DEBUG=1
+DEBUG_DRV_FCOM_RECV=1
+DEBUG_DRV_FCOM_SEND=1
+DEBUG_DEV_FCOM_RECV=1
+DEBUG_DEV_FCOM_SEND=1
+DEBUG_DEV_FCOM_SUB=1
+
 # Load iocAdmin databases to support IOC Health and monitoring
 # =====================================================================
 dbLoadRecords("db/iocAdminRTEMS.db","IOC=IOC:SYS0:BD01",0)
@@ -134,14 +146,14 @@ dbLoadRecords( "db/dispersion.db" );
 # with the BLD data.
 # We scan with event 146 (beam + .5Hz)
 #
-# NOTE: There must be one of the EVR:IOC:SYS0:BD01:EVENTxyCTRL
+# NOTE: There must be one of the erevent
 #       records holding the event number we use here and it
 #       must have VME interrupts (.VME field) enabled.
 #
 #       Furthermore, you cannot use any event but only 
 #       such ones for which an event record has been
 #       instantiated with MRF ER device support -- this
-#       is thanks to the great MRF software design, yeah!
+#       is thanks to the event module software design, yeah!
 #
 # The erEvent record enables interrupts for an event
 # the interrupt handler calls scanIoRequest(lists[event]) and
@@ -152,6 +164,9 @@ dbLoadRecords( "db/dispersion.db" );
 # 
 
 dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:BD01:BLDWAV, scan=Event, evnt=146, rarm=2")
+
+# Load FCOM monitor databases
+dbLoadRecords( "db/eOrbitsFcom.db", "EC=40" )
 
 # END: Loading the record databases
 # =====================================================================
@@ -168,11 +183,8 @@ save_restoreSet_DatedBackupFiles(1)
 set_requestfile_path("/data/autosave-req")
 set_savefile_path("/data/autosave")
 
-set_pass1_restoreFile("info_positions.sav")
-set_pass1_restoreFile("info_settings.sav")
-
-#BLD_MCAST_DEBUG=2
-#DELAY_FOR_CA=30
+set_pass0_restoreFile( "info_positions.sav" )
+set_pass1_restoreFile( "info_settings.sav" )
 
 # Capture load addresses of all modules (essential for debugging if iocInit crashes...)
 
@@ -181,10 +193,6 @@ lsmod()
 # =====================================================================
 # Start the EPICS IOC
 # =====================================================================
-
-BLD_MCAST_ENABLE=1
-#BLD_MCAST_DEBUG=2
-#DELAY_FOR_CA=30
 
 iocInit()
 
@@ -213,7 +221,4 @@ bootConfigShow()
 
 # Start rtems spy utility:
 #iocshCmd("spy(2)")
-
-# One more sleep to allow mutex to be created before crashing on dbior()
-epicsThreadSleep(5)
 

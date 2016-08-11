@@ -147,8 +147,9 @@ BLDSender_registerRecordDeviceDriver(pdbbase)
 # Debug interest level for EVR Driver
 # ErDebugLevel(0)
 
+# Set eBeam and eOrbits debug and enable variables
 var EBEAM_ENABLE 1
-var EORBITS_ENABLE 1
+var EORBITS_ENABLE 0
 var BLD_MCAST_ENABLE 1
 var BLD_MCAST_DEBUG  1
 var EORBITS_DEBUG  1

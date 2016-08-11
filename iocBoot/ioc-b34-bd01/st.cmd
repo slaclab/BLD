@@ -36,9 +36,10 @@ bspExtVerbosity=0
 # Load obj file
 ld("../../bin/RTEMS-beatnik/BLDSender.obj")
 
+# Load envPaths
 . envPaths
-
 chdir( "../.." )
+
 
 ## Configure 2nd NIC using lanIpBasic
 setenv("IPADDR1","172.27.160.23",0)                 # ioc-b34-bd01-fnet
@@ -75,17 +76,6 @@ BLDSender_registerRecordDeviceDriver(pdbbase)
 bspExtVerbosity=0
 ErDebugLevel(3)
 
-EBEAM_ENABLE=1
-EORBITS_ENABLE=1
-BLD_MCAST_ENABLE=1
-BLD_MCAST_DEBUG= 2
-EORBITS_DEBUG= 2
-DEBUG_DRV_FCOM_RECV=2
-DEBUG_DRV_FCOM_SEND=2
-DEBUG_DEV_FCOM_RECV=2
-DEBUG_DEV_FCOM_SEND=2
-DEBUG_DEV_FCOM_SUB= 2
-
 # Init VME EVR
 #ErConfigure( 0, 0x300000, 0x60, 4, 0 )
 # Init PMC EVR
@@ -100,6 +90,18 @@ bspExtVerbosity = 1
 ## Load record instances ##
 ###########################
 
+
+# Set eBeam and eOrbits debug and enable variables
+EBEAM_ENABLE=1
+EORBITS_ENABLE=1
+BLD_MCAST_ENABLE=1
+BLD_MCAST_DEBUG= 2
+EORBITS_DEBUG= 2
+DEBUG_DRV_FCOM_RECV=2
+DEBUG_DRV_FCOM_SEND=2
+DEBUG_DEV_FCOM_RECV=2
+DEBUG_DEV_FCOM_SEND=2
+DEBUG_DEV_FCOM_SUB= 2
 # Load iocAdmin databases to support IOC Health and monitoring
 # =====================================================================
 dbLoadRecords("db/iocAdminRTEMS.db","IOC=IOC:B34:BD01",0)
@@ -171,9 +173,6 @@ set_savefile_path("/data/autosave")
 set_pass0_restoreFile( "info_positions.sav" )
 set_pass1_restoreFile( "info_settings.sav" )
 
-#BLD_MCAST_DEBUG=2
-#DELAY_FOR_CA=30
-
 # Capture load addresses of all modules (essential for debugging if iocInit crashes...)
 
 lsmod()
@@ -181,9 +180,6 @@ lsmod()
 # =====================================================================
 # Start the EPICS IOC
 # =====================================================================
-
-BLD_MCAST_ENABLE=1
-BLD_MCAST_DEBUG=2
 
 iocInit()
 
