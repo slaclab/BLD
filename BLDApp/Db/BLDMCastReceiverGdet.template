@@ -1,0 +1,224 @@
+# INP fields for ai records are defined as "@attr multicast_group" 
+# 	where 'attr' is defined in BLDGdetAttributes
+#	and 'multi_cast_group' is the last number of the four fields in a MC address
+# typedef enum {
+#  	GDET_PULSEID,
+#  	GDET_STATUS,
+#  	GDET_ENRC_11,
+#  	GDET_ENRC_12,
+#  	GDET_ENRC_21,
+#  	GDET_ENRC_22,
+#  	GDET_ENRC_63,
+#  	GDET_ENRC_64,  
+#} BLDGdetAttributes;
+#####
+# typedef enum {
+# /*XRT */
+# 	GDET_FEEGasDetEnergy,	/* 0: "239.255.24.2" */
+# } BLDGdetMCGroup;
+#####
+
+
+record(ai, "$(DEVICE):GDET_$(STN)_PULSEID") {
+  field(DESC, "Gdet PULSEID")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "BLD_RCVR")
+  field(INP,  "@0 $(MC)")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "Count")
+  field(FLNK, "$(DEVICE):EFGDET$(MC)_PULSEID")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "$(DEVICE):GDET_$(STN)_STATUS") {
+  field(DESC, "Gdet STATUS")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "BLD_RCVR")
+  field(INP,  "@1 $(MC)")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "Raw")
+  field(FLNK, "$(DEVICE):EFGDET$(MC)_STATUS")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "$(DEVICE):GDET_$(STN)_ENRC_11") {
+  field(DESC, "Gdet ENRC_11")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "BLD_RCVR")
+  field(INP,  "@2 $(MC)")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "")
+  field(FLNK, "$(DEVICE):EFGDET$(MC)_ENRC_11")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "$(DEVICE):GDET_$(STN)_ENRC_12") {
+  field(DESC, "Gdet ENRC_12")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "BLD_RCVR")
+  field(INP,  "@3 $(MC)")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "")
+  field(FLNK, "$(DEVICE):EFGDET$(MC)_ENRC_12")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "$(DEVICE):GDET_$(STN)_ENRC_21") {
+  field(DESC, "Gdet ENRC_21")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "BLD_RCVR")
+  field(INP,  "@4 $(MC)")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "")
+  field(FLNK, "$(DEVICE):EFGDET$(MC)_ENRC_21")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "$(DEVICE):GDET_$(STN)_ENRC_22") {
+  field(DESC, "Gdet ENRC_22")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "BLD_RCVR")
+  field(INP,  "@5 $(MC)")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "")
+  field(FLNK, "$(DEVICE):EFGDET$(MC)_ENRC_22")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "$(DEVICE):GDET_$(STN)_ENRC_63") {
+  field(DESC, "Gdet ENRC_63")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "BLD_RCVR")
+  field(INP,  "@6 $(MC)")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "")
+  field(FLNK, "$(DEVICE):EFGDET$(MC)_ENRC_63")
+  field(PRIO, "HIGH")
+}
+
+record(ai, "$(DEVICE):GDET_$(STN)_ENRC_64") {
+  field(DESC, "Gdet ENRC_64")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "BLD_RCVR")
+  field(INP,  "@7 $(MC)")
+  field(PREC, "5")
+  field(TSE,  "-1")
+  field(EGU,  "")
+  field(FLNK, "$(DEVICE):EFGDET$(MC)_ENRC_64")
+  field(PRIO, "HIGH")
+}
+
+record(longin, "$(DEVICE):GDET_$(STN)_LATE") {
+	field(DESC, "GDET BLD Late Packet Cnt")
+	field(EGU,  "Count")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@$(STN)_late_f,m32")
+}
+
+# just write .PROC
+record(longout, "$(DEVICE):GDET_$(STN)_LATERST") {
+	field(DESC, "Rst.GDET BLD Late Packet Cnt")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@$(STN)_late_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(longin, "$(DEVICE):GDET_$(STN)_MISS") {
+	field(DESC, "GDET BLD missed Pkt cnt")
+	field(EGU,  "Count")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@$(STN)_miss_f,m32")
+}
+
+# just write .PROC
+record(longout, "$(DEVICE):GDET_$(STN)_MISSRST") {
+	field(DESC, "Rst.GDET BLD missed Pkt cnt")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@$(STN)_miss_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(longin, "$(DEVICE):GDET_$(STN)_MAX") {
+	field(DESC, "Max. GDET BLD Latency")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@$(STN)_max_f,m32")
+}
+
+# just write .PROC
+record(longout, "$(DEVICE):GDET_$(STN)_MAXRST") {
+	field(DESC, "Rst. Max. GDET BLD Latency")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@$(STN)_max_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(longin, "$(DEVICE):GDET_$(STN)_MIN") {
+	field(DESC, "Min. GDET BLD Latency")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@$(STN)_min_f,m32")
+}
+
+# just write .PROC
+record(longout, "$(DEVICE):GDET_$(STN)_MINRST") {
+	field(DESC, "Rst. Min. GDET BLD Latency")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@$(STN)_min_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(longin, "$(DEVICE):GDET_$(STN)_AVG") {
+	field(DESC, "Num. GDET BLD Lat above avg")
+	field(EGU,  "uS")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@$(STN)_avg_f,m32")
+}
+
+# just write .PROC
+record(longout, "$(DEVICE):GDET_$(STN)_AVGRST") {
+	field(DESC, "Rst. Avg GDET BLD Latency")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@$(STN)_avg_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}
+
+record(longin, "$(DEVICE):GDET_$(STN)_DUP") {
+	field(DESC, "GDET BLD Duplicate Packet Cnt")
+	field(EGU,  "Count")
+	field(SCAN, "$(STAT_SCAN)")
+	field(DTYP, "BusAddress")
+	field(INP,  "#C0S2@$(STN)_dup_f,m32")
+}
+
+# just write .PROC
+record(longout, "$(DEVICE):GDET_$(STN)_DUPRST") {
+	field(DESC, "Rst.GDET BLD Duplicate Packet Cnt")
+	field(SCAN, "Passive")
+	field(DTYP, "BusAddress")
+	field(OUT,  "#C0S2@$(STN)_dup_f,m32")
+	field(VAL,  "0")
+	field(PINI, "YES")
+}

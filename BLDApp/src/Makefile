@@ -28,11 +28,13 @@ endif
 LIBRARY_IOC		+= devBLDMCastWfRecv
 
 # BLD*.dbd will be installed
+DBD += devBLDRcvr.dbd
 DBD += devBLDSndr.dbd
 
 #=============================
 # The following are compiled and added to the Support library for devBLDMCastWfRecv
 devBLDMCastWfRecv_SRCS = devBLDMCastWfRecv.c
+
 
 # build an ioc application for Multicast Sender
 # PROD_IOC = $(PROD_IOC_$(T_A))
@@ -86,6 +88,13 @@ BLDSender_SRCS += devBLDMCastStatus.c
 #BLDSender_SRCS += catest.c
 #BLDSender_SRCS += camon.c
 #BLDSender_SRCS += getBLD.c
+
+# Include Multicast Receiver support
+BLDSender_SRCS += BLDMCastReceiver.c
+BLDSender_SRCS += BLDMCastReceiverGdet.c
+BLDSender_SRCS += BLDMCastReceiverImb.c
+BLDSender_SRCS += BLDMCastReceiverPhaseCavity.c
+BLDSender_SRCS += devBLDMCastReceiver.c
 
 # Build the main IOC entry point on workstation OSs.
 BLDSender_SRCS += BLDSender_registerRecordDeviceDriver.cpp
