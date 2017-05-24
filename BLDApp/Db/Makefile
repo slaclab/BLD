@@ -11,20 +11,18 @@ include $(TOP)/configure/CONFIG
 # Create and install (or just install) into <top>/db
 # databases, templates, substitutions like this
 
-#DB += bsaBLDReceiverPhaseCavityEdef.db
-#DB += bsaBLDReceiverImbEdef.db
-#DB += bsaBLDReceiverGdetEdef.db
-#DB += BLDMCastReceiverPcavs.db
-#DB += BLDMCastReceiverImbs.db
-#DB += BLDMCastReceiverGdets.db
-#DB += BLDMCastReceiver.db
+DB += bsaBLDReceiverPhaseCavityEdef.db
+DB += bsaBLDReceiverImbEdef.db
+DB += bsaBLDReceiverGdetEdef.db
+DB += BLDMCastReceiverPcavs.db
+DB += BLDMCastReceiverImbs.db
+DB += BLDMCastReceiverGdets.db
+DB += BLDMCastReceiver.db
 
 DB += bsaBLDEdef.db
 DB += BLDMCast.db
 DB += fcom_stats.db
 DB += BLDMCastWfRecv.db
-DB += BLDMCastReceiverGdets.db
-DB += BLDMCastReceiver.db
 DB += dispersion.db
 DB += simAo.db
 DB += eBeamFcomSim.db
@@ -34,9 +32,9 @@ DB += eOrbitsFcomSim.db
 DB += evrFidTest.db
 
 # EVR, BSA, Trigger related databases
-#DB += IOC-SYS0-BD02evr.db
-#DB += IOC-SYS0-BD02bsa.db
-#DB += IOC-SYS0-BD02trig.db
+DB += IOC-SYS0-BD02evr.db
+DB += IOC-SYS0-BD02bsa.db
+DB += IOC-SYS0-BD02trig.db
 
 DB += IOC-SYS0-BD01evr.db
 DB += IOC-SYS0-BD01bsa.db

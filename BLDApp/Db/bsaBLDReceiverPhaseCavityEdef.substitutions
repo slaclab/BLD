@@ -1,0 +1,29 @@
+#==============================================================================
+#
+# Abs:  Beam Synchronous Acquisition records for the BLD - Phase Cavity
+#
+# Name: bsaBLDReceiverPhaseCavityEdef.substitutions
+#
+# Note: Must follow the LCLS naming conventions.
+#
+#==============================================================================
+#
+file bsaATTREdef.db
+{
+#           Device   Attribute  Input          EGU   HOPR  LOPR PREC ADEL  Link
+  pattern { D, ATTR, I, EG, HO, LO, PR, AD, LNK }
+	  { $(DEVICE), PCAV1_CHARGE1, $(DEVICE):PCAV_PhaseCavity_CHARGE1, pC, 3, -3, 3, .001, "" }
+	  { $(DEVICE), PCAV1_CHARGE2, $(DEVICE):PCAV_PhaseCavity_CHARGE2, pC, 3, -3, 3, .001, "" }
+	  { $(DEVICE), PCAV1_FITTIME1, $(DEVICE):PCAV_PhaseCavity_FITTIME1, ps, 3, -3, 3, .001, "" }
+	  { $(DEVICE), PCAV1_FITTIME2, $(DEVICE):PCAV_PhaseCavity_FITTIME2, ps, 3, -3, 3, .001, "" }
+	  { $(DEVICE), PCAV1_PULSEID, $(DEVICE):PCAV_PhaseCavity_PULSEID, count, 3, -3, 3, .001, "" }
+	  { $(DEVICE), PCAV1_STATUS, $(DEVICE):PCAV_PhaseCavity_STATUS, status, 3, -3, 3, .001, "" }
+
+	  { $(DEVICE), PCAV254_CHARGE1, $(DEVICE):PCAV_PhaseCavityTest_CHARGE1, pC, 3, -3, 3, .001, "" }
+	  { $(DEVICE), PCAV254_CHARGE2, $(DEVICE):PCAV_PhaseCavityTest_CHARGE2, pC, 3, -3, 3, .001, "" }
+	  { $(DEVICE), PCAV254_FITTIME1, $(DEVICE):PCAV_PhaseCavityTest_FITTIME1, ps, 3, -3, 3, .001, "" }
+	  { $(DEVICE), PCAV254_FITTIME2, $(DEVICE):PCAV_PhaseCavityTest_FITTIME2, ps, 3, -3, 3, .001, "" }
+	  { $(DEVICE), PCAV254_PULSEID, $(DEVICE):PCAV_PhaseCavityTest_PULSEID, count, 3, -3, 3, .001, "" }
+	  { $(DEVICE), PCAV254_STATUS, $(DEVICE):PCAV_PhaseCavityTest_STATUS, status, 3, -3, 3, .001, "" }
+}
+

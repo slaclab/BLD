@@ -1,0 +1,35 @@
+#==============================================================================
+#
+# Abs:  Beam Synchronous Acquisition records for the BLD - Imb
+#
+# Name: bsaBLDReceiverImbEdef.substitutions
+#
+# Note: Must follow the LCLS naming conventions.  
+#
+#==============================================================================
+#
+file bsaATTREdef.db
+{
+#           Device   Attribute  Input          EGU   HOPR  LOPR PREC ADEL  Link
+  pattern { D, 		ATTR, 						I, EG, HO, LO, PR, AD, LNK }
+	  	{ $(DEVICE), IMB4_SUM, 		$(DEVICE):IMB_HxxUm6Imb01_SUM, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB4_XPOS, 	$(DEVICE):IMB_HxxUm6Imb01_XPOS, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB4_YPOS, 	$(DEVICE):IMB_HxxUm6Imb01_YPOS, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB4_CHANNEL10,	$(DEVICE):IMB_HxxUm6Imb01_CHANNEL10, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB4_CHANNEL11,	$(DEVICE):IMB_HxxUm6Imb01_CHANNEL11, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB4_CHANNEL12,	$(DEVICE):IMB_HxxUm6Imb01_CHANNEL12, status, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB4_CHANNEL13,	$(DEVICE):IMB_HxxUm6Imb01_CHANNEL13, status, 0, 0, 0, .001, "" }	  
+	  	{ $(DEVICE), IMB4_PULSEID,	$(DEVICE):IMB_HxxUm6Imb01_PULSEID, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB4_STATUS,	$(DEVICE):IMB_HxxUm6Imb01_STATUS, status, 0, 0, 0, .001, "" }    
+	  
+	  	{ $(DEVICE), IMB5_SUM, 		$(DEVICE):IMB_HxxUm6Imb02_SUM, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB5_XPOS, 	$(DEVICE):IMB_HxxUm6Imb02_XPOS, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB5_YPOS, 	$(DEVICE):IMB_HxxUm6Imb02_YPOS, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB5_CHANNEL10, 	$(DEVICE):IMB_HxxUm6Imb02_CHANNEL10, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB5_CHANNEL11, 	$(DEVICE):IMB_HxxUm6Imb02_CHANNEL11, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB5_CHANNEL12, 	$(DEVICE):IMB_HxxUm6Imb02_CHANNEL12, status, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB5_CHANNEL13,	$(DEVICE):IMB_HxxUm6Imb02_CHANNEL13, status, 0, 0, 0, .001, "" }	  
+	  	{ $(DEVICE), IMB5_PULSEID, 	$(DEVICE):IMB_HxxUm6Imb02_PULSEID, count, 0, 0, 0, .001, "" }
+	  	{ $(DEVICE), IMB5_STATUS, 	$(DEVICE):IMB_HxxUm6Imb02_STATUS, status, 0, 0, 0, .001, "" }    	  
+}
+
