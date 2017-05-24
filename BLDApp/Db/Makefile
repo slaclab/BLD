@@ -41,7 +41,7 @@ DB += IOC-SYS0-BD01bsa.db
 DB += IOC-SYS0-BD01trig.db
 
 # Measurement and calculation for LCLS IN20 RF04 IOC-IN20-RF04
-#DB += IOC-SYS0-BD02access.db
+DB += IOC-SYS0-BD02access.db
 
 # ========================================
 # Install timing/event related databases
