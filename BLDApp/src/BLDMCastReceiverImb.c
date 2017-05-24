@@ -20,8 +20,7 @@ int imb_create(BLDMCastReceiver **bld_receiver,char *multicast_group) {
   }
 
   (*bld_receiver)->report = imb_report;
-  printf("\nINFO: Imb receiver at 0x%x\n",
-	 (int) bld_receiver); 
+  printf("\nINFO: Imb receiver at 0x%p\n", bld_receiver); 
   
   if (strcmp(multicast_group,"239.255.24.4")== 0) 
   		scanIoInit(&bldHxxUm6Imb01Ioscan);
@@ -32,7 +31,7 @@ int imb_create(BLDMCastReceiver **bld_receiver,char *multicast_group) {
 }
 
 void imb_report(void *bld_receiver, int level) {
-  if (bld_receiver != NULL & level > 2) {
+  if (bld_receiver != NULL && level > 2) {
     BLDMCastReceiver *receiver = bld_receiver;
     printf("*** Imb BLD ***\n");
     bld_receiver_report(bld_receiver, level);

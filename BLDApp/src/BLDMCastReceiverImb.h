@@ -7,12 +7,13 @@
 
 /*
  * Imb Data
-   Everything that has "Imb" has the following payload structure
-   
+ * Everything that has "Imb" has the following payload structure
+ */
+#if 0
 class BldDataIpimbV1 {
 public:
-  enum { TypeId = Pds::TypeId::Id_SharedIpimb /**< XTC type ID value (from Pds::TypeId class)  };
-  enum { Version = 1 /**< XTC type version number  };
+  enum { TypeId = Pds::TypeId::Id_SharedIpimb }; // XTC type ID value (from Pds::TypeId class)
+  enum { Version = 1 }; // XTC type version number
   BldDataIpimbV1() {}
   BldDataIpimbV1(const BldDataIpimbV1& other) {
     const char* src = reinterpret_cast<const char*>(&other);
@@ -32,10 +33,8 @@ private:
   Ipimb::ConfigV2	_ipimbConfig;
   Lusi::IpmFexV1	_ipmFexData;
 };
+#endif
 
-
-*/
-   
 typedef struct BLDImb {
 
   /* IPIMB Raw data */

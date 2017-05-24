@@ -169,7 +169,7 @@ static long ai_ioint_info(int cmd,aiRecord *pai,IOSCANPVT *iopvt) {
 static long read_ai(struct aiRecord *pai) {
 
   aiBld_t *paip;
-  float	v;	
+  float	v = 0.0;
 	
 	/* Set this to facilitate easy access to mc_group fields */
 	if (pai->dpvt == NULL) {
@@ -222,22 +222,22 @@ static long read_ai(struct aiRecord *pai) {
 						BLDGdet *gdet_payload = (BLDGdet *) paip->receiver->bld_payload_bsa;	
 						switch (paip->attr) {
 							case ENRC_11:
-    			  				v = __ld_le64(&(gdet_payload->f_ENRC_11));
+    			  				v = __ld_le64((Flt64_LE *)&(gdet_payload->f_ENRC_11));
     			 				 break;
 							case ENRC_12:
-    			  				v = __ld_le64(&(gdet_payload->f_ENRC_12));
+    			  				v = __ld_le64((Flt64_LE *)&(gdet_payload->f_ENRC_12));
     			  				break;
 							case ENRC_21:
-    			  				v = __ld_le64(&(gdet_payload->f_ENRC_21));
+    			  				v = __ld_le64((Flt64_LE *)&(gdet_payload->f_ENRC_21));
     			  				break;
 							case ENRC_22:
-    			  				v = __ld_le64(&(gdet_payload->f_ENRC_22));
+    			  				v = __ld_le64((Flt64_LE *)&(gdet_payload->f_ENRC_22));
     			  				break;	
 							case ENRC_63:
-    			  				v = __ld_le64(&(gdet_payload->f_ENRC_63));
+    			  				v = __ld_le64((Flt64_LE *)&(gdet_payload->f_ENRC_63));
     			  				break;
 							case ENRC_64:
-    			  				v = __ld_le64(&(gdet_payload->f_ENRC_64));
+    			  				v = __ld_le64((Flt64_LE *)&(gdet_payload->f_ENRC_64));
     			  				break;									
 						}
 					}

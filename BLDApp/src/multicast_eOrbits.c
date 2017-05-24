@@ -185,10 +185,10 @@ int eOrbitsLoop( const char * group, int port, const char * interface )
 {
 	int					status;
 	unsigned int		i;
-	struct sockaddr_in	addr;
 	int					sFd, cnt;
 	int					mcastTTL = MCAST_TTL;
 #if 0
+	struct sockaddr_in	addr;
 	struct timespec		sendDelay;
 #endif
 	double				radians	= 0.0;

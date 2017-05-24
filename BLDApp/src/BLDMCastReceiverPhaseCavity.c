@@ -24,8 +24,7 @@ int phase_cavity_create(BLDMCastReceiver **bld_receiver, char *multicast_group) 
   }
 
   (*bld_receiver)->report = phase_cavity_report;
-  printf("\nINFO: PhaseCavity receiver at 0x%x\n",
-	 (int) bld_receiver);
+  printf("\nINFO: PhaseCavity receiver at 0x%p\n", bld_receiver);
 
   if (strcmp(multicast_group,"239.255.24.1")== 0)
   	scanIoInit(&bldPhaseCavityIoscan);
@@ -35,8 +34,9 @@ int phase_cavity_create(BLDMCastReceiver **bld_receiver, char *multicast_group) 
   return 0;
 }
 
-void phase_cavity_report(void *bld_receiver, int level) {
-  if (bld_receiver != NULL & level > 2) {
+void phase_cavity_report(void *bld_receiver, int level)
+{
+  if (bld_receiver != NULL && level > 2) {
     BLDMCastReceiver *receiver = bld_receiver;
     printf("*** PhaseCavity BLD ***\n");
     bld_receiver_report(bld_receiver, level);
