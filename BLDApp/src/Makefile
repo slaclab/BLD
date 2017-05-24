@@ -25,7 +25,9 @@ endif
 # Comment this line to build a host-ioc; you'd need to exclude
 # several facilities (evr, micro, ...) for this to work.
 
-LIBRARY_IOC		+= devBLDMCastWfRecv
+#LIBRARY_IOC += devBLDMCastWfRecv
+#LIBRARY_IOC	+= bldSndrSupport
+#LIBRARY_IOC	+= bldRcvrSupport
 
 # BLD*.dbd will be installed
 DBD += devBLDRcvr.dbd
@@ -33,13 +35,13 @@ DBD += devBLDSndr.dbd
 
 #=============================
 # The following are compiled and added to the Support library for devBLDMCastWfRecv
-devBLDMCastWfRecv_SRCS = devBLDMCastWfRecv.c
+#devBLDMCastWfRecv_SRCS = devBLDMCastWfRecv.c
 
 
-# build an ioc application for Multicast Sender
-# PROD_IOC = $(PROD_IOC_$(T_A))
+# build an ioc application for Multicast Receiver only
+# or Multicast Sender only or Receiver and Sender.
 PROD_IOC      += BLDSender
-# PROD_IOC      += BLDReceiver
+PROD_IOC      += BLDReceiver
 # PROD_IOC      += bldget
 # PROD_IOC      += bldrx
 
@@ -61,13 +63,11 @@ BLDSender_DBD += devBusMapped.dbd
 BLDSender_DBD += devBLDSndr.dbd
 BLDSender_DBD += devBLDMCastWfRecv.dbd
 
-#=============================
-
 # Add all the support libraries needed by this IOC for BLDSender app
 BLDSender_LIBS += autosave
 BLDSender_LIBS += devIocStats
 BLDSender_LIBS += diagTimer
-BLDSender_LIBS += devBLDMCastWfRecv
+#BLDSender_LIBS += devBLDMCastWfRecv
 BLDSender_LIBS += fcomIocshSupport
 BLDSender_LIBS += fcomUtil
 BLDSender_LIBS += fcom
@@ -85,16 +85,10 @@ BLDSender_LIBS += $(EPICS_BASE_IOC_LIBS)
 BLDSender_SRCS += BLDMCast.c
 BLDSender_SRCS += multicast_eOrbits.c
 BLDSender_SRCS += devBLDMCastStatus.c
+BLDSender_SRCS += devBLDMCastWfRecv.c
 #BLDSender_SRCS += catest.c
 #BLDSender_SRCS += camon.c
 #BLDSender_SRCS += getBLD.c
-
-# Include Multicast Receiver support
-BLDSender_SRCS += BLDMCastReceiver.c
-BLDSender_SRCS += BLDMCastReceiverGdet.c
-BLDSender_SRCS += BLDMCastReceiverImb.c
-BLDSender_SRCS += BLDMCastReceiverPhaseCavity.c
-BLDSender_SRCS += devBLDMCastReceiver.c
 
 # Build the main IOC entry point on workstation OSs.
 BLDSender_SRCS += BLDSender_registerRecordDeviceDriver.cpp
@@ -104,32 +98,42 @@ BLDSender_SRCS_vxWorks += -nil-
 #=============================
 # BLDReceiver product
 #=============================
-#DBD += BLDReceiver.dbd
+# BLDReceiver.dbd will be created and installed
+DBD += BLDReceiver.dbd
 
 # BLDReceiver.dbd will be made up from these files:
-#BLDReceiver_DBD += base.dbd
-#BLDReceiver_DBD += evrSupport.dbd
-#BLDReceiver_DBD += devMrfEr.dbd
-#BLDReceiver_DBD += autosave.dbd
-#BLDReceiver_DBD += iocAdmin.dbd
-#BLDReceiver_DBD += devBusMapped.dbd
-#BLDReceiver_DBD += devBLDRcvr.dbd
+BLDReceiver_DBD += base.dbd
+BLDReceiver_DBD += evrSupport.dbd
+BLDReceiver_DBD += devMrfEr.dbd
+BLDReceiver_DBD += autosaveSupport.dbd
+BLDReceiver_DBD += iocAdmin.dbd
+BLDReceiver_DBD += devBusMapped.dbd
+BLDReceiver_DBD += devBLDRcvr.dbd
+
+#=============================
+
+# Add all the support libraries needed by this IOC for BLDSender app
+BLDReceiver_LIBS += autosave
+BLDReceiver_LIBS += devIocStats
+BLDReceiver_LIBS += evrSupport
+BLDReceiver_LIBS += devMrfEr
+BLDReceiver_LIBS_RTEMS += mrfVme64x
+BLDReceiver_LIBS_Linux += drvMrf
+#BLDReceiver_LIBS_Linux += evrma
+BLDReceiver_LIBS += devBusMapped
+BLDReceiver_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 
-#bldRcvrSupport_SRCS += BLDMCastReceiver.c
-#bldRcvrSupport_SRCS += BLDMCastReceiverPhaseCavity.c
-#bldRcvrSupport_SRCS += devBLDMCastReceiver.c
-#bldRcvrSupport_SRCS += BLDMCastReceiverImb.c
-#bldRcvrSupport_SRCS += BLDMCastReceiverGdet.c
+# Include Multicast Receiver support
+BLDReceiver_SRCS += BLDMCastReceiver.c
+BLDReceiver_SRCS += BLDMCastReceiverGdet.c
+BLDReceiver_SRCS += BLDMCastReceiverImb.c
+BLDReceiver_SRCS += BLDMCastReceiverPhaseCavity.c
+BLDReceiver_SRCS += devBLDMCastReceiver.c
 
-# Add all the support libraries needed by this IOC for BLDReceiver app
-#BLDReceiver_LIBS += evrSupport
-#BLDReceiver_LIBS += devMrfEr
-#BLDReceiver_LIBS += mrfVme64x
-#BLDReceiver_LIBS += autosave
-#BLDReceiver_LIBS += devIocStats
-#BLDReceiver_LIBS += devBusMapped
-#BLDReceiver_LIBS += bldRcvrSupport
+# Build the main IOC entry point on workstation OSs.
+BLDReceiver_SRCS += BLDReceiver_registerRecordDeviceDriver.cpp
+BLDReceiver_SRCS_DEFAULT += BLDMain.cpp
 
 #=============================
 # bldget product
