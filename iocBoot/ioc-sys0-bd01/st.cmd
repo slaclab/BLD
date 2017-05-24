@@ -20,7 +20,7 @@ setenv("FAC", "SYS0")
 setenv("NMBR","500")
 
 # BLD MCAST traffic from photon side arrives with CA traffic on ETH0 network port
-epicsEnvSet("MCASTETHPORT","PROD_IPADDR0")
+setenv("MCASTETHPORT","PROD_IPADDR0")
 # BLD MCAST traffic to photon side sent on FNET using ETH2
 setenv("IPADDR1","172.27.28.14",0)		# LCLS VME BD01 IOC ETH2 - ioc-sys0-bd01-fnet on LCLSFNET subnet
 setenv("NETMASK1","255.255.252.0",0)
