@@ -60,6 +60,7 @@ BLDSender_DBD += fcomIocshSupport.dbd
 BLDSender_DBD += fcomUtil.dbd
 BLDSender_DBD += devFcom.dbd
 BLDSender_DBD += devBusMapped.dbd
+BLDSender_DBD += devBLDRcvr.dbd
 BLDSender_DBD += devBLDSndr.dbd
 BLDSender_DBD += devBLDMCastWfRecv.dbd
 
@@ -89,6 +90,13 @@ BLDSender_SRCS += devBLDMCastWfRecv.c
 #BLDSender_SRCS += catest.c
 #BLDSender_SRCS += camon.c
 #BLDSender_SRCS += getBLD.c
+
+# Include Multicast Receiver support
+BLDSender_SRCS += BLDMCastReceiver.c
+BLDSender_SRCS += BLDMCastReceiverGdet.c
+BLDSender_SRCS += BLDMCastReceiverImb.c
+BLDSender_SRCS += BLDMCastReceiverPhaseCavity.c
+BLDSender_SRCS += devBLDMCastReceiver.c
 
 # Build the main IOC entry point on workstation OSs.
 BLDSender_SRCS += BLDSender_registerRecordDeviceDriver.cpp

@@ -1,5 +1,5 @@
 TOP = ../..
 include $(TOP)/configure/CONFIG
 ARCH = RTEMS-beatnik
-TARGETS = cdCommands envPaths
+TARGETS = envPaths
 include $(TOP)/configure/RULES.ioc
