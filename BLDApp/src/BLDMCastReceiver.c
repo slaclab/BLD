@@ -28,16 +28,17 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <errno.h>
 #include <getopt.h>
 #include <signal.h>
 #include <unistd.h>
 #include <time.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <netdb.h>
 #include <sys/uio.h>
@@ -53,8 +54,9 @@
 
 #include <errlog.h>
 
-#include <evrTime.h>
-#include <evrPattern.h>
+#include "evrTime.h"
+#include "evrPattern.h"
+#include "devBusMapped.h"
 
 #include "BLDMCastReceiver.h"
 #include "BLDMCastReceiverPhaseCavity.h"
@@ -90,6 +92,11 @@ IOC-B34-BD02	172.25.160.76	IOC-B34-BD02-BLD	B034-LCLSBLD	-					No
 /* ioc-sys0-bd02-bld and ioc-b34-bd02-bld */
 #define BLD_PROD_RCVR_IOC1_ETH2 "172.27.225.22"
 #define BLD_DEV_RCVR_IOC1_ETH2 "172.25.160.75"
+
+/* Global BLD Receiver enables */
+int ENABLE_GDET_RECEIVER	= 0;
+int ENABLE_IMB_RECEIVER		= 0;
+int ENABLE_PCAV_RECEIVER	= 0;
 
 extern IOSCANPVT bldPhaseCavityIoscan;
 extern IOSCANPVT bldFEEGasDetEnergyIoscan;
@@ -339,7 +346,8 @@ static int bld_register_mulitcast(BLDMCastReceiver *this) {
  * @return 0 on success, -1 on failure
  */
 int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_count,
-			char *multicast_group, int port) {
+			char *multicast_group, int port)
+{
 	*this = (BLDMCastReceiver *) malloc(sizeof(BLDMCastReceiver));
 	if (*this == NULL) {
       fprintf(stderr, "ERROR: Failed to allocate memory for BLDMCastReceiver\n");
@@ -643,6 +651,30 @@ void bld_receivers_report(int level) {
   }
 }
 
+int bldReceiverThreadStart( const char * threadName, BLDMCastReceiver * pBLDReceiver )
+{
+	int	status = -1;
+	if ( pBLDReceiver )
+	{
+		epicsThreadId	tid;
+		printf("\nINFO: Starting %s BLDReceiver thread ... \n", threadName );
+		tid = epicsThreadMustCreate(	threadName, epicsThreadPriorityHigh-1,
+								epicsThreadGetStackSize(epicsThreadStackMedium),
+								(EPICSTHREADFUNC) bld_receiver_run, pBLDReceiver	);
+		if ( tid )
+		{
+			status = 0;
+			printf("\nINFO: %s BLDReceiver thread Started.\n", threadName );
+		}
+		else
+		{
+			printf("\nERROR: Failed to start %s BLDReceiver thread.\n", threadName );
+		}
+	}
+	return status;
+}
+
+
  /* ==========================================================================
 
     Auth: Shantha Condamoor
@@ -656,52 +688,38 @@ void bld_receivers_report(int level) {
 			passes it directly to device support devBLDMCastReceiver via scanIoRequest.
 
 ============================================================================= */
-void bld_receivers_start() {
-
-  printf("\nINFO: Creating PhaseCavity Receiver... \n");
-  phase_cavity_create(&bldPhaseCavityReceiver,BLD_PhaseCavity_GROUP);
+void bld_receivers_start()
+{
+  if ( ENABLE_PCAV_RECEIVER ) {
+	printf("\nINFO: Creating PhaseCavity Receiver... \n");
+	phase_cavity_create(&bldPhaseCavityReceiver,BLD_PhaseCavity_GROUP);
+	bldReceiverThreadStart( "BLDPhaseCavityProd",		bldPhaseCavityReceiver );
+  }
   
-  printf("\nINFO: Creating XRT  FEEGasDetEnergyReceiver... \n");
-  gdet_create(&bldFEEGasDetEnergyReceiver,BLD_FEEGasDetEnergy_GROUP);  
+  if ( ENABLE_GDET_RECEIVER ) {
+	printf("\nINFO: Creating XRT  FEEGasDetEnergyReceiver... \n");
+	gdet_create(&bldFEEGasDetEnergyReceiver,BLD_FEEGasDetEnergy_GROUP);  
+    bldReceiverThreadStart( "BLDFEEGasDetEnergyProd", bldFEEGasDetEnergyReceiver );
+  }
 
-  printf("\nINFO: Creating XRT HxxUm6Imb01Imb  Imb Receiver... \n");
-  imb_create(&bldHxxUm6Imb01Receiver,BLD_HxxUm6Imb01_GROUP);
+  if ( ENABLE_IMB_RECEIVER ) {
+	printf("\nINFO: Creating XRT HxxUm6Imb01Imb  Imb Receiver... \n");
+	imb_create(&bldHxxUm6Imb01Receiver,BLD_HxxUm6Imb01_GROUP);
+    bldReceiverThreadStart( "BLDHxxUm6Imb01Prod",		bldHxxUm6Imb01Receiver );
+  }
 
-  printf("\nINFO: Creating XRT HxxUm6Imb02Imb Receiver... \n");
-  imb_create(&bldHxxUm6Imb02Receiver,BLD_HxxUm6Imb02_GROUP);
+  if ( ENABLE_IMB_RECEIVER ) {
+	printf("\nINFO: Creating XRT HxxUm6Imb02Imb Receiver... \n");
+	imb_create(&bldHxxUm6Imb02Receiver,BLD_HxxUm6Imb02_GROUP);
+    bldReceiverThreadStart( "BLDHxxUm6Imb02Prod",		bldHxxUm6Imb02Receiver );
+  }
 
-  printf("\nINFO: Creating PhaseCavityTest Receiver... \n");
-  phase_cavity_create(&bldPhaseCavityTestReceiver,BLD_PhaseCavityTest_GROUP);
+  if ( ENABLE_PCAV_RECEIVER ) {
+	printf("\nINFO: Creating PhaseCavityTest Receiver... \n");
+	phase_cavity_create(&bldPhaseCavityTestReceiver,BLD_PhaseCavityTest_GROUP);
+    bldReceiverThreadStart( "BLDPhaseCavityTestProd", bldPhaseCavityTestReceiver );
+  }
 
-  printf("\nINFO: Starting PhaseCavity Receiver... \n");
-
-  epicsThreadMustCreate("BLDPhaseCavityProd", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
-			(EPICSTHREADFUNC)bld_receiver_run, bldPhaseCavityReceiver);
-  printf(" done.\n ");
-
-  printf("\nINFO: Starting FEEGasDetEnergyReceiver Receiver... \n");
-
-  epicsThreadMustCreate("BLDFEEGasDetEnergyProd", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
-			(EPICSTHREADFUNC)bld_receiver_run, bldFEEGasDetEnergyReceiver);
-  printf(" done.\n ");
-  
-  printf("\nINFO: Starting XRT Imb Receiver HxxUm6Imb01... \n");
-
-  epicsThreadMustCreate("BLDHxxUm6Imb01Prod", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
-			(EPICSTHREADFUNC)bld_receiver_run, bldHxxUm6Imb01Receiver);
-  printf(" done.\n ");
-
-  printf("\nINFO: Starting XRT Imb Receiver HxxUm6Imb02... \n");
-
-  epicsThreadMustCreate("BLDHxxUm6Imb02Prod", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
-			(EPICSTHREADFUNC)bld_receiver_run, bldHxxUm6Imb02Receiver);
-  printf(" done.\n ");
-
-  printf("\nINFO: Starting PhaseCavityTest Receiver... \n");
-
-  epicsThreadMustCreate("BLDPhaseCavityTestProd", epicsThreadPriorityHigh-1, epicsThreadGetStackSize(epicsThreadStackMedium),
-			(EPICSTHREADFUNC)bld_receiver_run, bldPhaseCavityTestReceiver);
-  printf(" done.\n ");
 }
 
 void bld_receiver_report(void *this, int level) {
