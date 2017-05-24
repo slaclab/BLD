@@ -9,6 +9,8 @@
 # IOC-IN20-RF01 startup script for LCLS LLRF production
 
 # For iocAdmin
+epicsEnvSet("ENGINEER","Shantha Condamoor")
+epicsEnvSet("LOCATION",getenv("LOCN"))
 setenv("LOCN","B005-2930")
 setenv("IOC_MACRO","IOC=IOC:SYS0:BD02")
 
@@ -27,15 +29,19 @@ setenv("NETMASK1","255.255.252.0",0)
 # execute generic part
 . "../st.vmegeneric.cmd"
 
-errlogPrintf("Alert! BLDReciever.obj no longer being built by the BLD ioc!\n")
-
-# Load IN20 RF01 VME IOC
+# Load obj file
 ld("../../bin/RTEMS-beatnik/BLDReceiver.obj")
 
 # Load envPaths
 . envPaths
 chdir( "../.." )
 
+# =====================================================================
+# Turn Off BSP Verbosity
+# =====================================================================
+bspExtVerbosity=0
+
+## Configure 2nd NIC using lanIpBasic
 lanIpSetup(getenv("IPADDR1"),getenv("NETMASK1"),0,0)
 lanIpDebug=0
 padProtoDebug=0
@@ -78,7 +84,7 @@ ErConfigure(0, 0, 0, 0, 1)			# PMC EVR:SYS0:BD02
 #ErConfigure( 0,0x300000,0x60,4,0)   # VME EVR:SYS0:BD02
 
 evrInitialize()
-bspExtVerbosity = 1
+#bspExtVerbosity = 1
 
 # Load EVR and Pattern databases
 dbLoadRecords("db/IOC-SYS0-BD02evr.db","EVR=EVR:SYS0:BD02")	# EVR CARD 0
@@ -96,7 +102,18 @@ epicsEnvSet("IOC_MACRO","IOC=IOC:SYS0:BD02")
 epicsEnvSet("IOCSH_PS1","ioc-sys0-bd02:")
 
 # Load standard databases
-. "iocBoot/st.vmedb.cmd"
+#. "iocBoot/st.vmedb.cmd"
+
+# Load iocAdmin databases to support IOC Health and monitoring
+# =====================================================================
+dbLoadRecords("db/iocAdminRTEMS.db","IOC=IOC:SYS0:BD02",0)
+dbLoadRecords("db/iocAdminScanMon.db","IOC=IOC:SYS0:BD02",0)
+
+# The following database is a result of a python parser
+# which looks at RELEASE_SITE and RELEASE to discover
+# versions of software your IOC is referencing
+# The python parser is part of iocAdmin
+dbLoadRecords("db/iocRelease.db","IOC=IOC:SYS0:BD02",0)
 
 # Load BSA database
 dbLoadRecords("db/IOC-SYS0-BD02bsa.db",0)
@@ -115,14 +132,23 @@ dbLoadRecords("db/BLDMCastReceiverPcavs.db","DEVICE=BLD:SYS0:500")
 dbLoadRecords("db/BLDMCastReceiverImbs.db","DEVICE=BLD:SYS0:500")
 dbLoadRecords("db/BLDMCastReceiverGdets.db","DEVICE=BLD:SYS0:500")
 
-# PhaseCavityTest
-
 # END: Loading the record databases
 # =====================================================================
 # Setup autosave/restore
 # =====================================================================
 
-. "iocBoot/init_restore.cmd"
+#. "iocBoot/init_restore.cmd"
+
+## autosave/restore settings
+save_restoreSet_status_prefix( "IOC:SYS0:BD01:")
+save_restoreSet_IncompleteSetsOk(1)
+save_restoreSet_DatedBackupFiles(1)
+
+set_requestfile_path("/data/autosave-req")
+set_savefile_path("/data/autosave")
+
+set_pass0_restoreFile( "info_positions.sav" )
+set_pass1_restoreFile( "info_settings.sav" )
 
 # Capture load addresses of all modules (essential for debugging if iocInit crashes...)
 
