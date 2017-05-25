@@ -38,7 +38,8 @@ BUILD_FOR_HOST_ARCH = ""
 # You must rebuild in the iocBoot directory for this to
 #   take effect.
 #IOCS_APPL_TOP = </IOC/path/to/application/top>
-IOCS_APPL_TOP  = $(INSTALL_LOCATION)
+# Use FULLPATHNAME like IOCS_APPL_TOP definition in $(CONFIG)/CONFIG_COMMON
+IOCS_APPL_TOP               = $(shell $(FULLPATHNAME) $(INSTALL_LOCATION))
 
 INSTALL_LOCATION_STARTUP += $(INSTALL_LOCATION)/startup
 DIRECTORY_TARGETS += $(INSTALL_LOCATION_STARTUP)
