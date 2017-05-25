@@ -1,5 +1,37 @@
 # Put your release notes or change log information
 # in here.
+BLD-R2-9-2
+	Bruce Hill: 2017-05-24 on git branch master
+	Added GDET BLD Rcvr to BldSender app and ioc-sys0-bd01
+	Added checks to avoid crash if a BLD receiver can't be created.
+	Restored BLDMCastReceiver files
+
+BLD-R2-9-1
+	Bruce Hill: 2016-08-17 on MAIN_TRUNK
+	Replaced TS1 event codes w/ TS4 event codes and enabled VME IRQ for EC 40
+
+BLD-R2-9-0
+	Bruce Hill: 2016-08-11 on MAIN_TRUNK
+	Updated ioc st.cmd files so ioc-sys0-bd01 sends both eBeam and eOrbits BLD
+		and vioc-sys0-bd03 just sends dummy eBeam BLD to 254
+	Updated to build RTEMS vs event-R4-2-4 and linux vs evrClient-R1-0-p7.
+	Also updates to fcomUtil-R1-2-4 for duplicate timestamp checks on calls to fcomGetBlob()
+	Modified to use udpComm instead of posix socket calls so we can send eOrbits BLD from RTEMS
+	Reworked st.vmegeneric.cmd and st.fnetgeneric.b34.cmd to be compatible w/ envPaths being source in st.cmd
+	Tweaked debug variables in vioc-b34-bd03/st.cmd and added an evr only vioc-sys0-bd03-test
+	Added some timing diagnostics and fixed eOrbitsFcom.substitutions
+
+BLD-R2-8-0
+	Bruce Hill: 2016-06-19 on MAIN_TRUNK
+	Adding support for sending eOrbits BLD packets.
+	Includes new fcomUtil support for subscribing to FCOM via db files.
+	CA connectionCallback added so CA PV's can reconnect as needed.
+		Only works for new evrClient EVR driver on linux or linuxRT.
+	Adding support for eOrbits BLD packets and allowing independent enable of eBeam and/or eOrbits BLD
+	Adding new EORBITS support
+	Updated to use new drvFcom support to allow testing in development environment
+		with simulated FCOM traffic needed for eBeam and eOrbits BLD support.
+
 BLD-R2-7-7:
 	Bruce Hill: 27-May-2016: on MAIN_TRUNK
 		Fixed several problems w/ VME IOC files from bad commit.
