@@ -66,7 +66,7 @@ file evrEventCtrl.db
 {
 #	  Device         Card  <----------------------------  Event -------------------------->       
 pattern { DEV          ,  CARD , NAME    , ID ,P0,P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12,P13,VME,	SYS	 }
-	{ EVR:SYS0:BD01,   		0  , EVENT1  ,140 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0,	SYS0 }
+	{ EVR:SYS0:BD01,   		0  , EVENT1  ,140 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 1,	SYS0 }
 	{ EVR:SYS0:BD01,   		0  , EVENT2  ,141 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0,	SYS0 }
 	{ EVR:SYS0:BD01,   		0  , EVENT3  ,142 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , 0 , 0 , 0 , 0,	SYS0 }
 	{ EVR:SYS0:BD01,   		0  , EVENT4  , 43 , 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 , 1 , 1 , 1 , 1,	SYS0 }
