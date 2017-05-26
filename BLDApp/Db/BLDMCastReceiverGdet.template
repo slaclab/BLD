@@ -26,7 +26,7 @@ record(ai, "$(DEVICE):GDET_$(STN)_PULSEID") {
   field(INP,  "@0 $(MC)")
   field(PREC, "5")
   field(TSE,  "-1")
-  field(EGU,  "Count")
+  field(EGU,  "fid")
   field(FLNK, "$(DEVICE):EFGDET$(MC)_PULSEID")
   field(PRIO, "HIGH")
 }
@@ -50,7 +50,7 @@ record(ai, "$(DEVICE):GDET_$(STN)_ENRC_11") {
   field(INP,  "@2 $(MC)")
   field(PREC, "5")
   field(TSE,  "-1")
-  field(EGU,  "")
+  field(EGU,  "mJ")
   field(FLNK, "$(DEVICE):EFGDET$(MC)_ENRC_11")
   field(PRIO, "HIGH")
 }
@@ -62,7 +62,7 @@ record(ai, "$(DEVICE):GDET_$(STN)_ENRC_12") {
   field(INP,  "@3 $(MC)")
   field(PREC, "5")
   field(TSE,  "-1")
-  field(EGU,  "")
+  field(EGU,  "mJ")
   field(FLNK, "$(DEVICE):EFGDET$(MC)_ENRC_12")
   field(PRIO, "HIGH")
 }
@@ -74,7 +74,7 @@ record(ai, "$(DEVICE):GDET_$(STN)_ENRC_21") {
   field(INP,  "@4 $(MC)")
   field(PREC, "5")
   field(TSE,  "-1")
-  field(EGU,  "")
+  field(EGU,  "mJ")
   field(FLNK, "$(DEVICE):EFGDET$(MC)_ENRC_21")
   field(PRIO, "HIGH")
 }
@@ -86,7 +86,7 @@ record(ai, "$(DEVICE):GDET_$(STN)_ENRC_22") {
   field(INP,  "@5 $(MC)")
   field(PREC, "5")
   field(TSE,  "-1")
-  field(EGU,  "")
+  field(EGU,  "mJ")
   field(FLNK, "$(DEVICE):EFGDET$(MC)_ENRC_22")
   field(PRIO, "HIGH")
 }
@@ -98,7 +98,7 @@ record(ai, "$(DEVICE):GDET_$(STN)_ENRC_63") {
   field(INP,  "@6 $(MC)")
   field(PREC, "5")
   field(TSE,  "-1")
-  field(EGU,  "")
+  field(EGU,  "mJ")
   field(FLNK, "$(DEVICE):EFGDET$(MC)_ENRC_63")
   field(PRIO, "HIGH")
 }
@@ -110,7 +110,7 @@ record(ai, "$(DEVICE):GDET_$(STN)_ENRC_64") {
   field(INP,  "@7 $(MC)")
   field(PREC, "5")
   field(TSE,  "-1")
-  field(EGU,  "")
+  field(EGU,  "mJ")
   field(FLNK, "$(DEVICE):EFGDET$(MC)_ENRC_64")
   field(PRIO, "HIGH")
 }
