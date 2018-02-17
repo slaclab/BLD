@@ -8,6 +8,7 @@
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -29,7 +30,7 @@
 #include <waveformRecord.h>
 #include <udpComm.h>
 
-#include <BLDMCast.h>
+#include "BLDMCast.h"
 
 #include <time.h>
 
@@ -70,11 +71,14 @@ int             sd, err;
 waveformRecord  *p_wf = arg;
 WfDpvt          p_dp = p_wf->dpvt;
 UdpCommPkt      pkt;
-char            *ifaddr;
 
-	if ( (ifaddr = getenv("IPADDR1")) ) {
-		udpCommSetIfMcastInp( inet_addr(ifaddr) );
+	const char * strIP_BLD_RECV = getenv("IP_BLD_RECV");
+	if ( strIP_BLD_RECV == NULL || strlen(strIP_BLD_RECV) == 0 )
+	{
+		printf( "shuffler Error: IP_BLD_RECV env var not set!" );
+		return;
 	}
+	udpCommSetIfMcastInp( inet_addr(strIP_BLD_RECV) );
 
 	if ( (sd = udpCommSocket( BLDMCAST_DST_PORT )) < 0 ) {
 		errlogPrintf("Unable to create socket: %s\n", strerror(-sd));

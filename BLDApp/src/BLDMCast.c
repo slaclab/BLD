@@ -1604,7 +1604,14 @@ void  initHookBLDMCastStart( initHookState state )
 {
 	if ( state == initHookAfterIocRunning )
 	{
-		BLDMCastStart( 1, getenv("IPADDR1") );
+		const char * strIP_BLD_SEND = getenv("IP_BLD_SEND");
+		if ( strIP_BLD_SEND == NULL || strlen(strIP_BLD_SEND) == 0 )
+		{
+			printf( "initHookBLDMCastStart Error: IP_BLD_SEND env var not set!" );
+			return;
+		}
+		printf( "initHookBLDMCastStart: IP_BLD_SEND is %s\n", strIP_BLD_SEND );
+		BLDMCastStart( 1, strIP_BLD_SEND );
 	}
 }
 

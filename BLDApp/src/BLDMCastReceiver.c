@@ -63,36 +63,6 @@
 #include "BLDMCastReceiverImb.h"
 #include "BLDMCastReceiverGdet.h"
 
-/* node			ipnum			name				network_name	ethernet			dhcp
--------------	-------------	------------------	------------	-----------------	----
-PROD
------
-IOC-SYS0-BD02	172.27.29.100	IOC-SYS0-BD02-FNET	LCLSFNET		00:01:af:2c:6d:f4	Yes
-"				172.27.2.203	IOC-SYS0-BD02		LCLSIOC			00:01:af:2c:6d:f3	"
-"				172.27.225.22	IOC-SYS0-BD02-BLD	LCLSBLD			-					No
-DEV
------
-IOC-B34-BD02	172.25.160.76	IOC-B34-BD02-BLD	B034-LCLSBLD	-					No
-"				172.25.160.29	IOC-B34-BD02-FNET	B034-LCLSFBCK	"					"
-"				134.79.218.187	IOC-B34-BD02		LCLSDEV			"					"
-----
-*/
-/* scondam: 8-Apr-2015: Separate port and subnet for BLD traffic */
-
-/* ioc-sys0-bd01 and ioc-b34-bd01 */
-#define BLD_PROD_SNDR_IOC1_ETH0 "172.27.2.162"
-#define BLD_DEV_SNDR_IOC1_ETH0 "134.79.219.145"
-
-/* ioc-sys0-bd02 and ioc-b34-bd02 */
-#define BLD_PROD_RCVR_IOC1_ETH0 "172.27.2.203"
-#define BLD_DEV_RCVR_IOC1_ETH0 "134.79.219.145"
-/* ioc-sys0-bd02-fnet and ioc-b34-bd02-fnet */
-#define BLD_PROD_RCVR_IOC1_ETH1 "172.27.29.100"
-#define BLD_DEV_RCVR_IOC1_ETH1 "172.25.160.23"
-/* ioc-sys0-bd02-bld and ioc-b34-bd02-bld */
-#define BLD_PROD_RCVR_IOC1_ETH2 "172.27.225.22"
-#define BLD_DEV_RCVR_IOC1_ETH2 "172.25.160.75"
-
 /* Global BLD Receiver enables */
 int ENABLE_GDET_RECEIVER	= 1;
 int ENABLE_IMB_RECEIVER		= 0;
@@ -206,108 +176,62 @@ static int create_socket(unsigned int address, unsigned int port, int receive_bu
 /**
  * @param address multicast group address
  */
-static int register_multicast(int sock, unsigned int address) {
-  unsigned int interface;
+static int register_multicast(int sock, unsigned int address)
+{
+	unsigned int interface;
+	int name_len = 100;
+	char name[name_len];  
+	char str[100];
 
-  int name_len = 100;
-  char name[name_len];  
-
-  char *interface_string;
-
-  int rtncode = gethostname(name, name_len);
-
-  if (rtncode == 0) {
-  
-    printf("Hostname: %s Eth: %s\n",name,getenv("MCASTETHPORT"));
-	
-	if (strcmp("PROD_IPADDR0", getenv("MCASTETHPORT")) == 0) {
-		interface_string = BLD_PROD_RCVR_IOC1_ETH0;
-	}	
-	else if (strcmp("DEV_IPADDR0", getenv("MCASTETHPORT")) == 0) {
-		interface_string = BLD_DEV_RCVR_IOC1_ETH0;
-	}		
-	else if (strcmp("PROD_IPADDR1", getenv("MCASTETHPORT")) == 0) {
-		interface_string = BLD_PROD_RCVR_IOC1_ETH1;
+	const char * strIP_BLD_RECV = getenv("IP_BLD_RECV");
+	if ( strIP_BLD_RECV == NULL || strlen(strIP_BLD_RECV) == 0 )
+	{
+		printf( "initHookBLDMCastStart Error: IP_BLD_RECV env var not set!" );
+		return -1;
 	}
-	else if (strcmp("DEV_IPADDR1", getenv("MCASTETHPORT")) == 0) {
-		interface_string = BLD_DEV_RCVR_IOC1_ETH1;
-	}	
-	else if (strcmp("PROD_IPADDR2", getenv("MCASTETHPORT")) == 0) {
-		interface_string = BLD_PROD_RCVR_IOC1_ETH2;
-	}	
-	else if (strcmp("DEV_IPADDR2", getenv("MCASTETHPORT")) == 0) {
-		interface_string = BLD_DEV_RCVR_IOC1_ETH2;
-	}		
-	else {
-	  	printf("ERROR: BLD code running on unknown ethernet Port\n");
-	  	return -1;
+
+	int rtncode = gethostname(name, name_len);
+	if (rtncode != 0)
+	{
+		printf( "ERROR: BLD code running on unknown ethernet Port\n");
+		return -1;
 	}
-	
-    printf("Hostname: %s Eth: %s Addr: %s\n",name,getenv("MCASTETHPORT"),interface_string);	
-    
-    /* if (strcmp("ioc-sys0-bd01", name) == 0) {
-      interface_string = BLD_PROD_SNDR_IOC1_ETH0;
-    }
-    else {
-      if (strcmp("ioc-b34-bd01", name) == 0) {
-	interface_string = BLD_DEV_SNDR_IOC1_ETH0;
-      }
-      else {
-		if (strcmp("ioc-sys0-bd02", name) == 0) {
-			interface_string = BLD_PROD_RCVR_IOC1_ETH1;
-		}
-		else {
-			if (strcmp("ioc-b34-bd01", name) == 0) {		
-	  			interface_string = BLD_DEV_RCVR_IOC1_ETH1;				
-			}
-			else {
-	  			printf("ERROR: BLD code running on unknown IOC\n");
-	  			return -1;
-			}
-		}
-      }
-    } */
-  }
-  else {
-    printf("ERROR: Unable to get hostname (errno=%d, rtncode=%d)\n", errno, rtncode);
-    return -1;
-  }
 
-  printf("INFO: MCAST ETH address is %s\n", interface_string);
+	printf( "Hostname: %s IP_BLD_RECV: %s\n", name, strIP_BLD_RECV );
+	struct in_addr inp;
+	if (inet_aton(strIP_BLD_RECV, &inp) == 0) {
+		printf("ERROR: Failed on inet_aton() (errno=%d)\n", errno);
+		return -1;
+	}
 
-  struct in_addr inp;
-  if (inet_aton(interface_string, &inp) == 0) {
-    printf("ERROR: Failed on inet_aton() (errno=%d)\n", errno);
-    return -1;
-  }
+	interface = ntohl(inp.s_addr);
+	if (interface == 0)
+	{
+		printf("ERROR: Failed on ntohl(inet_addr(...)) (errno=%d)\n", errno);
+		return -1;
+	}
 
-  interface = ntohl(inp.s_addr);
+	address_to_string(interface, str);
+	printf( "IP_BLD_RECV: %s, interface = %u (%s), addr = %u (BLD RECEIVER)\n",
+			strIP_BLD_RECV, interface, str, address );
 
-  if (interface != 0) {
-    char str[100];
-    address_to_string(interface, str);
-    printf("Multicast interface IP: %s (interface %s) %u (RECEIVER)\n",
-	   str, interface_string, interface);
+	/* Register for multicast membership */
+	struct ip_mreq ipMreq;
+	memset((char*)&ipMreq, 0, sizeof(ipMreq));
+	ipMreq.imr_multiaddr.s_addr = htonl(address);
+	ipMreq.imr_interface.s_addr = htonl(interface);
+	if ( setsockopt( sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
+					(char*)&ipMreq, sizeof(ipMreq)) < 0 )
+	{
+		printf("ERROR: Failed to set socket multicast option (errno=%d)\n", errno);
+		return -1;
+	}
 
-    struct ip_mreq ipMreq;
-    memset((char*)&ipMreq, 0, sizeof(ipMreq));
-    ipMreq.imr_multiaddr.s_addr = htonl(address);
-    ipMreq.imr_interface.s_addr = htonl(interface);
-    if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&ipMreq,
-		   sizeof(ipMreq)) < 0 ) {
-      printf("ERROR: Failed to set socket multicast option (errno=%d)\n", errno);
-      return -1;
-    }
-  }
-  else {
-    printf("ERROR: Failed on ntohl(inet_addr(...)) (errno=%d)\n", errno);
-    return -1;
-  }
-
-  return 0;
+	return 0;
 }
 
-static int bld_register_mulitcast(BLDMCastReceiver *this) {
+static int bld_register_multicast(BLDMCastReceiver *this)
+{
   int inet_address = inet_addr(this->multicast_group);
   if (inet_address == -1) {
     printf("ERROR: Failed on inet_addr(\"%s\")\n", this->multicast_group);
@@ -416,11 +340,12 @@ int bld_receiver_create(BLDMCastReceiver **this, int payload_size, int payload_c
 
   #ifndef SIGNAL_TEST
 	/** Create socket and register to multicast group */
-	if (bld_register_mulitcast(*this) < 0) {
+	if (bld_register_multicast(*this) < 0) {
       free((*this)->bld_header_bsa);
 
       free(*this);
       *this = NULL;
+      fprintf(stderr, "bld_receiver_create ERROR: bld_register_multicast() failed!\n");
       return -1;
 	}
   #endif
@@ -458,7 +383,10 @@ int bld_receiver_destroy(BLDMCastReceiver *this) {
 			Pulse Id mis-matches are not handled yet correctly.
 
 ============================================================================= */
-void bld_receiver_run(BLDMCastReceiver *this) {
+void bld_receiver_run(BLDMCastReceiver *this)
+{
+	if ( this == NULL )
+		return;
 
   	size_t recvSize = 0;
   	struct msghdr msghdr;
@@ -593,19 +521,24 @@ void bld_receiver_run(BLDMCastReceiver *this) {
 					epicsMutexUnlock(this->mutex);
 
                     if (strcmp(this->multicast_group,"239.255.24.1")== 0)  {
-                        scanIoRequest(bldPhaseCavityIoscan);
+                        if ( bldPhaseCavityIoscan )
+							scanIoRequest(bldPhaseCavityIoscan);
                     }
                     else if (strcmp(this->multicast_group,"239.255.24.2")== 0)   {
-                        scanIoRequest(bldFEEGasDetEnergyIoscan);
+                        if ( bldFEEGasDetEnergyIoscan )
+							scanIoRequest(bldFEEGasDetEnergyIoscan);
                     }					
                     else if (strcmp(this->multicast_group,"239.255.24.4")== 0)   {
-                        scanIoRequest(bldHxxUm6Imb01Ioscan);
+                        if ( bldHxxUm6Imb01Ioscan )
+							scanIoRequest(bldHxxUm6Imb01Ioscan);
                     }
                     else if (strcmp(this->multicast_group,"239.255.24.5")== 0) {
-                        scanIoRequest(bldHxxUm6Imb02Ioscan);
+                        if ( bldHxxUm6Imb02Ioscan )
+							scanIoRequest(bldHxxUm6Imb02Ioscan);
                     }
                     else if (strcmp(this->multicast_group,"239.255.24.254")== 0)  {
-                        scanIoRequest(bldPhaseCavityTestIoscan);
+                        if ( bldPhaseCavityTestIoscan )
+							scanIoRequest(bldPhaseCavityTestIoscan);
                     }
 
 					epicsTsDebug++;

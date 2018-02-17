@@ -48,6 +48,7 @@ extern BLDMCastReceiver *bldHxxUm6Imb02Receiver;
 extern BLDMCastReceiver *bldPhaseCavityTestReceiver;
 extern BLDMCastReceiver *bldFEEGasDetEnergyReceiver;
 
+#define DEBUG_PRINT 1
 #ifdef DEBUG_PRINT
 int devAiBldRecvrFlag = 2;
 #endif
@@ -77,10 +78,10 @@ static long init_ai( struct aiRecord * pai) {
 	
       sscanf(pai->inp.value.instio.string, "%d %d", &(paip->attr), &(paip->mc_group));		
 			
-      #ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT
       DEBUGPRINT(DP_INFO, devAiBldRecvrFlag, ("devBLDMCastReceiver: init_ai: %s: init attr with attr %d mc_group %d\n",
-      pai->name, paip->attr, paip->mc_group));
-      #endif
+		  pai->name, paip->attr, paip->mc_group));
+#endif
 
 	  /* Do some range checks */
 	  if (( paip->mc_group < 0 ) || (paip->mc_group > 255)) {
@@ -175,34 +176,20 @@ static long ai_ioint_info(int cmd,aiRecord *pai,IOSCANPVT *iopvt)
         case PhaseCavityTest:   pIoScanRcvr = bldPhaseCavityTestIoscan;	break;			  		  
     }
 
-	/* Do some range checks */
-	if (( mc_group < 0 ) || ( mc_group > 255 )) {
-	  errlogPrintf("devBLDMCastReceiver: %s: ai_ioint_info() -- Illegal INP: mc_group # %i out of range (HxxUm6Imb01..CxiDg4Imb01)\n",
-	  pai->name, mc_group);
-	  pai->pact = TRUE;
-	  return (S_db_badField);
-	}
+    if ( pIoScanRcvr == NULL )
+    {
+        errlogPrintf(   "devBLDMCastReceiver: %s: ai_ioint_info() - IoScanRcvr not initialized for multicast group %d\n",
+                        pai->name, mc_group );
+        pai->pact = TRUE;
+        return (S_db_badField);
+    }
 
-	if ( attr < 0 ) {
-	  errlogPrintf("devBLDMCastReceiver: %s: ai_ioint_info() -- Illegal INP: attr # %i out of range (SUM..STATUS)\n",
-	  pai->name, attr);
-	  pai->pact = TRUE;
-	  return (S_db_badField);
-	}		
-	
-	switch ( mc_group ) {	
-			  case PhaseCavity: *iopvt = bldPhaseCavityIoscan;	break;
-			  case FEEGasDetEnergy: *iopvt = bldFEEGasDetEnergyIoscan;	break;			  
-			  case HxxUm6Imb01: *iopvt = bldHxxUm6Imb01Ioscan;	break;
-			  case HxxUm6Imb02: *iopvt = bldHxxUm6Imb02Ioscan;	break;	
-			  case PhaseCavityTest: *iopvt = bldPhaseCavityTestIoscan;	break;			  		  
-	}		
-		
-  	return 0;
+    *iopvt = pIoScanRcvr;
+    return 0;
 }
 
-static long read_ai(struct aiRecord *pai) {
-
+static long read_ai(struct aiRecord *pai)
+{
   aiBld_t *paip;
   float	v = 0.0;
 	

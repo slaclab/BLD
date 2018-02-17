@@ -17,8 +17,24 @@ setenv("UNIT","BD01")
 setenv("FAC", "B34")
 setenv("NMBR","504")
 
-setenv("NETMASK1","255.255.252.0",0)
-setenv("BLDMCAST_DST_IP", "239.255.24.254" )
+# Set fcom multicast prefix to mc-b034-fcom for LCLS Dev
+# setenv( "FCOM_MC_PREFIX", "XXX.XX.XXX.X" ) should be set in host/startup.cmd
+
+# setenv( "IP_EPICSCA", "XXX.XX.XXX.X" ) should be set in host/startup.cmd
+# BLD MCAST traffic from photon side arrives with CA traffic on ETH0 network port
+setenv( "IP_BLD_RECV",		getenv("IP_EPICSCA") )
+
+# setenv( "IP_FNET", "XXX.XX.XXX.X" ) should be set in host/startup.cmd
+# BLD MCAST traffic to photon side sent on FNET using ETH2
+setenv( "IP_BLD_SEND",		getenv("IP_FNET") )
+
+# Set traditional FNET env vars
+setenv( "IPADDR1",			getenv("IP_FNET") )
+setenv( "NETMASK1",        "255.255.252.0" )
+
+# BLD multicast address
+#setenv( "BLDMCAST_DST_IP", "239.255.24.0"  )	# PROD
+setenv( "BLDMCAST_DST_IP", "239.255.24.254" )	# Test
 
 # =====================================================================
 # Execute common fnet st.cmd
@@ -42,9 +58,6 @@ chdir( "../.." )
 
 
 ## Configure 2nd NIC using lanIpBasic
-setenv("IPADDR1","172.27.160.23",0)                 # ioc-b34-bd01-fnet
-# setenv("IPADDR1","172.27.28.14",0)                # LCLS VME BD01 IOC ETH2 - ioc-b34-bd01-fnet on LCLSFNET subnet
-# fcomUtilSetIPADDR1( "-fnet' )	# Fetch IP ADDR for FNET
 lanIpSetup(getenv("IPADDR1"),getenv("NETMASK1"),0,0)
 lanIpDebug=0
 
@@ -52,18 +65,11 @@ lanIpDebug=0
 
 epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES","1000000")
 
-#set fcom multicast prefix to mc-lcls-fcom for LCLS
-epicsEnvSet("FCOM_MC_PREFIX", "239.219.248.0")
-
 #initialize FCOM now to work around RTEMS bug #2068
 fcomInit(getenv("FCOM_MC_PREFIX",0),1000)
 
 # Set IOC Shell Prompt as well:
 epicsEnvSet("IOCSH_PS1","ioc-b34-bd01>")
-
-setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
-setenv("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
-setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 
 ## Register all support components
 dbLoadDatabase("dbd/BLDSender.dbd")

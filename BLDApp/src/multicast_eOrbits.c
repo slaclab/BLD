@@ -473,6 +473,13 @@ static int eOrbitsTask(void * parg)
 {
 	FcomID			blobId;
 	unsigned int	i;
+	const char	*	strIP_BLD_SEND = getenv("IP_BLD_SEND");
+	if ( strIP_BLD_SEND == NULL || strlen(strIP_BLD_SEND) == 0 )
+	{
+		printf( "eOrbitsTask Error: IP_BLD_SEND env var not set!" );
+		return -1;
+	}
+	printf( "eOrbitsTask: IP_BLD_SEND is %s\n", strIP_BLD_SEND );
 
 	/* Subscribe to the blobs */
 	for ( i = 0; i < N_BPMS; i++ )
@@ -481,9 +488,9 @@ static int eOrbitsTask(void * parg)
 		if ( blobId != FCOM_ID_NONE )
 			fcomSubscribe( blobId, FCOM_ASYNC_GET );
 		else
-			printf( "Error: Invalid blob name %s\n", blobNames[i] );
+			printf( "eOrbitsTask Error: Invalid blob name %s\n", blobNames[i] );
 	}
-	return ( eOrbitsLoop( DEF_GROUP, DEF_PORT, getenv("IPADDR1") ) );
+	return ( eOrbitsLoop( DEF_GROUP, DEF_PORT, strIP_BLD_SEND ) );
 }
 
 void  eOrbitsStart( initHookState state )

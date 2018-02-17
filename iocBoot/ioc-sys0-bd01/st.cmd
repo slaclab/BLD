@@ -19,16 +19,22 @@ setenv("UNIT","BD01")
 setenv("FAC", "SYS0")
 setenv("NMBR","500")
 
+# Set fcom multicast prefix to mc-lcls-fcom for LCLS Prod
+# setenv( "FCOM_MC_PREFIX", "XXX.XX.XXX.X" ) should be set in host/startup.cmd
+
+# setenv( "IP_EPICSCA", "XXX.XX.XXX.X" ) should be set in host/startup.cmd
 # BLD MCAST traffic from photon side arrives with CA traffic on ETH0 network port
 setenv("MCASTETHPORT","PROD_IPADDR0")
 # BLD MCAST traffic to photon side sent on FNET using ETH2
-setenv("IPADDR1","172.27.28.14",0)		# LCLS VME BD01 IOC ETH2 - ioc-sys0-bd01-fnet on LCLSFNET subnet
-setenv("NETMASK1","255.255.252.0",0)
-setenv("BLDMCAST_DST_IP", "239.255.24.0" )
+setenv( "IP_BLD_SEND",		getenv("IP_FNET") )
 
-setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
-setenv("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
-setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
+# Set traditional FNET env vars
+setenv( "IPADDR1",			getenv("IP_FNET") )
+setenv( "NETMASK1",        "255.255.252.0" )
+
+# BLD multicast address
+setenv( "BLDMCAST_DST_IP", "239.255.24.0"  )	# PROD
+#setenv( "BLDMCAST_DST_IP", "239.255.24.254" )	# Test
 
 # =====================================================================
 # Execute common fnet st.cmd
@@ -57,9 +63,6 @@ lsmod()
 
 epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES","1000000")
 
-#set fcom multicast prefix to mc-lcls-fcom for LCLS
-epicsEnvSet("FCOM_MC_PREFIX", "239.219.8.0")
-
 #initialize FCOM now to work around RTEMS bug #2068
 fcomInit(getenv("FCOM_MC_PREFIX",0),1000)
 
@@ -67,7 +70,6 @@ fcomInit(getenv("FCOM_MC_PREFIX",0),1000)
 epicsEnvSet("IOCSH_PS1","ioc-sys0-bd01>")
 
 setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
-setenv("EPICS_CAS_AUTO_BEACON_ADDR_LIST","NO")
 setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 
 ## Register all support components
@@ -125,6 +127,7 @@ dbLoadRecords("db/iocRelease.db","IOC=IOC:SYS0:BD01",0)
 
 # Load BSA database
 dbLoadRecords("db/IOC-SYS0-BD01bsa.db",0)
+# dbLoadRecords("db/IOC-SYS0-BD02bsa.db",0)
 
 # Load access database
 dbLoadRecords("db/IOC-SYS0-BD01access.db")
@@ -198,6 +201,7 @@ lsmod()
 # Start the EPICS IOC
 # =====================================================================
 
+bld_hook_init()
 iocInit()
 
 # =====================================================
