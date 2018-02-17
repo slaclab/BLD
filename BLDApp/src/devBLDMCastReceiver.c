@@ -133,12 +133,47 @@ static long init_ai( struct aiRecord * pai) {
 
 
 /** for sync scan records  **/
-static long ai_ioint_info(int cmd,aiRecord *pai,IOSCANPVT *iopvt) {
+static long ai_ioint_info(int cmd,aiRecord *pai,IOSCANPVT *iopvt)
+{
+    IOSCANPVT   pIoScanRcvr = NULL;
+    int attr = -1;
+    int mc_group = -1;
 
-  int attr = -1;
-  int mc_group = -1;
-	
-    sscanf(pai->inp.value.instio.string, "%d %d", &attr, &mc_group);		
+	int nScanned = sscanf(pai->inp.value.instio.string, "%d %d", &attr, &mc_group);		
+
+    if ( nScanned != 2 )
+    {
+        errlogPrintf( "devBLDMCastReceiver %s: ai_ioint_info: Invalid instio.string: %s\n",
+                     pai->name, pai->inp.value.instio.string );
+        pai->pact = TRUE;
+        return (S_db_badField);
+    }
+
+	/* Do some range checks */
+	if (( mc_group < 0 ) || ( mc_group > 255 ))
+    {
+        errlogPrintf( "devBLDMCastReceiver: %s: ai_ioint_info() -- Illegal INP: mc_group # %i out of range 0..255\n",
+                      pai->name, mc_group);
+        pai->pact = TRUE;
+        return (S_db_badField);
+	}
+
+	if ( attr < 0 )
+    {
+        errlogPrintf( "devBLDMCastReceiver: %s: ai_ioint_info() -- Illegal INP: attr # %i < 0\n",
+                    pai->name, attr);
+        pai->pact = TRUE;
+        return (S_db_badField);
+	}
+
+	switch ( mc_group )
+    {
+        case PhaseCavity:       pIoScanRcvr = bldPhaseCavityIoscan;	break;
+        case FEEGasDetEnergy:   pIoScanRcvr = bldFEEGasDetEnergyIoscan;	break;			  
+        case HxxUm6Imb01:       pIoScanRcvr = bldHxxUm6Imb01Ioscan;	break;
+        case HxxUm6Imb02:       pIoScanRcvr = bldHxxUm6Imb02Ioscan;	break;	
+        case PhaseCavityTest:   pIoScanRcvr = bldPhaseCavityTestIoscan;	break;			  		  
+    }
 
 	/* Do some range checks */
 	if (( mc_group < 0 ) || ( mc_group > 255 )) {

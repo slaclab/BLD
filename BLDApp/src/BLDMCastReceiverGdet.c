@@ -10,9 +10,10 @@
 #include "BLDMCastReceiver.h"
 #include "BLDMCastReceiverGdet.h"
 
-IOSCANPVT bldFEEGasDetEnergyIoscan;
+IOSCANPVT bldFEEGasDetEnergyIoscan  = NULL;
 
-int gdet_create(BLDMCastReceiver **bld_receiver, char *multicast_group) {
+int gdet_create(BLDMCastReceiver **bld_receiver, char *multicast_group)
+{
   int status = bld_receiver_create(bld_receiver, sizeof(BLDGdet) * 10,
 				   BLD_GDET_PARAMS,  multicast_group,
 				   BLD_GDET_PORT);
@@ -31,7 +32,8 @@ int gdet_create(BLDMCastReceiver **bld_receiver, char *multicast_group) {
   return 0;
 }
 
-void gdet_report(void *bld_receiver, int level) {
+void gdet_report(void *bld_receiver, int level)
+{
   if ((bld_receiver != NULL) && (level > 2)) {
     BLDMCastReceiver *receiver = bld_receiver;
     printf("*** Gdet BLD ***\n");
