@@ -1,5 +1,11 @@
 # Put your release notes or change log information
 # in here.
+BLD-R2-10-1
+	Bruce Hill: 2018-02-16 on git branch master
+	Discovered that only a few BPM's were enabled in the eOrbits BLD packet.
+	This release just enables the pv's to add the additional records
+	needed to add the remaining BPM's to the eOrbits BLD packet.
+
 BLD-R2-10-0
 	Bruce Hill: 2018-02-16 on git branch master
 	Added GDET BLD Rcvr to BldSender app and ioc-sys0-bd01
