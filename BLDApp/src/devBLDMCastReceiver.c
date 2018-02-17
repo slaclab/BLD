@@ -53,7 +53,8 @@ extern BLDMCastReceiver *bldFEEGasDetEnergyReceiver;
 int devAiBldRecvrFlag = 2;
 #endif
 
-static long init_ai( struct aiRecord * pai) {
+static long init_ai( struct aiRecord * pai)
+{
   aiBld_t *paip;
   aiBldDpvt_t *dpvt;
   
@@ -195,14 +196,20 @@ static long read_ai(struct aiRecord *pai)
 	
 	/* Set this to facilitate easy access to mc_group fields */
 	if (pai->dpvt == NULL) {
-      #ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT
       DEBUGPRINT(DP_ERROR, devAiBldRecvrFlag, ("devBLDMCastReceiver: read_ai: %s: dpvt is NULL\n", pai->name));
-      #endif
+#endif
       return -1;
 	}
 
 	paip = &((aiBldDpvt_t*)pai->dpvt)->bldAttr;	
-		
+	
+	if ( paip->receiver == NULL ) {
+#ifdef DEBUG_PRINT
+      DEBUGPRINT(DP_ERROR, devAiBldRecvrFlag, ("devBLDMCastReceiver: read_ai: %s: paip->receiver is NULL\n", pai->name));
+#endif
+      return -1;
+	}
     epicsMutexMustLock(paip->receiver->mutex);
 	
 	
