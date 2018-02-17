@@ -663,9 +663,9 @@ void bld_receiver_report(void *this, int level) {
     epicsMutexMustLock(receiver->mutex);
 
     printf("Received BLD packets : %ld\n", receiver->packets_received);
-    printf("Processed BLD packets: %ld\n", receiver->packets_duplicates);
-    printf("Received Late BLD packets : %ld\n", receiver->late_bld_pulse);
-    printf("Missed BLD packets : %ld\n", receiver->miss_bld_pulse);
+    printf("Duplicate BLD packets: %ld\n", receiver->packets_duplicates);
+    printf("Rcvd Late BLD packets: %ld\n", receiver->late_bld_pulse);
+    printf("Missed   BLD packets : %ld\n", receiver->miss_bld_pulse);
 
     epicsMutexUnlock(receiver->mutex);
   }
