@@ -6,5 +6,8 @@ db/
 dbd/
 lib
 startup
+iocBoot/*/cdCommands
 iocBoot/*/envPaths
 *~
+*.log
+tags
