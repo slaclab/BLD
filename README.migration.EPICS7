@@ -1,0 +1,91 @@
+
+eco -m BLD
+
+
+ernesto@aird-pc90626  (master) $ pwd
+/afs/slac/g/controls/development/users/ernesto/MissionReadiness/BLD/R7.0.3.1-1.0/BLD/BLD-git
+ernesto@aird-pc90626  (master) $ git checkout -b BLD_EPICS7
+M       RELEASE_SITE
+Switched to a new branch 'BLD_EPICS7'
+ernesto@aird-pc90626  (BLD_EPICS7) $ git push origin BLD_EPICS7
+Total 0 (delta 0), reused 0 (delta 0)
+To /afs/slac/g/cd/swe/git/repos/package/epics/ioc/lcls/BLD.git
+ * [new branch]      BLD_EPICS7 -> BLD_EPICS7
+ernesto@aird-pc90626  (BLD_EPICS7) $ git branch -a
+* BLD_EPICS7
+  master
+  remotes/origin/BLD_EPICS7
+  remotes/origin/HEAD -> origin/master
+  remotes/origin/master
+ernesto@aird-pc90626  (BLD_EPICS7) $ git branch -u origin/BLD_EPICS7 BLD_EPICS7
+Branch 'BLD_EPICS7' set up to track remote branch 'BLD_EPICS7' from 'origin'.
+ernesto@aird-pc90626  (BLD_EPICS7) $ ls
+BLDApp/    Makefile  RELEASE_NOTES  configure/  reset_dispersal_pvs.sh*
+ChangeLog  README    RELEASE_SITE   iocBoot/    tools/
+
+
+bootConfig in Production:
+Boot file:     'mccfs2-new:/export/mccfs/usr/local:/lcls/rtems/rtems-4.9.4/target/rtems_p2/ssrlApps_p6/powerpc-rtems/beatnik/bin/rtems.ralf'
+Command line:  'INIT=/boot/lcls/epics/iocCommon/ioc-sys0-bd01/startup.cmd'
+Server IP:     172.27.8.48     
+My name:       ioc-sys0-bd01
+My domain:     slac.stanford.edu
+Loghost IP:    0.0.0.0         
+DNS server 1:  134.79.151.12   
+DNS server 2:  134.79.151.13   
+NTP server 1:  134.79.151.12   
+NTP server 2:  134.79.151.13   
+
+To show interface and route configuration use:
+  rtems_bsdnet_show_if_stats()
+  rtems_bsdnet_show_inet_routes()
+To show the NVRAM configuration use:
+  nvramConfigShow()
+
+NOTE: Active and NVRAM boot configuration may differ
+      due to user intervention (manual override of NVRAM)
+      at boot time.
+0x00000014 (20)
+Cexp@ioc-sys0-bd01>NFS (proc 1) - RPC: Timed out
+save_restore:write_save_file: Backup file (/data/autosave/info_settings.savB) bad or not found.  Writing a new one. [200306-220334]
+RPCIO: server '172.27.8.48' not responding - still trying
+
+
+nvramConfig in production:
+
+NVRAM configuration:
+
+  Boot file (e.g., '/TFTP/1.2.3.4/path', '~rshuser/path' or 'nfshost:/dir:path'):
+   >mccfs2-new:/export/mccfs/usr/local:/lcls/rtems/rtems-4.9.4/target/rtems_p2/ssrlApps_p6/powerpc-rtems/beatnik/bin/rtems.ralf
+  Command line parameters:
+   >INIT=/boot/lcls/epics/iocCommon/ioc-sys0-bd01/startup.cmd
+  Server IP:    >172.27.8.48
+  Gateway IP:   >172.27.0.1
+  My network IF + media (e.g., '100baseTX-full' ['?' for help])
+                >auto
+  My IP:        >172.27.2.162
+  My netmask:   >255.255.252.0
+  My name:      >ioc-sys0-bd01
+  My domain:    >slac.stanford.edu
+  Loghost IP:   >
+  DNS server 1: >134.79.151.12
+  DNS server 2: >134.79.151.13
+  DNS server 3: >
+  NTP server 1: >134.79.151.12
+  NTP server 2: >134.79.151.13
+  NTP server 3: >
+  Use BOOTP: Yes, No or Partial (-> file and
+            command line from NVRAM) [Y/N/P]>N
+  Autoboot Delay: [0...30secs] (0==forever) >5
+
+
+NOTE: Active and NVRAM boot configuration may differ
+      due to user intervention (manual override of NVRAM)
+      at boot time.
+      To show the active configuration use: bootConfigShow()
+[softegr@lcls-srv01 iocInfo]$ 
+
+
+
+
+
