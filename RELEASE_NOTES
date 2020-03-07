@@ -1,5 +1,10 @@
 # Put your release notes or change log information
 # in here.
+
+R3.0.0:
+       March 6, 2020
+       Ernesto: Create branch, "BLD_EPICS7" and upgrade to EPICS R7.0.3.1-1.0
+      
 BLD-R2-10-1
 	Bruce Hill: 2018-02-16 on git branch master
 	Discovered that only a few BPM's were enabled in the eOrbits BLD packet.

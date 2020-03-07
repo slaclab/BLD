@@ -23,7 +23,6 @@
 # define INSTALL_LOCATION_APP here
 #INSTALL_LOCATION_APP=<fullpathname>
 # EPICS Templates
-TEMPLATE_TOP=$(MODULES_SITE_TOP)/icdTemplates/icdTemplates-R1-2-0
 
 #
 # =============================================================
@@ -42,63 +41,52 @@ EPICS_MODULES=$(MODULES_SITE_TOP)
 # Define the version of modules needed by
 # IOC apps or other Support apps
 # =============================================================
+IOCADMIN_MODULE_VERSION=R3.1.16-1.3.0
+AUTOSAVE_MODULE_VERSION=R5.8-2.1.0
+CAPUTLOG_MODULE_VERSION=R3.5-1.0.0
 
-SEQ_MODULE_VERSION=seq-R2-1-6_1-3
-AUTOSAVE_MODULE_VERSION=autosave-R5-5_0-0
-CAPUTLOG_MODULE_VERSION=caPutLog-R3-4_1-0
-IOCADMIN_MODULE_VERSION=iocAdmin-R3-1-14_1-0
-DIAGTIMER_MODULE_VERSION=diagTimer-R1-8-0
-MISCUTILS_MODULE_VERSION=miscUtils-R2-2-3
-EVENT_MODULE_VERSION=event-R4-2-4
-EVRCLIENT_MODULE_VERSION=evrClient-R1-0-p7
-UDPCOMM_MODULE_VERSION=udpComm-R2-7-1
-FCOM_MODULE_VERSION=fcom-R1-3-34
-FCOMUTIL_MODULE_VERSION=fcomUtil-R1-2-4
-#FCOMUTIL_MODULE_VERSION=MAIN_TRUNK
+SNCSEQ_MODULE_VERSION=R2.2.4-1.2
 
-DEVBUSMAPPED_MODULE_VERSION=devBusMapped-R3-1-1
+MISCUTILS_MODULE_VERSION=R2.2.5
+CEXPSH_MODULE_VERSION=R1.1.2
+DEVBUSMAPPED_MODULE_VERSION=R3.2.3
 
-# Let's add in support for the cexpsh()
-# This can be called from the EPICS shell
-# Please look at the README file in 
-# CEXP module
-CEXP_MODULE_VERSION=cexpsh-R1-0-0
+EVENT_MODULE_VERSION=R4.5.1
+UDPCOMM_MODULE_VERSION=R2.11.14
+FCOM_MODULE_VERSION=R1.9.21
+FCOMUTIL_MODULE_VERSION=R1.9.21
+TIMINGAPI_MODULE_VERSION=R0.6
+BSACORE_MODULE_VERSION=R1.5.3
+
+DIAGTIMER_MODULE_VERSION=R1.9.2
 
 # ============================================================
 #  Module Location
 # ============================================================
 
-SNCSEQ=$(EPICS_MODULES)/seq/$(SEQ_MODULE_VERSION)
+IOCADMIN=$(EPICS_MODULES)/iocAdmin/$(IOCADMIN_MODULE_VERSION)
 AUTOSAVE=$(EPICS_MODULES)/autosave/$(AUTOSAVE_MODULE_VERSION)
 CAPUTLOG=$(EPICS_MODULES)/caPutLog/$(CAPUTLOG_MODULE_VERSION)
-IOCADMIN=$(EPICS_MODULES)/iocAdmin/$(IOCADMIN_MODULE_VERSION)
-
-DIAGTIMER=$(EPICS_MODULES)/diagTimer/$(DIAGTIMER_MODULE_VERSION)
+SNCSEQ=$(EPICS_MODULES)/seq/$(SNCSEQ_MODULE_VERSION)
 MISCUTILS=$(EPICS_MODULES)/miscUtils/$(MISCUTILS_MODULE_VERSION)
-EVENT=$(EPICS_MODULES)/event/$(EVENT_MODULE_VERSION)
-#EVENT=/afs/slac/u/ey/bhill/wa-lcls/epics/modules/event/MAIN_TRUNK
-#EVRCLIENT=$(EPICS_MODULES)/evrClient/$(EVRCLIENT_MODULE_VERSION)
-EVR_MODULE=$(EVENT)
-#EVR_MODULE=$(EVRCLIENT)
-
-UDPCOMM=$(EPICS_MODULES)/udpComm/$(UDPCOMM_MODULE_VERSION)
-FCOM=$(EPICS_MODULES)/fcom/$(FCOM_MODULE_VERSION)
-# FCOM=/afs/slac.stanford.edu/g/lcls/vol8/epics/iocTop/users/scondam/BLD/fcom_test/fcom/$(FCOM_MODULE_VERSION)
-
-FCOMUTIL=$(EPICS_MODULES)/fcomUtil/$(FCOMUTIL_MODULE_VERSION)
-#FCOMUTIL=~bhill/wa-lcls/epics/modules/fcomUtil/current
-
+CEXPSH=$(EPICS_MODULES)/cexpsh/$(CEXPSH_MODULE_VERSION)
 DEVBUSMAPPED=$(EPICS_MODULES)/devBusMapped/$(DEVBUSMAPPED_MODULE_VERSION)
 
-CEXP=$(EPICS_MODULES)/cexpsh/$(CEXP_MODULE_VERSION)
+EVENT=$(EPICS_MODULES)/event/$(EVENT_MODULE_VERSION)
+UDPCOMM=$(EPICS_MODULES)/udpComm/$(UDPCOMM_MODULE_VERSION)
+FCOM=$(EPICS_MODULES)/fcom/$(FCOM_MODULE_VERSION)
+FCOMUTIL=$(EPICS_MODULES)/fcomUtil/$(FCOMUTIL_MODULE_VERSION)
+TIMINGAPI=$(EPICS_MODULES)/timingApi/$(TIMINGAPI_MODULE_VERSION)
+BSACORE=$(EPICS_MODULES)/BsaCore/$(BSACORE_MODULE_VERSION)
+DIAGTIMER=$(EPICS_MODULES)/diagTimer/$(DIAGTIMER_MODULE_VERSION)
 
-# EPICS_BASE usually appears last so other apps can override stuff:
-EPICS_BASE=$(BASE_SITE_TOP)/$(EPICS_BASE_VER)
+EVR_MODULE=$(EVENT)
 
-# Location of Linux Kernel Modules:
-LINUX_KERNEL_MODULES=$(PACKAGE_SITE_TOP)/linuxKernel_Modules
 
-# Set RULES here if you want to take build rules from somewhere
-# other than EPICS_BASE:
-#RULES=/path/to/epics/support/module/rules/x-y
+# ============================================================
+# EPICS Base Location
+# ============================================================
+# Set EPICS_BASE last so it appears last in the DB, DBD, INCLUDE, and LIB search paths
+EPICS_BASE=$(EPICS_SITE_TOP)/base/$(BASE_MODULE_VERSION)
 
+# End of file

@@ -8,42 +8,17 @@ include $(TOP)/configure/CONFIG
 #=============================
 # Build the IOC application
 
-# Production flags
-ifeq '$(OS_CLASS)' 'Linux'
-USR_CPPFLAGS += -I$(EPICS_MODULES)/evrClient/$(EVRCLIENT_MODULE_VERSION)/include
-USR_LDFLAGS  += -L$(EPICS_MODULES)/evrClient/$(EVRCLIENT_MODULE_VERSION)/lib/$(T_A)
-USR_LDFLAGS  += -Wl,-rpath,$(EPICS_MODULES)/evrClient/$(EVRCLIENT_MODULE_VERSION)/lib/$(T_A)
-else
-USR_CPPFLAGS += -I$(EPICS_MODULES)/event/$(EVENT_MODULE_VERSION)/include
-USR_LDFLAGS  += -L$(EPICS_MODULES)/event/$(EVENT_MODULE_VERSION)/lib/$(T_A)
-USR_LDFLAGS  += -Wl,-rpath,$(EPICS_MODULES)/event/$(EVENT_MODULE_VERSION)/lib/$(T_A)
-endif
 
-#=============================
-# Build an IOC support library
-
-# Comment this line to build a host-ioc; you'd need to exclude
-# several facilities (evr, micro, ...) for this to work.
-
-#LIBRARY_IOC += devBLDMCastWfRecv
-#LIBRARY_IOC	+= bldSndrSupport
-#LIBRARY_IOC	+= bldRcvrSupport
 
 # BLD*.dbd will be installed
 DBD += devBLDRcvr.dbd
 DBD += devBLDSndr.dbd
 
-#=============================
-# The following are compiled and added to the Support library for devBLDMCastWfRecv
-#devBLDMCastWfRecv_SRCS = devBLDMCastWfRecv.c
-
 
 # build an ioc application for Multicast Receiver only
 # or Multicast Sender only or Receiver and Sender.
-PROD_IOC      += BLDSender
-PROD_IOC      += BLDReceiver
-# PROD_IOC      += bldget
-# PROD_IOC      += bldrx
+PROD_IOC_RTEMS      += BLDSender
+PROD_IOC_RTEMS      += BLDReceiver
 
 #=============================
 # BLDSender.dbd will be created and installed
@@ -53,7 +28,8 @@ DBD += BLDSender.dbd
 BLDSender_DBD += base.dbd
 BLDSender_DBD += evrSupport.dbd
 BLDSender_DBD += devMrfEr.dbd
-BLDSender_DBD += autosaveSupport.dbd
+BLDSender_DBD += bsaCore.dbd
+BLDSender_DBD += asSupport.dbd
 BLDSender_DBD += iocAdmin.dbd
 BLDSender_DBD += diagTimer.dbd
 BLDSender_DBD += fcomIocshSupport.dbd
@@ -63,6 +39,9 @@ BLDSender_DBD += devBusMapped.dbd
 BLDSender_DBD += devBLDRcvr.dbd
 BLDSender_DBD += devBLDSndr.dbd
 BLDSender_DBD += devBLDMCastWfRecv.dbd
+# For EPICS PVA:  Qsrv
+BLDSender_DBD += PVAServerRegister.dbd
+BLDSender_DBD += qsrv.dbd
 
 # Add all the support libraries needed by this IOC for BLDSender app
 BLDSender_LIBS += autosave
@@ -74,12 +53,23 @@ BLDSender_LIBS += fcomUtil
 BLDSender_LIBS += fcom
 BLDSender_LIBS += evrSupport
 BLDSender_LIBS += devMrfEr
+BLDSender_LIBS += BsaCore
 BLDSender_LIBS_RTEMS += mrfVme64x
-BLDSender_LIBS_Linux += drvMrf
-#BLDSender_LIBS_Linux += evrma
+
 BLDSender_LIBS += devBusMapped
 BLDSender_LIBS_RTEMS += udpComm
-BLDSender_LIBS_Linux += udpCommBSD 
+
+# cexpsh
+BLDSender_DBDS += $(CEXP_DBDS) 
+BLDSender_LIBS += $(CEXP_LIBS)     
+BLDSender_SYS_LIBS+=$(CEXP_SYS_LIBS)
+
+
+# EPICS QSRV
+BLDSender_LIBS += qsrv
+BLDSender_LIBS += $(EPICS_BASE_PVA_CORE_LIBS) 
+
+# EPICS BASE LIBS
 BLDSender_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 # BLDSender_registerRecordDeviceDriver.cpp derives from BLDSender.dbd
@@ -113,10 +103,15 @@ DBD += BLDReceiver.dbd
 BLDReceiver_DBD += base.dbd
 BLDReceiver_DBD += evrSupport.dbd
 BLDReceiver_DBD += devMrfEr.dbd
-BLDReceiver_DBD += autosaveSupport.dbd
+BLDReceiver_DBD += bsaCore.dbd
+BLDReceiver_DBD += asSupport.dbd
 BLDReceiver_DBD += iocAdmin.dbd
 BLDReceiver_DBD += devBusMapped.dbd
 BLDReceiver_DBD += devBLDRcvr.dbd
+
+# For EPICS PVA:  Qsrv
+BLDReceiver_DBD += PVAServerRegister.dbd
+BLDReceiver_DBD += qsrv.dbd
 
 #=============================
 
@@ -125,10 +120,21 @@ BLDReceiver_LIBS += autosave
 BLDReceiver_LIBS += devIocStats
 BLDReceiver_LIBS += evrSupport
 BLDReceiver_LIBS += devMrfEr
+BLDReceiver_LIBS += BsaCore
 BLDReceiver_LIBS_RTEMS += mrfVme64x
-BLDReceiver_LIBS_Linux += drvMrf
-#BLDReceiver_LIBS_Linux += evrma
 BLDReceiver_LIBS += devBusMapped
+
+# cexpsh
+BLDReceiver_DBDS += $(CEXP_DBDS) 
+BLDReceiver_LIBS += $(CEXP_LIBS)     
+BLDReceiver_SYS_LIBS+=$(CEXP_SYS_LIBS)
+
+
+# EPICS QSRV
+BLDReceiver_LIBS += qsrv
+BLDReceiver_LIBS += $(EPICS_BASE_PVA_CORE_LIBS)
+
+# EPICS BASE LIBS
 BLDReceiver_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 
