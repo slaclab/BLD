@@ -86,6 +86,48 @@ NOTE: Active and NVRAM boot configuration may differ
 [softegr@lcls-srv01 iocInfo]$ 
 
 
+=====================================================================
+NVRAM Config in DEV:
+
+
+Cexp@ioc-b34-bd01>nvramConfigShow()
+
+NVRAM configuration:
+
+  Boot file (e.g., '/TFTP/1.2.3.4/path', '~rshuser/path' or 'nfshost:/dir:path'):
+   >afsnfs:/afs/slac:package/rtems/4.9.4/target/ssrlApps/powerpc-rtems/beatnik/bin/rtems.ralf
+  Command line parameters:
+   >INIT=/boot/g/lcls/epics/iocCommon/ioc-b34-bd01/startup.cmd
+  Server IP:    >172.23.66.102
+  Gateway IP:   >134.79.219.1
+  My network IF + media (e.g., '100baseTX-full' ['?' for help])
+                >auto
+  My IP:        >134.79.219.145
+  My netmask:   >255.255.252.0
+  My name:      >ioc-b34-bd01
+  My domain:    >slac.stanford.edu
+  Loghost IP:   >
+  DNS server 1: >134.79.111.111
+  DNS server 2: >134.79.111.112
+  DNS server 3: >
+  NTP server 1: >134.79.110.75
+  NTP server 2: >134.79.110.10
+  NTP server 3: >
+  Use BOOTP: Yes, No or Partial (-> file and
+            command line from NVRAM) [Y/N/P]>N
+  Autoboot Delay: [0...30secs] (0==forever) >5
+
+
+NOTE: Active and NVRAM boot configuration may differ
+      due to user intervention (manual override of NVRAM)
+      at boot time.
+      To show the active configuration use: bootConfigShow()
+0x00000000 (0)
+Cexp@ioc-b34-bd01>
+======================================================================
+
+We will use DHCP/Bootp
+
 
 
 
