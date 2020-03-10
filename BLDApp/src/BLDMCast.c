@@ -261,9 +261,9 @@ BLDBLOB bldPulseBlobs[] =
    * BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
    */
   /* BMENERGY1X: BlobSet mask bit 0x0002 */
-    [BMENERGY1X] = { name: "BPMS:LTU1:250:X", blob: 0, aMsk: AVAIL_BMENERGY1X},	/* Actually X pos in mm */
+    [BMENERGY1X] = { name: "BPMS:LTUH:250:X", blob: 0, aMsk: AVAIL_BMENERGY1X},	/* Actually X pos in mm */
   /* BMENERGY2X: BlobSet mask bit 0x0004 */
-    [BMENERGY2X] = { name: "BPMS:LTU1:450:X", blob: 0, aMsk: AVAIL_BMENERGY2X},	/* Actually X pos in mm */
+    [BMENERGY2X] = { name: "BPMS:LTUH:450:X", blob: 0, aMsk: AVAIL_BMENERGY2X},	/* Actually X pos in mm */
 
   /**
    * Position X, Y, Angle X, Y at LTU:
@@ -291,13 +291,13 @@ BLDBLOB bldPulseBlobs[] =
    *         R31 R32 R33 R34]     //rmat elements for bpm4y
    */
 /* BMPOSITION1X: BlobSet mask bit 0x0008 */
-  [BMPOSITION1X] = { name: "BPMS:LTU1:720:X"    , blob: 0, aMsk: AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y },	/* Position in mm/mrad */
+  [BMPOSITION1X] = { name: "BPMS:LTUH:720:X"    , blob: 0, aMsk: AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y },	/* Position in mm/mrad */
 /* BMPOSITION2X: BlobSet mask bit 0x0010 */
-  [BMPOSITION2X] = { name: "BPMS:LTU1:730:X"    , blob: 0, aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
+  [BMPOSITION2X] = { name: "BPMS:LTUH:730:X"    , blob: 0, aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
 /* BMPOSITION3X: BlobSet mask bit 0x0020 */
-  [BMPOSITION3X] = { name: "BPMS:LTU1:740:X"    , blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
+  [BMPOSITION3X] = { name: "BPMS:LTUH:740:X"    , blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
 /* BMPOSITION4X: BlobSet mask bit 0x0040 */
-  [BMPOSITION4X] = { name: "BPMS:LTU1:750:X"    , blob: 0, aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
+  [BMPOSITION4X] = { name: "BPMS:LTUH:750:X"    , blob: 0, aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
 /* BC2CHARGE:    BlobSet mask bit 0x0080 */
   [BC2CHARGE]    = { name: "BLEN:LI24:886:BIMAX", blob: 0, aMsk: AVAIL_BC2CHARGE },	/* BC2 Charge in Amps */
 /* BC2ENERGY:    BlobSet mask bit 0x0100 */
@@ -319,13 +319,13 @@ BLDBLOB bldPulseBlobs[] =
    * Charge at the DMP
    */
 /* DMP_CHARGE: BlobSet mask bit 0x1000 */
-  [DMP_CHARGE]     = { name: "BPMS:DMP1:502:TMIT", blob: 0, aMsk: AVAIL_DMP_CHARGE}, 
+  [DMP_CHARGE]     = { name: "BPMS:DMPH:502:TMIT", blob: 0, aMsk: AVAIL_DMP_CHARGE}, 
 
   /**
    * XTCAV Voltage and Phase
    */
 /* XTCAV_AMP:    BlobSet mask bit 0x2000 */
-  [XTCAV_AMP]  = { name: "TCAV:DMP1:360:AV", blob: 0, aMsk: AVAIL_XTCAV_AMP},
+  [XTCAV_AMP]  = { name: "TCAV:DMPH:360:AV", blob: 0, aMsk: AVAIL_XTCAV_AMP},
   
 };
 
