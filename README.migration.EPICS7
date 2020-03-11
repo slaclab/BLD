@@ -131,3 +131,55 @@ We will use DHCP/Bootp
 
 
 
+Let's get the networking right:
+
+ernesto@aird-pc90626  (BLD_EPICS7) $ node ioc-b34-bd01
+
+node         ipnum          name              network_name  ethernet          dhcp roam bldg room  users                        admins
+------------ -------------- ----------------- ------------- ----------------- ---- ---- ---- ----- ---------------------------- -----------
+IOC-B34-BD01  172.25.160.75 IOC-B34-BD01-BLD  B034-LCLSBLD  -                   No   No B034 RM253 Condamoor, Shantha (scondam) ITDS;, MCC;
+"            134.79.219.145 IOC-B34-BD01      LCLSDEV       00:01:af:19:cc:4f  Yes    "    " "     "                                      "
+"             172.25.160.23 IOC-B34-BD01-FNET B034-LCLSFBCK -                   No    "    " "     "                                      "
+
+ernesto@aird-pc90626  (BLD_EPICS7) $
+
+ernesto@aird-pc90626  (BLD_EPICS7) $ subnet B034-LCLSFBCK
+
+SUBNET NO.           SUBNET NAME             DEFAULT GATEWAY                                  SUBNET MASK           SUBNET DESCRIPTION
+----------           ----------              ----------------------------------------------   --------------------- -----------------------------------------------------------------------------------
+172.25.160.0         B034-LCLSFBCK           172.25.160.1                                     255.255.255.192       Building 034 LCLS Fast Fback Testbed (vlan 2688)
+ernesto@aird-pc90626  (BLD_EPICS7) $
+
+
+ernesto@aird-pc90626  (mr_branch_vme) $ node mc-b034-fcom
+
+node  ipnum         name         network_name    ethernet dhcp roam bldg room    users                         admins
+----- ------------- ------------ --------------- -------- ---- ---- ---- ------- ----------------------------- ------
+MCAST 239.219.248.0 MC-B034-FCOM MCAST-LCLS-FCOM -          No   No B034 UNKNOWN Brobeck, Kenneth C. (brobeck)   MCC;
+
+ernesto@aird-pc90626  (mr_branch_vme) $
+
+
+/afs/slac/g/lcls/epics/iocCommon/ioc-b34-bd01/startup.cmd below:
+
+#=======================================================
+#  Master Startup Sript for ioc-b34-bd01
+#  Beam Line Data (BLD)  IOC
+#=======================================================
+setenv("ST_CMD", "st_DEV.cmd")
+setenv("EPICS_IOC_APP","/boot/g/lcls/epics/iocCommon/ioc-b34-bd01/iocSpecificRelease/iocBoot/ioc-sys0-bd01")
+
+# Set ip addresses for CA, BLD, and FNET subnets
+setenv( "IP_EPICSCA", "134.79.219.145" ) # BD01 ETH0 - ioc-b34-bd01       on LCLSDEV
+setenv( "IP_BLD",     "172.25.160.75"  ) # BD01 ETH1 - ioc-b34-bd01-bld   on B034-LCLSBLD
+setenv( "IP_FNET",    "172.25.160.23"  ) # BD01 ETH2 - ioc-b34-bd01-fnet  on B034-LCLSFBCK
+setenv( "IP_BLD_RECV", getenv("IP_EPICSCA") )
+
+# Set fcom multicast prefix to mc-b034-fcom: on MCAST-LCLS-FCOM
+setenv("FCOM_MC_PREFIX", "239.219.248.0")
+
+cexpsh("../common/st.cmd.rtems")
+
+# End of file
+
+

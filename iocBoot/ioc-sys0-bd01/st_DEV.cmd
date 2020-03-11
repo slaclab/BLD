@@ -30,7 +30,7 @@ setenv( "IP_BLD_SEND",		getenv("IP_FNET") )
 
 # Set traditional FNET env vars
 setenv( "IPADDR1",			getenv("IP_FNET") )
-setenv( "NETMASK1",        "255.255.252.0" )
+setenv( "NETMASK1",        "255.255.255.192" )
 
 # BLD multicast address
 setenv( "BLDMCAST_DST_IP", "239.255.24.0"  )	# PROD
@@ -38,7 +38,7 @@ setenv( "BLDMCAST_DST_IP", "239.255.24.0"  )	# PROD
 
 # =====================================================================
 # Execute common fnet st.cmd
-. "../st.fnetgeneric.lcls.cmd"
+. "../st.fnetgeneric.lcls_DEV.cmd"
 
 # execute generic part
 . "../st.vmegeneric.cmd"
@@ -69,8 +69,11 @@ fcomInit(getenv("FCOM_MC_PREFIX",0),1000)
 # Set IOC Shell Prompt as well:
 epicsEnvSet("IOCSH_PS1","ioc-sys0-bd01>")
 
-setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
-setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
+# FNET ==>  ioc-b34-bd01-fnet
+# These are not working an make no sense.
+# Let's ask Bruce Hill
+#setenv("EPICS_CAS_INTF_ADDR_LIST","172.25.160.23")
+#setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 
 ## Register all support components
 dbLoadDatabase("dbd/BLDSender.dbd")
