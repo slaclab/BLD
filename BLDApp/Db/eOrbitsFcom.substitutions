@@ -5,17 +5,17 @@ file fcomBlobBPMS.db
 {
 	pattern
 	{	SET,	BLOB,				EC				}
-	{	0,		"BPMS:LTU1:910:",	"\$(EC=40)"		}
-	{	0,		"BPMS:LTU1:960:",	"\$(EC=40)"		}
-	{	0,		"BPMS:UND1:190:",	"\$(EC=40)"		}
-	{	0,		"BPMS:UND1:290:",	"\$(EC=40)"		}
-	{	0,		"BPMS:UND1:390:",	"\$(EC=40)"		}
-	{	0,		"BPMS:UND1:490:",	"\$(EC=40)"		}
-	{	0,		"BPMS:UND1:590:",	"\$(EC=40)"		}
-	{	0,		"BPMS:UND1:690:",	"\$(EC=40)"		}
-	{	0,		"BPMS:UND1:790:",	"\$(EC=40)"		}
-	{	0,		"BPMS:UND1:890:",	"\$(EC=40)"		}
-	{	0,		"BPMS:UND1:990:",	"\$(EC=40)"		}
+	{	0,		"BPMS:LTUH:910:",	"\$(EC=40)"		}
+	{	0,		"BPMS:LTUH:960:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDH:190:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDH:290:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDH:390:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDH:490:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDH:590:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDH:690:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDH:790:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDH:890:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDH:990:",	"\$(EC=40)"		}
 }
 
 # Need one of these per set.  Pick one BLOB from the set to name it.
@@ -23,5 +23,5 @@ file fcomBlobSet.template
 {
 	pattern
 	{	SET,	BLOB,				EC				}
-	{	0,		"BPMS:LTU1:910:",	"\$(EC=40)"		}
+	{	0,		"BPMS:LTUH:910:",	"\$(EC=40)"		}
 }

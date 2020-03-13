@@ -53,33 +53,33 @@ file fcomBlobBPMS_SIM.db
 	{
 		GROUP	= "5",
 		SCAN	= "Event",	EC = "\$(EC)"
-		BLOB	= "BPMS:LTU1:250:",
-		NEXT	= "BPMS:LTU1:450:SIM_SEQ"
+		BLOB	= "BPMS:LTUH:250:",
+		NEXT	= "BPMS:LTUH:450:SIM_SEQ"
 	}
 	{
 		GROUP	= "5",
-		BLOB	= "BPMS:LTU1:450:",
-		NEXT	= "BPMS:LTU1:720:SIM_SEQ"
+		BLOB	= "BPMS:LTUH:450:",
+		NEXT	= "BPMS:LTUH:720:SIM_SEQ"
 	}
 	{
 		GROUP	= "5",
-		BLOB	= "BPMS:LTU1:720:",
-		NEXT	= "BPMS:LTU1:730:SIM_SEQ",
+		BLOB	= "BPMS:LTUH:720:",
+		NEXT	= "BPMS:LTUH:730:SIM_SEQ",
 	}
 	{
 		GROUP	= "5",
-		BLOB	= "BPMS:LTU1:730:",
-		NEXT	= "BPMS:LTU1:740:SIM_SEQ",
+		BLOB	= "BPMS:LTUH:730:",
+		NEXT	= "BPMS:LTUH:740:SIM_SEQ",
 	}
 	{
 		GROUP	= "5",
-		BLOB	= "BPMS:LTU1:740:",
-		NEXT	= "BPMS:LTU1:750:SIM_SEQ",
+		BLOB	= "BPMS:LTUH:740:",
+		NEXT	= "BPMS:LTUH:750:SIM_SEQ",
 	}
 	{
 		GROUP	= "5",
-		BLOB	= "BPMS:LTU1:750:",
-		NEXT	= "BPMS:LTU1:750:ALL_SEND",
+		BLOB	= "BPMS:LTUH:750:",
+		NEXT	= "BPMS:LTUH:750:ALL_SEND",
 	}
 }
 
@@ -138,7 +138,7 @@ file fcomGroupSend.template
 	}
 	{
 		GROUP	= "5",
-		LAST	= "BPMS:LTU1:750:",
+		LAST	= "BPMS:LTUH:750:",
 	}
 	{
 		GROUP	= "7",
