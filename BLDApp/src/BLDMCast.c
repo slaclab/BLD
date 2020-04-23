@@ -16,7 +16,7 @@
 		12-May-2011 - L.Piccoli	- Modifications
 		11-Jun-2013 - L.Piccoli	- BLD-R2-2-0 - 	Addition of BLD receiver - phase cavity  
 		30-Sep-2013 - L.Piccoli - BLD-R2-3-0 - Addition of Fast Undulator Launch feedback states, version 0x4000f
-		28-Feb-2014 - L.Piccoli - BLD-R2-4-0 - Merged BLD-R2-0-0-BR branch with MAIN_TRUNK. Addition of TCAV/DMP1 PVs to BLD. Version 0x5000f
+		28-Feb-2014 - L.Piccoli - BLD-R2-4-0 - Merged BLD-R2-0-0-BR branch with MAIN_TRUNK. Addition of TCAV/DMPH PVs to BLD. Version 0x5000f
 		12-Mar-2014 - L.Piccoli - BLD-R2-5-4, BLD-R2-5-3, BLD-R2-5-2, BLD-R2-5-1, BLD-R2-5-0, BLD-R2-4-6 - Prevents BLDCast task on all iocs except ioc-sys0-bd01
 		20-Jun-2014 - S.Condamoor - BLD-R2-5-5 - BLDSender and BLDReceiver apps have been split. bld_receivers_report() not needed for Sender	   
 		7-Jul-2014  - S.Condamoor - BLD-R2-6-0 - Added Photon Energy Calculation to eBeam BLD MCAST data . Version 0x6000f
@@ -257,27 +257,27 @@ BLDBLOB bldPulseBlobs[] =
    * Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
    * where E0 is the final desired energy at the LTU (the magnet setting BEND:LTU0:125:BDES*1000)
    * dspr1,2  = Dx for the chosen dispersion BPMs (from design model database twiss parameters) (we can store these in BLD IOC PVs)
-   * BPM1x = [BPMS:LTU1:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
-   * BPM2x = [BPMS:LTU1:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
+   * BPM1x = [BPMS:LTUH:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
+   * BPM2x = [BPMS:LTUH:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
    */
   /* BMENERGY1X: BlobSet mask bit 0x0002 */
-    [BMENERGY1X] = { name: "BPMS:LTU1:250:X", blob: 0, aMsk: AVAIL_BMENERGY1X},	/* Actually X pos in mm */
+    [BMENERGY1X] = { name: "BPMS:LTUH:250:X", blob: 0, aMsk: AVAIL_BMENERGY1X},	/* Actually X pos in mm */
   /* BMENERGY2X: BlobSet mask bit 0x0004 */
-    [BMENERGY2X] = { name: "BPMS:LTU1:450:X", blob: 0, aMsk: AVAIL_BMENERGY2X},	/* Actually X pos in mm */
+    [BMENERGY2X] = { name: "BPMS:LTUH:450:X", blob: 0, aMsk: AVAIL_BMENERGY2X},	/* Actually X pos in mm */
 
   /**
    * Position X, Y, Angle X, Y at LTU:
-   * Using the LTU Feedback BPMs: BPMS:LTU1:720,730,740,750
+   * Using the LTU Feedback BPMs: BPMS:LTUH:720,730,740,750
    * The best estimate calculation is a matrix multiply for the result vector p:
    *
-   *        [xpos(mm)             [bpm1x         //= BPMS:LTU1:720:X (mm)
-   *    p=   ypos(mm)      = [F]*  bpm2x         //= BPMS:LTU1:730:X
-   *         xang(mrad)            bpm3x         //= BPMS:LTU1:740:X
-   *         yang(mrad)]           bpm4x         //= BPMS:LTU1:750:X
-   *                               bpm1y         //= BPMS:LTU1:720:Y
-   *                               bpm2y         //= BPMS:LTU1:730:Y
-   *                               bpm3y         //= BPMS:LTU1:740:Y
-   *                               bpm4y]        //= BPMS:LTU1:750:Y
+   *        [xpos(mm)             [bpm1x         //= BPMS:LTUH:720:X (mm)
+   *    p=   ypos(mm)      = [F]*  bpm2x         //= BPMS:LTUH:730:X
+   *         xang(mrad)            bpm3x         //= BPMS:LTUH:740:X
+   *         yang(mrad)]           bpm4x         //= BPMS:LTUH:750:X
+   *                               bpm1y         //= BPMS:LTUH:720:Y
+   *                               bpm2y         //= BPMS:LTUH:730:Y
+   *                               bpm3y         //= BPMS:LTUH:740:Y
+   *                               bpm4y]        //= BPMS:LTUH:750:Y
    *
    *    Where F is the 4x8 precalculated fit matrix.  F is approx. pinv(A), for Least Squares fit p = pinv(A)*x
    *
@@ -291,13 +291,13 @@ BLDBLOB bldPulseBlobs[] =
    *         R31 R32 R33 R34]     //rmat elements for bpm4y
    */
 /* BMPOSITION1X: BlobSet mask bit 0x0008 */
-  [BMPOSITION1X] = { name: "BPMS:LTU1:720:X"    , blob: 0, aMsk: AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y },	/* Position in mm/mrad */
+  [BMPOSITION1X] = { name: "BPMS:LTUH:720:X"    , blob: 0, aMsk: AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y },	/* Position in mm/mrad */
 /* BMPOSITION2X: BlobSet mask bit 0x0010 */
-  [BMPOSITION2X] = { name: "BPMS:LTU1:730:X"    , blob: 0, aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
+  [BMPOSITION2X] = { name: "BPMS:LTUH:730:X"    , blob: 0, aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
 /* BMPOSITION3X: BlobSet mask bit 0x0020 */
-  [BMPOSITION3X] = { name: "BPMS:LTU1:740:X"    , blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
+  [BMPOSITION3X] = { name: "BPMS:LTUH:740:X"    , blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
 /* BMPOSITION4X: BlobSet mask bit 0x0040 */
-  [BMPOSITION4X] = { name: "BPMS:LTU1:750:X"    , blob: 0, aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
+  [BMPOSITION4X] = { name: "BPMS:LTUH:750:X"    , blob: 0, aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
 /* BC2CHARGE:    BlobSet mask bit 0x0080 */
   [BC2CHARGE]    = { name: "BLEN:LI24:886:BIMAX", blob: 0, aMsk: AVAIL_BC2CHARGE },	/* BC2 Charge in Amps */
 /* BC2ENERGY:    BlobSet mask bit 0x0100 */
@@ -319,13 +319,13 @@ BLDBLOB bldPulseBlobs[] =
    * Charge at the DMP
    */
 /* DMP_CHARGE: BlobSet mask bit 0x1000 */
-  [DMP_CHARGE]     = { name: "BPMS:DMP1:502:TMIT", blob: 0, aMsk: AVAIL_DMP_CHARGE}, 
+  [DMP_CHARGE]     = { name: "BPMS:DMPH:502:TMIT", blob: 0, aMsk: AVAIL_DMP_CHARGE}, 
 
   /**
    * XTCAV Voltage and Phase
    */
 /* XTCAV_AMP:    BlobSet mask bit 0x2000 */
-  [XTCAV_AMP]  = { name: "TCAV:DMP1:360:AV", blob: 0, aMsk: AVAIL_XTCAV_AMP},
+  [XTCAV_AMP]  = { name: "TCAV:DMPH:360:AV", blob: 0, aMsk: AVAIL_XTCAV_AMP},
   
 };
 
@@ -1288,18 +1288,18 @@ passed:
 
 				calculates the accurate shot to shot SASE central photon energy given the
 				shot to shot bpm positions in DL2
-				x450 corresponds to the bpm x position data  from BPMS:LTU1:450:X
-				x250 corresponds to the bpm x position data  from BPMS:LTU1:250:X
+				x450 corresponds to the bpm x position data  from BPMS:LTUH:450:X
+				x250 corresponds to the bpm x position data  from BPMS:LTUH:250:X
 
-				BPMS:LTU1:450:X and BPMS:LTU1:250:X both arrive on every pulse over FCOM.
+				BPMS:LTUH:450:X and BPMS:LTUH:250:X both arrive on every pulse over FCOM.
 	
 				eVave = SIOC:SYS0:ML00:AO627;      % a single number - Slow update (1 sec or so) over CA from matlab and from subroutine record
 				
 				% Slow update (1 sec or so) over CA from matlab - typically there should be the last few hundred data points in x450 or x250
 				x450ave = SIOC:SYS0:ML02:AO041;    % from subroutine record
 				x250ave = SIOC:SYS0:ML02:AO040;	   % from subroutine record
-				x450 = BPMS:LTU1:450:X;
-                x250 = BPMS:LTU1:250:X;
+				x450 = BPMS:LTUH:450:X;
+                x250 = BPMS:LTUH:250:X;
 	
 				etax = -125 ;       %  [mm] +/- design value for dispersion at bpms in dogleg
 	
@@ -1319,8 +1319,8 @@ passed:
 				double x250ave = bldStaticPVs[X250AVE].pTD->value;	/* SIOC:SYS0:ML02:AO040 - Slow update (1 sec or so) over CA from matlab - typically there should be the last few hundred data points in x250 */
 
 				/* following variables arrive on every pulse via FCOM */
-				double x450 = bldPulseBlobs[BMENERGY2X].blob->fcbl_bpm_X;	/* BPMS:LTU1:450:X */
-				double x250 = bldPulseBlobs[BMENERGY1X].blob->fcbl_bpm_X;	/* BPMS:LTU1:250:X */
+				double x450 = bldPulseBlobs[BMENERGY2X].blob->fcbl_bpm_X;	/* BPMS:LTUH:450:X */
+				double x250 = bldPulseBlobs[BMENERGY1X].blob->fcbl_bpm_X;	/* BPMS:LTUH:250:X */
 				double eVdelta =  eVave * ( (x450 - x450ave) - (x250 - x250ave))/ (etax); /* The two BPM positions get subtracted, not added, as they have opposite	dispersion. */
 				
 				double eV =  eVave + eVdelta;
@@ -1337,9 +1337,9 @@ passed:
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(0);
 			}				
 
-			/* Shantha Condamoor: 7-Jul-2014: shot-to-shot values of X positions of LTU1 BPMS 250 and 450 sent in eBeam BLD data */
+			/* Shantha Condamoor: 7-Jul-2014: shot-to-shot values of X positions of LTUH BPMS 250 and 450 sent in eBeam BLD data */
 
-			/* BPM LTU1 450 and 250 X positions */ 
+			/* BPM LTUH 450 and 250 X positions */ 
 			
 			if( AVAIL_BMENERGY2X & dataAvailable )
 			{

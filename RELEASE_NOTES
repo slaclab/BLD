@@ -1,5 +1,11 @@
 # Put your release notes or change log information
 # in here.
+BLD-R2-11-0
+	Jeremy Mock: 2020-04-23 on git branch master
+  Built against event-R4-2-5-CLTS-R3, udpComm-R2-7-1-BR-1, fcom-R1-3-35-BR-2,
+    and fcomUtil-R1-2-4-BR-2 in EPICS-R3-14-12 for changes to timing for multiple beamlines
+  Change PV names (and blob names) from LTU1 -> LTUH, UND1->UNDH, DMP1->DMPH
+
 BLD-R2-10-1
 	Bruce Hill: 2018-02-16 on git branch master
 	Discovered that only a few BPM's were enabled in the eOrbits BLD packet.

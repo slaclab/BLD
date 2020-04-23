@@ -9,53 +9,53 @@ file fcomBlobAo.template
 {
 	pattern
 	{	P,			SIM,	INDEX,	GROUP,	BLOB				}
-	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:LTU1:910:X		}
-	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:LTU1:910:Y		}
-	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:LTU1:910:T		}
+	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:LTUH:910:X		}
+	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:LTUH:910:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:LTUH:910:T		}
 
-	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:LTU1:960:X		}
-	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:LTU1:960:Y		}
-	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:LTU1:960:T		}
+	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:LTUH:960:X		}
+	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:LTUH:960:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:LTUH:960:T		}
 
-	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:UND1:100:X		}
-	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:UND1:100:Y		}
-	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:UND1:100:T		}
+	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:UNDH:100:X		}
+	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:UNDH:100:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:UNDH:100:T		}
 
-	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:UND1:190:X		}
-	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:UND1:190:Y		}
-	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:UND1:190:T		}
+	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:UNDH:190:X		}
+	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:UNDH:190:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:UNDH:190:T		}
 
-	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:UND1:290:X		}
-	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:UND1:290:Y		}
-	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:UND1:290:T		}
+	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:UNDH:290:X		}
+	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:UNDH:290:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:UNDH:290:T		}
 
-	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:UND1:390:X		}
-	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:UND1:390:Y		}
-	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:UND1:390:T		}
+	{	"$(BLOB)",	"_SIM",		0,		0,	BPMS:UNDH:390:X		}
+	{	"$(BLOB)",	"_SIM",		1,		0,	BPMS:UNDH:390:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		0,	BPMS:UNDH:390:T		}
 
-	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UND1:490:X		}
-	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UND1:490:Y		}
-	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UND1:490:T		}
+	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UNDH:490:X		}
+	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UNDH:490:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UNDH:490:T		}
 
-	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UND1:590:X		}
-	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UND1:590:Y		}
-	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UND1:590:T		}
+	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UNDH:590:X		}
+	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UNDH:590:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UNDH:590:T		}
 
-	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UND1:690:X		}
-	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UND1:690:Y		}
-	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UND1:690:T		}
+	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UNDH:690:X		}
+	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UNDH:690:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UNDH:690:T		}
 
-	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UND1:790:X		}
-	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UND1:790:Y		}
-	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UND1:790:T		}
+	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UNDH:790:X		}
+	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UNDH:790:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UNDH:790:T		}
 
-	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UND1:890:X		}
-	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UND1:890:Y		}
-	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UND1:890:T		}
+	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UNDH:890:X		}
+	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UNDH:890:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UNDH:890:T		}
 
-	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UND1:990:X		}
-	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UND1:990:Y		}
-	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UND1:990:T		}
+	{	"$(BLOB)",	"_SIM",		0,		1,	BPMS:UNDH:990:X		}
+	{	"$(BLOB)",	"_SIM",		1,		1,	BPMS:UNDH:990:Y		}
+	{	"$(BLOB)",	"_SIM",		2,		1,	BPMS:UNDH:990:T		}
 
 }
 
@@ -63,19 +63,19 @@ file fcomBlobAo.template
 #{
 #	pattern
 #	{	P,			R,		GROUP,	BLOB				}
-#	{	"$(BLOB)",	"_ADD",		0,	BPMS:LTU1:910:ALL	}
-#	{	"$(BLOB)",	"_ADD",		0,	BPMS:LTU1:960:ALL	}
-#	{	"$(BLOB)",	"_ADD",		0,	BPMS:UND1:100:ALL	}
-#	{	"$(BLOB)",	"_ADD",		0,	BPMS:UND1:190:ALL	}
-#	{	"$(BLOB)",	"_ADD",		0,	BPMS:UND1:290:ALL	}
-#	{	"$(BLOB)",	"_ADD",		0,	BPMS:UND1:390:ALL	}
+#	{	"$(BLOB)",	"_ADD",		0,	BPMS:LTUH:910:ALL	}
+#	{	"$(BLOB)",	"_ADD",		0,	BPMS:LTUH:960:ALL	}
+#	{	"$(BLOB)",	"_ADD",		0,	BPMS:UNDH:100:ALL	}
+#	{	"$(BLOB)",	"_ADD",		0,	BPMS:UNDH:190:ALL	}
+#	{	"$(BLOB)",	"_ADD",		0,	BPMS:UNDH:290:ALL	}
+#	{	"$(BLOB)",	"_ADD",		0,	BPMS:UNDH:390:ALL	}
 #
-#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:490:ALL	}
-#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:590:ALL	}
-#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:690:ALL	}
-#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:790:ALL	}
-#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:890:ALL	}
-#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UND1:990:ALL	}
+#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UNDH:490:ALL	}
+#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UNDH:590:ALL	}
+#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UNDH:690:ALL	}
+#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UNDH:790:ALL	}
+#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UNDH:890:ALL	}
+#	{	"$(BLOB)",	"_ADD",		1,	BPMS:UNDH:990:ALL	}
 #}
 
 
@@ -102,63 +102,63 @@ file fcomBlobBPMS_SIM.db
 	{
 		GROUP	= "0",
 		SCAN	= "Event",	EC = "\$(EC)"
-		BLOB	= "BPMS:LTU1:910:",
-		NEXT	= "BPMS:LTU1:960:SIM_SEQ"
+		BLOB	= "BPMS:LTUH:910:",
+		NEXT	= "BPMS:LTUH:960:SIM_SEQ"
 	}
 	{
 		GROUP	= "0",
-		BLOB	= "BPMS:LTU1:960:",
-		NEXT	= "BPMS:UND1:100:SIM_SEQ"
+		BLOB	= "BPMS:LTUH:960:",
+		NEXT	= "BPMS:UNDH:100:SIM_SEQ"
 	}
 	{
 		GROUP	= "0",
-		BLOB	= "BPMS:UND1:100:",
-		NEXT	= "BPMS:UND1:190:SIM_SEQ"
+		BLOB	= "BPMS:UNDH:100:",
+		NEXT	= "BPMS:UNDH:190:SIM_SEQ"
 	}
 	{
 		GROUP	= "0",
-		BLOB	= "BPMS:UND1:190:",
-		NEXT	= "BPMS:UND1:290:SIM_SEQ"
+		BLOB	= "BPMS:UNDH:190:",
+		NEXT	= "BPMS:UNDH:290:SIM_SEQ"
 	}
 	{
 		GROUP	= "0",
-		BLOB	= "BPMS:UND1:290:",
-		NEXT	= "BPMS:UND1:390:SIM_SEQ"
+		BLOB	= "BPMS:UNDH:290:",
+		NEXT	= "BPMS:UNDH:390:SIM_SEQ"
 	}
 	{
 		GROUP	= "0",
-		BLOB	= "BPMS:UND1:390:",
-		NEXT	= "BPMS:UND1:490:SIM_SEQ"
+		BLOB	= "BPMS:UNDH:390:",
+		NEXT	= "BPMS:UNDH:490:SIM_SEQ"
 	}
 	{
 		GROUP	= "0",
-		BLOB	= "BPMS:UND1:490:",
-		NEXT	= "BPMS:UND1:590:SIM_SEQ"
+		BLOB	= "BPMS:UNDH:490:",
+		NEXT	= "BPMS:UNDH:590:SIM_SEQ"
 	}
 	{
 		GROUP	= "0",
-		BLOB	= "BPMS:UND1:590:",
-		NEXT	= "BPMS:UND1:690:SIM_SEQ"
+		BLOB	= "BPMS:UNDH:590:",
+		NEXT	= "BPMS:UNDH:690:SIM_SEQ"
 	}
 	{
 		GROUP	= "0",
-		BLOB	= "BPMS:UND1:690:",
-		NEXT	= "BPMS:UND1:790:SIM_SEQ"
+		BLOB	= "BPMS:UNDH:690:",
+		NEXT	= "BPMS:UNDH:790:SIM_SEQ"
 	}
 	{
 		GROUP	= "0",
-		BLOB	= "BPMS:UND1:790:",
-		NEXT	= "BPMS:UND1:890:SIM_SEQ"
+		BLOB	= "BPMS:UNDH:790:",
+		NEXT	= "BPMS:UNDH:890:SIM_SEQ"
 	}
 	{
 		GROUP	= "0",
-		BLOB	= "BPMS:UND1:890:",
-		NEXT	= "BPMS:UND1:990:SIM_SEQ"
+		BLOB	= "BPMS:UNDH:890:",
+		NEXT	= "BPMS:UNDH:990:SIM_SEQ"
 	}
 	{
 		GROUP	= "0",
-		BLOB	= "BPMS:UND1:990:",
-		NEXT	= "BPMS:UND1:990:ALL_SEND",
+		BLOB	= "BPMS:UNDH:990:",
+		NEXT	= "BPMS:UNDH:990:ALL_SEND",
 	}
 }
 
@@ -169,6 +169,6 @@ file fcomGroupSend.template
 {
 	{
 		GROUP	= "0",
-		LAST	= "BPMS:UND1:990:",
+		LAST	= "BPMS:UNDH:990:",
 	}
 }

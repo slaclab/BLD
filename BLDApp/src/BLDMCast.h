@@ -16,7 +16,7 @@
 		12-May-2011 - L.Piccoli	- Modifications
 		11-Jun-2013 - L.Piccoli	- BLD-R2-2-0 - 	Addition of BLD receiver - phase cavity  
 		30-Sep-2013 - L.Piccoli - BLD-R2-3-0 - Addition of Fast Undulator Launch feedback states, version 0x4000f
-		28-Feb-2014 - L.Piccoli - BLD-R2-4-0 - Merged BLD-R2-0-0-BR branch with MAIN_TRUNK. Addition of TCAV/DMP1 PVs to BLD. Version 0x5000f
+		28-Feb-2014 - L.Piccoli - BLD-R2-4-0 - Merged BLD-R2-0-0-BR branch with MAIN_TRUNK. Addition of TCAV/DMPH PVs to BLD. Version 0x5000f
 		28-Apr-2014 - S.Condamoor -  BLD-R2-5-2, BLD-R2-5-1, BLD-R2-5-0 - no changes affecting this file.
 		7-Jul-2014  - S.Condamoor - BLD-R2-6-0 - Added Photon Energy Calculation to eBeam BLD MCAST data . Version 0x6000f
 											   - Swapped ts_nsec and ts_sec fields in EBEAMINFO per PCDS (M.Browne) request.
@@ -47,12 +47,12 @@ extern "C" {
 /* Addition of X, X', Y, Y' calculaded by the Undulator Launch 120Hz feedback */
 #define EBEAMINFO_VERSION_2 0x4000f
 
-/* Addition of BPMS:LTU1:[250/450]:X and BPMS:DMP1:502:TMIT */
+/* Addition of BPMS:LTUH:[250/450]:X and BPMS:DMPH:502:TMIT */
 #define EBEAMINFO_VERSION_3 0x5000f
 
 /* Shantha Condamoor: 7-Jul-2014 */
 /* shot-to-shot Photon Energy Calculation added */
-/* Addition of shot-to-shot X position of BPMS:LTU1:[250/450]:X  */
+/* Addition of shot-to-shot X position of BPMS:LTUH:[250/450]:X  */
 #define EBEAMINFO_VERSION_4 0x6000f
 
 /* Shantha Condamoor: 2-Feb-2015 */
@@ -64,7 +64,7 @@ extern "C" {
    eVdelta = eVave * ( (x450 - x450ave) - (x250 - x250ave))/ (etax)
    
    In the formula above, etax must be -125 mm instead of +125 mm.
-   The dispersion for the first BPM (BPMS:LTU1:250) is positive, the one for the second BPM (BPMS:LTU1:450) is negative,
+   The dispersion for the first BPM (BPMS:LTUH:250) is positive, the one for the second BPM (BPMS:LTUH:450) is negative,
    So the fix is to define etax=-125 mm
 
    Increment the ebeam bld version number per PCDS request, so the data is clearly marked as changed
@@ -152,7 +152,7 @@ typedef struct EBEAMINFO
     /* Added in VERSION_6 */	
 	/* Shantha Condamoor: 7-Jul-2014 */
 	/* shot-to-shot Photon Energy Calculation added */
-	/* Addition of shot-to-shot X position of BPMS:LTU1:[250/450]:X  */	
+	/* Addition of shot-to-shot X position of BPMS:LTUH:[250/450]:X  */	
     Flt64_LE      ebeamPhotonEnergy;/* in eV */	
     Flt64_LE      ebeamLTU250PosX;  /* in mm */  	
     Flt64_LE      ebeamLTU450PosX;  /* in mm */           

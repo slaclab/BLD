@@ -21,7 +21,7 @@
 # blob in the group via a NEXT macro to force them to
 # be processed sequentially.
 # Set NEXT to the next blob's root plus SIM_SEQ
-# Ex:		NEXT	= "BPMS:DMP1:502:SIM_SEQ"
+# Ex:		NEXT	= "BPMS:DMPH:502:SIM_SEQ"
 #
 # Leave NEXT undefined for the last blob in the group
 # and it will default to an FLNK to the group's send record
@@ -53,33 +53,33 @@ file fcomBlobBPMS_SIM.db
 	{
 		GROUP	= "5",
 		SCAN	= "Event",	EC = "\$(EC)"
-		BLOB	= "BPMS:LTU1:250:",
-		NEXT	= "BPMS:LTU1:450:SIM_SEQ"
+		BLOB	= "BPMS:LTUH:250:",
+		NEXT	= "BPMS:LTUH:450:SIM_SEQ"
 	}
 	{
 		GROUP	= "5",
-		BLOB	= "BPMS:LTU1:450:",
-		NEXT	= "BPMS:LTU1:720:SIM_SEQ"
+		BLOB	= "BPMS:LTUH:450:",
+		NEXT	= "BPMS:LTUH:720:SIM_SEQ"
 	}
 	{
 		GROUP	= "5",
-		BLOB	= "BPMS:LTU1:720:",
-		NEXT	= "BPMS:LTU1:730:SIM_SEQ",
+		BLOB	= "BPMS:LTUH:720:",
+		NEXT	= "BPMS:LTUH:730:SIM_SEQ",
 	}
 	{
 		GROUP	= "5",
-		BLOB	= "BPMS:LTU1:730:",
-		NEXT	= "BPMS:LTU1:740:SIM_SEQ",
+		BLOB	= "BPMS:LTUH:730:",
+		NEXT	= "BPMS:LTUH:740:SIM_SEQ",
 	}
 	{
 		GROUP	= "5",
-		BLOB	= "BPMS:LTU1:740:",
-		NEXT	= "BPMS:LTU1:750:SIM_SEQ",
+		BLOB	= "BPMS:LTUH:740:",
+		NEXT	= "BPMS:LTUH:750:SIM_SEQ",
 	}
 	{
 		GROUP	= "5",
-		BLOB	= "BPMS:LTU1:750:",
-		NEXT	= "BPMS:LTU1:750:ALL_SEND",
+		BLOB	= "BPMS:LTUH:750:",
+		NEXT	= "BPMS:LTUH:750:ALL_SEND",
 	}
 }
 
@@ -89,7 +89,7 @@ file fcomBlobBPMS_SIM.db
 	{
 		GROUP	= "7",
 		SCAN	= "Event",	EC = "\$(EC)"
-		BLOB	= "BPMS:DMP1:502:",
+		BLOB	= "BPMS:DMPH:502:",
 	}
 }
 
@@ -138,11 +138,11 @@ file fcomGroupSend.template
 	}
 	{
 		GROUP	= "5",
-		LAST	= "BPMS:LTU1:750:",
+		LAST	= "BPMS:LTUH:750:",
 	}
 	{
 		GROUP	= "7",
-		LAST	= "BPMS:DMP1:502:",
+		LAST	= "BPMS:DMPH:502:",
 	}
 	{
 		GROUP	= "8",
