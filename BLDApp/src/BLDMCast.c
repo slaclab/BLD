@@ -230,7 +230,7 @@ BLDPV bldStaticPVs[]=
 {
     [DSPR1]  = {"BLD:SYS0:500:DSPR1",  1, AVAIL_DSPR1,  NULL, NULL},	/* For Energy */
     [DSPR2]  = {"BLD:SYS0:500:DSPR2",  1, AVAIL_DSPR2,  NULL, NULL},	/* For Energy */
-    [E0BDES] = {"BEND:LTU0:125:BDES",  1, AVAIL_E0BDES, NULL, NULL},	/* Energy in MeV */
+    [E0BDES] = {"BEND:LTUH:125:BDES",  1, AVAIL_E0BDES, NULL, NULL},	/* Energy in MeV */
     [FMTRX]  = {"BLD:SYS0:500:FMTRX", 32, AVAIL_FMTRX,  NULL, NULL},		/* For Position */
 /* Shantha Condamoor: 7-Jul-2014: The following are for matlab PVs that are used in shot-to-shot photon energy calculations*/	
 	[PHOTONEV]={"SIOC:SYS0:ML00:AO627",1, AVAIL_PHOTONEV,  NULL, NULL},	/* For shot-to-shot Photon Energy */
@@ -255,7 +255,7 @@ BLDBLOB bldPulseBlobs[] =
 
   /**
    * Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
-   * where E0 is the final desired energy at the LTU (the magnet setting BEND:LTU0:125:BDES*1000)
+   * where E0 is the final desired energy at the LTU (the magnet setting BEND:LTUH:125:BDES*1000)
    * dspr1,2  = Dx for the chosen dispersion BPMs (from design model database twiss parameters) (we can store these in BLD IOC PVs)
    * BPM1x = [BPMS:LTUH:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
    * BPM2x = [BPMS:LTUH:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
