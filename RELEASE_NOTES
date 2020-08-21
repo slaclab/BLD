@@ -1,5 +1,10 @@
 # Put your release notes or change log information
 # in here.
+BLD-R2-11-1
+	Jeremy Mock: 2020-08-21 on git branch master
+    Fix hard coded static PV in BLDMCast.c from BEND:LTU0:125 to BEND:LTUH:125
+      for L3 energy calculation
+
 BLD-R2-11-0
 	Jeremy Mock: 2020-04-23 on git branch master
   Built against event-R4-2-5-CLTS-R3, udpComm-R2-7-1-BR-1, fcom-R1-3-35-BR-2,
