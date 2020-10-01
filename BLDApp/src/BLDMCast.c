@@ -275,6 +275,7 @@ BLDBLOB bldPulseBlobs[] =
     * BPM2x = [BPMS:LTUH:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
     */
     /* BMENERGY1X: BlobSet mask bit 0x0002 */
+    // TODO (rreno): Get these energy PVs from Physics
     [BMENERGY1X] = { name: "BPMS:LTUH:250:X", blob: 0, aMsk: AVAIL_BMENERGY1X },    /* Actually X pos in mm */
     /* BMENERGY2X: BlobSet mask bit 0x0004 */
     [BMENERGY2X] = { name: "BPMS:LTUH:450:X", blob: 0, aMsk: AVAIL_BMENERGY2X },    /* Actually X pos in mm */
@@ -337,7 +338,7 @@ BLDBLOB bldPulseBlobs[] =
     * XTCAV Voltage and Phase
     */
     /* XTCAV_AMP:    BlobSet mask bit 0x2000 */
-    /* There does not seem to be an equivalent PV for DMPS in LLRF */
+    /* TODO (rreno): There does not seem to be an equivalent PV for DMPS in LLRF */
     [XTCAV_AMP]    = { name: "TCAV:DMPH:360:AV", blob: 0, aMsk: AVAIL_XTCAV_AMP },
 
 };
