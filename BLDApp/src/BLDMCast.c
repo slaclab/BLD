@@ -225,7 +225,7 @@ typedef struct BLDBLOB
 	long                    aMsk;
 } BLDBLOB;
 
-#ifdef BLD_SXR
+#if defined(BLD_SXR)
 BLDPV bldStaticPVs[]=
 {
     [DSPR1]    = { "BLD:SYS0:600:DSPR1",   1,  AVAIL_DSPR1,    NULL, NULL },	/* For Energy */
@@ -259,7 +259,7 @@ BLDPV bldStaticPVs[]=
  * Note: The BLOB name sequence below must match the fcom_stats.substitution file
  * and the above enumeration for PULSEPVSINDEX
  */
-#ifdef BLD_SXR
+#if defined(BLD_SXR)
 BLDBLOB bldPulseBlobs[] =
 {
     /**
