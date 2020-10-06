@@ -47,9 +47,9 @@ just one host and as a receiver on all the other hosts
 #define DEF_PORT	10148
 
 #if defined(BLD_SXR)
-#define DEF_GROUP	"239.255.24.63"
+#define DEF_GROUP	"239.255.25.63"
 #else
-#define DEF_GROUP   "239.255.23.63"
+#define DEF_GROUP   "239.255.24.63"
 #endif
 
 #define EORBITS_ID	63
