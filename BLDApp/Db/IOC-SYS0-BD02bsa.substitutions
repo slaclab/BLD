@@ -7,9 +7,9 @@
 # Associated Displays: bsa_sys0_maint.edl
 #
 # Rem:  Instantiate one line for every beam synchronous item.
-# 
+#
 # Macros:
-#	DEVICE	Name of the beam synchronous triggered device.  Must match the 
+#	DEVICE	Name of the beam synchronous triggered device.  Must match the
 #		name in <ioc>trig.substitutions without the 3rd colon and beyond.
 #	LOC	IOC location.
 #	UN	IOC unit number.
@@ -23,18 +23,17 @@
 file bsaBLDReceiverPhaseCavityEdef.db {
     pattern
     { DEVICE, LOC, UN, SLCLNK }
-    { BLD:SYS0:500, SYS0, 500, "" }
+    { BLD:SYS0:600, SYS0, 600, "" }
 }
 
 file bsaBLDReceiverImbEdef.db {
     pattern
     { DEVICE, LOC, UN, SLCLNK }
-    { BLD:SYS0:500, SYS0, 500, "" }
+    { BLD:SYS0:600, SYS0, 600, "" }
 }
 
 file bsaBLDReceiverGdetEdef.db {
     pattern
     { DEVICE, LOC, UN, SLCLNK }
-    { BLD:SYS0:500, SYS0, 500, "" }
+    { BLD:SYS0:600, SYS0, 600, "" }
 }
-

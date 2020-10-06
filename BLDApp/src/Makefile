@@ -32,6 +32,8 @@ endif
 # BLD*.dbd will be installed
 DBD += devBLDRcvr.dbd
 DBD += devBLDSndr.dbd
+DBD += devBLDSndrSXR.dbd
+
 
 #=============================
 # The following are compiled and added to the Support library for devBLDMCastWfRecv
@@ -42,6 +44,9 @@ DBD += devBLDSndr.dbd
 # or Multicast Sender only or Receiver and Sender.
 PROD_IOC      += BLDSender
 PROD_IOC      += BLDReceiver
+
+PROD_IOC 			+= BLDSenderSXR
+
 # PROD_IOC      += bldget
 # PROD_IOC      += bldrx
 
@@ -79,7 +84,7 @@ BLDSender_LIBS_Linux += drvMrf
 #BLDSender_LIBS_Linux += evrma
 BLDSender_LIBS += devBusMapped
 BLDSender_LIBS_RTEMS += udpComm
-BLDSender_LIBS_Linux += udpCommBSD 
+BLDSender_LIBS_Linux += udpCommBSD
 BLDSender_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 # BLDSender_registerRecordDeviceDriver.cpp derives from BLDSender.dbd
@@ -102,6 +107,69 @@ BLDSender_SRCS += devBLDMCastReceiver.c
 BLDSender_SRCS += BLDSender_registerRecordDeviceDriver.cpp
 BLDSender_SRCS_DEFAULT += BLDMain.cpp
 BLDSender_SRCS_vxWorks += -nil-
+
+#=============================
+# BLDSenderSXR test
+#=============================
+
+# BLDSenderSXR.dbd will be created and installed
+DBD += BLDSenderSXR.dbd
+
+# BLDSenderSXR.dbd will be made up from these files:
+BLDSenderSXR_DBD += base.dbd
+BLDSenderSXR_DBD += evrSupport.dbd
+BLDSenderSXR_DBD += devMrfEr.dbd
+BLDSenderSXR_DBD += autosaveSupport.dbd
+BLDSenderSXR_DBD += iocAdmin.dbd
+BLDSenderSXR_DBD += diagTimer.dbd
+BLDSenderSXR_DBD += fcomIocshSupport.dbd
+BLDSenderSXR_DBD += fcomUtil.dbd
+BLDSenderSXR_DBD += devFcom.dbd
+BLDSenderSXR_DBD += devBusMapped.dbd
+# BLDSenderSXR_DBD += devBLDRcvr.dbd
+BLDSenderSXR_DBD += devBLDSndr.dbd
+BLDSenderSXR_DBD += devBLDMCastWfRecv.dbd
+
+# Add all the support libraries needed by this IOC for BLDSenderSXR app
+BLDSenderSXR_LIBS += autosave
+BLDSenderSXR_LIBS += devIocStats
+BLDSenderSXR_LIBS += diagTimer
+#BLDSenderSXR_LIBS += devBLDMCastWfRecv
+BLDSenderSXR_LIBS += fcomIocshSupport
+BLDSenderSXR_LIBS += fcomUtil
+BLDSenderSXR_LIBS += fcom
+BLDSenderSXR_LIBS += evrSupport
+BLDSenderSXR_LIBS += devMrfEr
+BLDSenderSXR_LIBS_RTEMS += mrfVme64x
+BLDSenderSXR_LIBS_Linux += drvMrf
+#BLDSenderSXR_LIBS_Linux += evrma
+BLDSenderSXR_LIBS += devBusMapped
+BLDSenderSXR_LIBS_RTEMS += udpComm
+BLDSenderSXR_LIBS_Linux += udpCommBSD
+BLDSenderSXR_LIBS += $(EPICS_BASE_IOC_LIBS)
+
+# BLDSenderSXR_registerRecordDeviceDriver.cpp derives from BLDSenderSXR.dbd
+BLDSenderSXR_SRCS += BLDMCastSXR.c
+BLDSenderSXR_SRCS += multicast_eOrbits_SXR.c
+BLDSenderSXR_SRCS += devBLDMCastStatusSXR.c
+BLDSenderSXR_SRCS += devBLDMCastWfRecvSXR.c
+#BLDSenderSXR_SRCS += catest.c
+#BLDSenderSXR_SRCS += camon.c
+#BLDSenderSXR_SRCS += getBLD.c
+
+# Include Multicast Receiver support
+# BLDSenderSXR_SRCS += BLDMCastReceiver.c
+# BLDSenderSXR_SRCS += BLDMCastReceiverGdet.c
+# BLDSenderSXR_SRCS += BLDMCastReceiverImb.c
+# BLDSenderSXR_SRCS += BLDMCastReceiverPhaseCavity.c
+# BLDSenderSXR_SRCS += devBLDMCastReceiver.c
+
+# Build the main IOC entry point on workstation OSs.
+BLDSenderSXR_SRCS += BLDSenderSXR_registerRecordDeviceDriver.cpp
+BLDSenderSXR_SRCS_DEFAULT += BLDMain.cpp
+BLDSenderSXR_SRCS_vxWorks += -nil-
+
+BLDSenderSXR_CFLAGS += -DBLD_SXR
 
 #=============================
 # BLDReceiver product
@@ -172,4 +240,3 @@ BLDReceiver_SRCS_DEFAULT += BLDMain.cpp
 include $(TOP)/configure/RULES
 #----------------------------------------
 #  ADD RULES AFTER THIS LINE
-
