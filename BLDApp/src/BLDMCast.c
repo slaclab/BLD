@@ -585,27 +585,19 @@ void EVRFire( void * pBlobSet )
 	/* check for LCLS SXR beam */
 	if ( ((modifier_a[MOD3_IDX] & BKRCUS) == 0) || 
          ((modifier_a[MOD5_IDX] & MOD5_BEAMFULL_MASK) == 0) )
-	{
-		/* This is 360Hz. So printf will really screw timing. Only enable briefly */
-		if(BLD_MCAST_DEBUG >= 6)
-            errlogPrintf("EVR fires (status %i, mod5 0x%08x, fid %d)\n",
-                    status, (unsigned)modifier_a[MOD3_IDX], PULSEID(time_s) );
-		/* No beam */
-		return;
-	}
 #else
 	/* check for LCLS HXR beam */
 	if ( ((modifier_a[MOD3_IDX] & BKRCUS) != 0) || 
          ((modifier_a[MOD5_IDX] & MOD5_BEAMFULL_MASK) == 0) )
+#endif
 	{
 		/* This is 360Hz. So printf will really screw timing. Only enable briefly */
 		if(BLD_MCAST_DEBUG >= 6)
             errlogPrintf("EVR fires (status %i, mod5 0x%08x, fid %d)\n",
-                    status, (unsigned)modifier_a[MOD3_IDX], PULSEID(time_s) );
+                    status, (unsigned)modifier_a[MOD5_IDX], PULSEID(time_s) );
 		/* No beam */
 		return;
 	}
-#endif
 
 	fidpipeline = PULSEID(time_s);
 	tscLast	= evrGetFiducialTsc();
