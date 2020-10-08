@@ -131,7 +131,7 @@ const char * blobNames[] =
 };
 #endif // BLD_SXR
 
-#define N_BPMS    (sizeof(blobNames)/sizeof(blobNames[0])
+#define N_BPMS    (sizeof(blobNames)/sizeof(blobNames[0]))
 
 int			EORBITS_ENABLE = 0;
 epicsExportAddress(int, EORBITS_ENABLE);
