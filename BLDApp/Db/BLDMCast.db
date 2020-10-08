@@ -372,6 +372,5 @@ record(longout, "BLD:$(LOCA):$(NMBR):ETAX") {
     field(DTYP, "BLD_SCALAR")
     field(OUT,  "@ETAX")
     field(EGU,  "mm")
-    field(PREC, "5")
     info(autosaveFields, "VAL")
 }
