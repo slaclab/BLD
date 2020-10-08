@@ -113,7 +113,7 @@ BLDSender_SRCS_vxWorks += -nil-
 #=============================
 
 # BLDSenderSXR.dbd will be created and installed
-#DBD += BLDSndr.dbd
+DBD += BLDSenderSXR.dbd
 
 # BLDSenderSXR.dbd will be made up from these files:
 BLDSenderSXR_DBD += base.dbd
