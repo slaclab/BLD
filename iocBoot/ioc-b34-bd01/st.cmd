@@ -50,7 +50,7 @@ setenv( "BLDMCAST_DST_IP", "239.255.24.254" )	# Test
 bspExtVerbosity=0
 
 # Load obj file
-ld("../../bin/RTEMS-beatnik/BLDSender.obj")
+ld("../../bin/RTEMS-beatnik/BLDSenderSXR.obj")
 
 # Load envPaths
 . envPaths
@@ -73,7 +73,7 @@ epicsEnvSet("IOCSH_PS1","ioc-b34-bd01>")
 
 ## Register all support components
 dbLoadDatabase("dbd/BLDSender.dbd")
-BLDSender_registerRecordDeviceDriver(pdbbase)
+BLDSenderSXR_registerRecordDeviceDriver(pdbbase)
 
 ###########################
 # initialize all hardware #
