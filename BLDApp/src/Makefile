@@ -32,7 +32,6 @@ endif
 # BLD*.dbd will be installed
 DBD += devBLDRcvr.dbd
 DBD += devBLDSndr.dbd
-DBD += devBLDSndrSXR.dbd
 
 
 #=============================
@@ -92,6 +91,7 @@ BLDSender_SRCS += BLDMCast.c
 BLDSender_SRCS += multicast_eOrbits.c
 BLDSender_SRCS += devBLDMCastStatus.c
 BLDSender_SRCS += devBLDMCastWfRecv.c
+BLDSender_SRCS += devBLDScalars.c
 #BLDSender_SRCS += catest.c
 #BLDSender_SRCS += camon.c
 #BLDSender_SRCS += getBLD.c
@@ -113,7 +113,7 @@ BLDSender_SRCS_vxWorks += -nil-
 #=============================
 
 # BLDSenderSXR.dbd will be created and installed
-DBD += BLDSenderSXR.dbd
+#DBD += BLDSndr.dbd
 
 # BLDSenderSXR.dbd will be made up from these files:
 BLDSenderSXR_DBD += base.dbd
@@ -153,6 +153,7 @@ BLDSenderSXR_SRCS += BLDMCast.c
 BLDSenderSXR_SRCS += multicast_eOrbits.c
 BLDSenderSXR_SRCS += devBLDMCastStatus.c
 BLDSenderSXR_SRCS += devBLDMCastWfRecv.c
+BLDSenderSXR_SRCS += devBLDScalars.c
 #BLDSenderSXR_SRCS += catest.c
 #BLDSenderSXR_SRCS += camon.c
 #BLDSenderSXR_SRCS += getBLD.c

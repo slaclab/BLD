@@ -188,6 +188,9 @@ extern IOSCANPVT    bldIoscan;         /* Trigger full-rate EPICS records */
 
 #define BLDMCAST_DST_PORT	10148
 
+// For use with the ETAX PV. See devBLDScalars.c
+long etaxPV;
+
 #ifdef __cplusplus
 }
 #endif
