@@ -225,19 +225,33 @@ typedef struct BLDBLOB
 	long                    aMsk;
 } BLDBLOB;
 
-
+#if defined(BLD_SXR)
 BLDPV bldStaticPVs[]=
 {
-    [DSPR1]  = {"BLD:SYS0:500:DSPR1",  1, AVAIL_DSPR1,  NULL, NULL},	/* For Energy */
-    [DSPR2]  = {"BLD:SYS0:500:DSPR2",  1, AVAIL_DSPR2,  NULL, NULL},	/* For Energy */
-    [E0BDES] = {"BEND:LTUH:125:BDES",  1, AVAIL_E0BDES, NULL, NULL},	/* Energy in MeV */
-    [FMTRX]  = {"BLD:SYS0:500:FMTRX", 32, AVAIL_FMTRX,  NULL, NULL},		/* For Position */
-/* Shantha Condamoor: 7-Jul-2014: The following are for matlab PVs that are used in shot-to-shot photon energy calculations*/	
-	[PHOTONEV]={"SIOC:SYS0:ML00:AO627",1, AVAIL_PHOTONEV,  NULL, NULL},	/* For shot-to-shot Photon Energy */
-	[X450AVE]= {"SIOC:SYS0:ML02:AO041",1, AVAIL_X450AVE,  NULL, NULL},	/* Average of last few hundred data points of X POS in LTU BPM x450 */		
-	[X250AVE]= {"SIOC:SYS0:ML02:AO040",1, AVAIL_X250AVE,  NULL, NULL},	/* Average of last few hundred data points of X POS in LTU BPM x250 */	
-	[7]= { "EVR:B34:EVR05:LINK", 1, 0,  NULL, NULL},	/* Test only */
+    [DSPR1]    = { "BLD:SYS0:600:DSPR1",   1,  AVAIL_DSPR1,    NULL, NULL },	/* For Energy */
+    [DSPR2]    = { "BLD:SYS0:600:DSPR2",   1,  AVAIL_DSPR2,    NULL, NULL },	/* For Energy */
+    [E0BDES]   = { "BEND:LTUS:525:BDES",   1,  AVAIL_E0BDES,   NULL, NULL },	/* Energy in MeV */
+    [FMTRX]    = { "BLD:SYS0:600:FMTRX",   32, AVAIL_FMTRX,    NULL, NULL },	/* For Position */
+    // TODO (rreno): Get the SXR varaints of the following PVs from Physics
+    [PHOTONEV] = { "SIOC:SYS0:ML00:AO627", 1,  AVAIL_PHOTONEV, NULL, NULL },    /* For shot-to-shot Photon Energy */
+    [X450AVE]  = { "SIOC:SYS0:ML02:AO041", 1,  AVAIL_X450AVE,  NULL, NULL },	/* Average of last few hundred data points of X POS in LTU BPM x450 */		
+    [X250AVE]  = { "SIOC:SYS0:ML02:AO040", 1,  AVAIL_X250AVE,  NULL, NULL },	/* Average of last few hundred data points of X POS in LTU BPM x250 */	
+    [7]        = { "EVR:B34:EVR05:LINK",   1,  0,              NULL, NULL },	/* Test only */
 };
+#else
+BLDPV bldStaticPVs[]=
+{
+    [DSPR1]    = { "BLD:SYS0:500:DSPR1",   1,  AVAIL_DSPR1,    NULL, NULL },	/* For Energy */
+    [DSPR2]    = { "BLD:SYS0:500:DSPR2",   1,  AVAIL_DSPR2,    NULL, NULL },	/* For Energy */
+    [E0BDES]   = { "BEND:LTUH:125:BDES",   1,  AVAIL_E0BDES,   NULL, NULL },	/* Energy in MeV */
+    [FMTRX]    = { "BLD:SYS0:500:FMTRX",   32, AVAIL_FMTRX,    NULL, NULL },	/* For Position */
+/* Shantha Condamoor: 7-Jul-2014: The following are for matlab PVs that are used in shot-to-shot photon energy calculations*/	
+    [PHOTONEV] = { "SIOC:SYS0:ML00:AO627", 1,  AVAIL_PHOTONEV, NULL, NULL },    /* For shot-to-shot Photon Energy */
+    [X450AVE]  = { "SIOC:SYS0:ML02:AO041", 1,  AVAIL_X450AVE,  NULL, NULL },	/* Average of last few hundred data points of X POS in LTU BPM x450 */		
+    [X250AVE]  = { "SIOC:SYS0:ML02:AO040", 1,  AVAIL_X250AVE,  NULL, NULL },	/* Average of last few hundred data points of X POS in LTU BPM x250 */	
+    [7]        = { "EVR:B34:EVR05:LINK",   1,  0,              NULL, NULL },	/* Test only */
+};
+#endif // BLD_SXR
 
 #define N_STATIC_PVS (sizeof(bldStaticPVs)/sizeof(bldStaticPVs[0]))
 
@@ -245,6 +259,91 @@ BLDPV bldStaticPVs[]=
  * Note: The BLOB name sequence below must match the fcom_stats.substitution file
  * and the above enumeration for PULSEPVSINDEX
  */
+#if defined(BLD_SXR)
+BLDBLOB bldPulseBlobs[] =
+{
+    /**
+    * Charge (nC) = BPMS:IN20:221:TMIT (Nel) * 1.602e-10 (nC/Nel)   // [Nel = number electrons]
+    */
+    /* BMCHARGE: BlobSet mask bit 0x0001 */
+    [BMCHARGE] = { name: "BPMS:IN20:221:TMIT", blob: 0, aMsk: AVAIL_BMCHARGE },     /* Charge in Nel, 1.602e-10 nC per Nel*/
+
+    /**
+    * Energy at L3 (MeV) = [ (BPM1x(MeV) + BPM2x(MeV))/2  ]*E0(MeV) + E0 (MeV)
+    * where E0 is the final desired energy at the LTU (the magnet setting BEND:LTUS:525:BDES*1000)
+    * dspr1,2  = Dx for the chosen dispersion BPMs (from design model database twiss parameters) (we can store these in BLD IOC PVs)
+    * BPM1x = [BPMS:LTUH:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
+    * BPM2x = [BPMS:LTUH:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
+    */
+    /* BMENERGY1X: BlobSet mask bit 0x0002 */
+    // TODO (rreno): Get these energy PVs from Physics
+    [BMENERGY1X] = { name: "BPMS:LTUH:250:X", blob: 0, aMsk: AVAIL_BMENERGY1X },    /* Actually X pos in mm */
+    /* BMENERGY2X: BlobSet mask bit 0x0004 */
+    [BMENERGY2X] = { name: "BPMS:LTUH:450:X", blob: 0, aMsk: AVAIL_BMENERGY2X },    /* Actually X pos in mm */
+
+    /**
+    * Position X, Y, Angle X, Y at LTU:
+    * Using the LTU Feedback BPMs: BPMS:LTUS:660,680,740,750
+    * The best estimate calculation is a matrix multiply for the result vector p:
+    *
+    *        [xpos(mm)             [bpm1x         //= BPMS:LTUS:660:X (mm)
+    *    p=   ypos(mm)      = [F]*  bpm2x         //= BPMS:LTUS:680:X
+    *         xang(mrad)            bpm3x         //= BPMS:LTUS:740:X
+    *         yang(mrad)]           bpm4x         //= BPMS:LTUS:750:X
+    *                               bpm1y         //= BPMS:LTUS:660:Y
+    *                               bpm2y         //= BPMS:LTUS:680:Y
+    *                               bpm3y         //= BPMS:LTUS:740:Y
+    *                               bpm4y]        //= BPMS:LTUS:750:Y
+    *
+    *    Where F is the 4x8 precalculated fit matrix.  F is approx. pinv(A), for Least Squares fit p = pinv(A)*x
+    *
+    *    A = [R11 R12 R13 R14;     //rmat elements for bpm1x
+    *         R11 R12 R13 R14;     //rmat elements for bpm2x
+    *         R11 R12 R13 R14;     //rmat elements for bpm3x
+    *         R11 R12 R13 R14;     //rmat elements for bpm4x
+    *         R31 R32 R33 R34;     //rmat elements for bpm1y
+    *         R31 R32 R33 R34;     //rmat elements for bpm2y
+    *         R31 R32 R33 R34;     //rmat elements for bpm3y
+    *         R31 R32 R33 R34]     //rmat elements for bpm4y
+    */
+    /* BMPOSITION1X: BlobSet mask bit 0x0008 */
+    [BMPOSITION1X] = { name: "BPMS:LTUS:660:X"    , blob: 0, aMsk: AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y },	/* Position in mm/mrad */
+    /* BMPOSITION2X: BlobSet mask bit 0x0010 */
+    [BMPOSITION2X] = { name: "BPMS:LTUS:680:X"    , blob: 0, aMsk: AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y },	/* Position in mm/mrad */
+    /* BMPOSITION3X: BlobSet mask bit 0x0020 */
+    [BMPOSITION3X] = { name: "BPMS:LTUS:740:X"    , blob: 0, aMsk: AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y },	/* Position in mm/mrad */
+    /* BMPOSITION4X: BlobSet mask bit 0x0040 */
+    [BMPOSITION4X] = { name: "BPMS:LTUS:750:X"    , blob: 0, aMsk: AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y },	/* Position in mm/mrad */
+    /* BC2CHARGE:    BlobSet mask bit 0x0080 */
+    [BC2CHARGE]    = { name: "BLEN:LI24:886:BIMAX", blob: 0, aMsk: AVAIL_BC2CHARGE },	/* BC2 Charge in Amps */
+    /* BC2ENERGY:    BlobSet mask bit 0x0100 */
+    [BC2ENERGY]    = { name: "BPMS:LI24:801:X"    , blob: 0, aMsk: AVAIL_BC2ENERGY },	/* BC2 Energy in mm */
+    /* BC1CHARGE:    BlobSet mask bit 0x0200 */
+    [BC1CHARGE]    = { name: "BLEN:LI21:265:AIMAX", blob: 0, aMsk: AVAIL_BC1CHARGE },	/* BC1 Charge in Amps */
+    /* BC1ENERGY:    BlobSet mask bit 0x0400 */
+    [BC1ENERGY]    = { name: "BPMS:LI21:233:X"    , blob: 0, aMsk: AVAIL_BC1ENERGY },	/* BC1 Energy in mm */
+
+    /**
+    * Soft Undulator Launch 120Hz Feedback States X, X', Y, Y' (running on FB03:TR02)
+    */
+    /* UNDSTATE:    BlobSet mask bit 0x0800 */
+    [UNDSTATE]     = { name: "FBCK:FB03:TR02:STATES", blob: 0, aMsk: AVAIL_UNDSTATE }, 
+
+    /**
+    * Charge at the DMP
+    */
+    /* DMP_CHARGE: BlobSet mask bit 0x1000 */
+    [DMP_CHARGE]   = { name: "BPMS:DMPS:502:TMIT", blob: 0, aMsk: AVAIL_DMP_CHARGE }, 
+
+    /**
+    * XTCAV Voltage and Phase
+    */
+    /* XTCAV_AMP:    BlobSet mask bit 0x2000 */
+    /* TODO (rreno): There does not seem to be an equivalent PV for DMPS in LLRF */
+    [XTCAV_AMP]    = { name: "TCAV:DMPH:360:AV", blob: 0, aMsk: AVAIL_XTCAV_AMP },
+
+};
+#else
 BLDBLOB bldPulseBlobs[] =
 {
   /**
@@ -328,7 +427,7 @@ BLDBLOB bldPulseBlobs[] =
   [XTCAV_AMP]  = { name: "TCAV:DMPH:360:AV", blob: 0, aMsk: AVAIL_XTCAV_AMP},
   
 };
-
+#endif // BLD_SXR
 
 #define N_PULSE_BLOBS (sizeof(bldPulseBlobs)/sizeof(bldPulseBlobs[0]))
 
@@ -482,12 +581,20 @@ void EVRFire( void * pBlobSet )
 		bldFiducialTime.nsec = PULSEID_INVALID;
 		return;
 	}
-
-	/* check for LCLS beam */
-	if ( (modifier_a[4] & MOD5_BEAMFULL_MASK) == 0 )
+#if defined(BLD_SXR)
+	/* check for LCLS SXR beam */
+	if ( ((modifier_a[MOD3_IDX] & BKRCUS) == 0) || 
+         ((modifier_a[MOD5_IDX] & MOD5_BEAMFULL_MASK) == 0) )
+#else
+	/* check for LCLS HXR beam */
+	if ( ((modifier_a[MOD3_IDX] & BKRCUS) != 0) || 
+         ((modifier_a[MOD5_IDX] & MOD5_BEAMFULL_MASK) == 0) )
+#endif
 	{
 		/* This is 360Hz. So printf will really screw timing. Only enable briefly */
-		if(BLD_MCAST_DEBUG >= 6) errlogPrintf("EVR fires (status %i, mod5 0x%08x, fid %d)\n", status, (unsigned)modifier_a[4], PULSEID(time_s) );
+		if(BLD_MCAST_DEBUG >= 6)
+            errlogPrintf("EVR fires (status %i, mod5 0x%08x, fid %d)\n",
+                    status, (unsigned)modifier_a[MOD5_IDX], PULSEID(time_s) );
 		/* No beam */
 		return;
 	}
