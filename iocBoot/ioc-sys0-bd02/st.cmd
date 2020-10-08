@@ -73,7 +73,7 @@ setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
 setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 
 ## Register all support components
-dbLoadDatabase("dbd/BLDSender.dbd")
+dbLoadDatabase("dbd/BLDSenderSXR.dbd")
 BLDSender_registerRecordDeviceDriver(pdbbase)
 
 ###########################
@@ -144,7 +144,7 @@ dbLoadRecords("db/IOC-SYS0-BD02trig.db")	# has only one EVRs' triggers
 
 dbLoadRecords("db/BLDMCast.db","LOCA=SYS0,NMBR=600, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
 dbLoadRecords("db/fcom_stats.db","LOCA=SYS0,NMBR=600, STAT_SCAN=5")
-dbLoadRecords("db/BLDMCastReceiverGdets.db","DEVICE=BLD:SYS0:600")
+#dbLoadRecords("db/BLDMCastReceiverGdets.db","DEVICE=BLD:SYS0:600")
 
 # Only load this on the production IOC
 dbLoadRecords( "db/dispersion.db", "IOC=BLD:SYS0:600" )
@@ -173,7 +173,7 @@ dbLoadRecords( "db/dispersion.db", "IOC=BLD:SYS0:600" )
 dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:BD02:BLDWAV, scan=Event, evnt=146, rarm=2")
 
 # Load FCOM monitor databases
-dbLoadRecords( "db/eOrbitsFcom.db", "EC=40" )
+dbLoadRecords( "db/eOrbitsFcomSXR.db", "EC=40" )
 
 # END: Loading the record databases
 # =====================================================================

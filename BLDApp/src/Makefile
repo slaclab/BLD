@@ -149,10 +149,10 @@ BLDSenderSXR_LIBS_Linux += udpCommBSD
 BLDSenderSXR_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 # BLDSenderSXR_registerRecordDeviceDriver.cpp derives from BLDSenderSXR.dbd
-BLDSenderSXR_SRCS += BLDMCastSXR.c
-BLDSenderSXR_SRCS += multicast_eOrbits_SXR.c
-BLDSenderSXR_SRCS += devBLDMCastStatusSXR.c
-BLDSenderSXR_SRCS += devBLDMCastWfRecvSXR.c
+BLDSenderSXR_SRCS += BLDMCast.c
+BLDSenderSXR_SRCS += multicast_eOrbits.c
+BLDSenderSXR_SRCS += devBLDMCastStatus.c
+BLDSenderSXR_SRCS += devBLDMCastWfRecv.c
 #BLDSenderSXR_SRCS += catest.c
 #BLDSenderSXR_SRCS += camon.c
 #BLDSenderSXR_SRCS += getBLD.c
