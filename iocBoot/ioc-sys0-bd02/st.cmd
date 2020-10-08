@@ -74,7 +74,7 @@ setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 
 ## Register all support components
 dbLoadDatabase("dbd/BLDSenderSXR.dbd")
-BLDSender_registerRecordDeviceDriver(pdbbase)
+BLDSenderSXR_registerRecordDeviceDriver(pdbbase)
 
 ###########################
 # initialize all hardware #
