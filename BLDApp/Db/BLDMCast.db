@@ -366,11 +366,12 @@ record(ao,     "BLD:$(LOCA):$(NMBR):FC_POLL_DELAY") {
 	field(PINI, "YES")
 }
 
-record(longout, "BLD:$(LOCA):$(NMBR):ETAX") {
+record(ao, "BLD:$(LOCA):$(NMBR):ETAX") {
     field(DESC, "ETAX used in Photon Energy Calculation")
     field(SCAN, "$(DIAG_SCAN)")
     field(DTYP, "BLD_SCALAR")
     field(OUT,  "@ETAX")
     field(EGU,  "mm")
+    field(PREC, "5")
     info(autosaveFields, "VAL")
 }

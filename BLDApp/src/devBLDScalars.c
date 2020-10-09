@@ -19,13 +19,13 @@
 #include <recGbl.h>
 #include <devSup.h>
 #include <alarm.h>
-#include <longoutRecord.h>
+#include <aoRecord.h>
 #include <errlog.h>
 
 #include "BLDMCast.h"
 
-static long init_longout ( longoutRecord *precord );
-static long write_longout( longoutRecord *precord );
+static long init_ao ( aoRecord *precord );
+static long write_ao( aoRecord *precord );
 
 struct BLD_DEV_SUP_SET
 {
@@ -38,8 +38,8 @@ struct BLD_DEV_SUP_SET
     DEVSUPFUN   special_linconv;
 };
 
-struct BLD_DEV_SUP_SET devLongoutBLD = { 6, NULL, NULL, init_longout, NULL, write_longout, NULL };
-epicsExportAddress(dset, devLongoutBLD);
+struct BLD_DEV_SUP_SET devAoBLD = { 6, NULL, NULL, init_ao, NULL, write_ao, NULL };
+epicsExportAddress(dset, devAoBLD);
 
 typedef enum {
     BLD_SCALAR_ETAX,
@@ -51,12 +51,12 @@ typedef enum {
         return (0);\
     }
 
-static long init_longout( longoutRecord *precord )
+static long init_ao( aoRecord *precord )
 {
     precord->dpvt = NULL;
 
     if (precord->out.type != INST_IO) {
-        recGblRecordError(S_db_badField, (void *)precord, "devLongoutBLD init_record, illegal INP");
+        recGblRecordError(S_db_badField, (void *)precord, "devAoBLD init_record, illegal INP");
         goto err; 
     }
 
@@ -70,7 +70,7 @@ err:
     return (S_db_badField);
 }
 
-static long write_longout( longoutRecord *precord )
+static long write_ao( aoRecord *precord )
 {
     if (bldMutex)
         epicsMutexLock(bldMutex);
@@ -79,7 +79,7 @@ static long write_longout( longoutRecord *precord )
     switch (type)
     {
     case BLD_SCALAR_ETAX:
-        etaxPV = (long) precord->val;
+        etaxPV = (double) precord->val;
         break;
     }
 
