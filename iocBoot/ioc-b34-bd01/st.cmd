@@ -72,7 +72,7 @@ fcomInit(getenv("FCOM_MC_PREFIX",0),1000)
 epicsEnvSet("IOCSH_PS1","ioc-b34-bd01>")
 
 ## Register all support components
-dbLoadDatabase("dbd/BLDSender.dbd")
+dbLoadDatabase("dbd/BLDSenderSXR.dbd")
 BLDSenderSXR_registerRecordDeviceDriver(pdbbase)
 
 ###########################
@@ -157,7 +157,7 @@ dbLoadRecords( "db/simAo.db", "PV=BEND:LTU0:125:BDES,EGU=GeV/c,VAL=13.5" )
 dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:B34:BD01:BLDWAV, scan=Event, evnt=146, rarm=2")
 
 # Load FCOM monitor databases
-dbLoadRecords( "db/eOrbitsFcom.db", "EC=40" )
+dbLoadRecords( "db/eOrbitsFcomSXR.db", "EC=40" )
 
 # Load FCOM simulation databases
 # Only load in development environment to avoid conflicts w/ production FCOM traffix
@@ -212,5 +212,3 @@ create_monitor_set( "info_settings.req", 5, "" )
 
 
 #dbl()
-
-
