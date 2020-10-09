@@ -1389,14 +1389,15 @@ passed:
 			}
 
 			/* 	Shantha Condamoor: 7-Jul-2014: Calculate shot-to-shot photon energy */
+            /*  Updated            9-Oct-2020: Include support for SXR photon energy calculation */
 			/* Algorithm from J.Welch and H.Loos */
 
 			/* function eV = photonEnergyeV_BLD(x450, x250)
 
 				calculates the accurate shot to shot SASE central photon energy given the
 				shot to shot bpm positions in DL2
-				x450 corresponds to the bpm x position data  from BPMS:LTUH:450:X
-				x250 corresponds to the bpm x position data  from BPMS:LTUH:250:X
+				x450 corresponds to the bpm x position data  from BPMS:LTUH:450:X (BPMS:LTUS:370:X)
+				x250 corresponds to the bpm x position data  from BPMS:LTUH:250:X (BPMS:LTUS:235:X)
 
 				BPMS:LTUH:450:X and BPMS:LTUH:250:X both arrive on every pulse over FCOM.
 
@@ -1408,7 +1409,8 @@ passed:
 				x450 = BPMS:LTUH:450:X;
                 x250 = BPMS:LTUH:250:X;
 
-				etax = -125 ;       %  [mm] +/- design value for dispersion at bpms in dogleg
+				etax = -125 ;       %  [mm] +/- design value for dispersion at bpms in HXR dogleg
+				etax =  450 ;       %  [mm] +/- design value for dispersion at bpms in SXR dogleg
 
         		eVdelta = eVave * ( (x450 - x450ave) - (x250 - x250ave))/ (etax); % The two BPM positions get subtracted, not added, as they have opposite dispersion.
 
@@ -1419,7 +1421,7 @@ passed:
 			/* Calculate shot-to-shot photon energy */
 			if( AVAIL_PHOTONENERGY == (AVAIL_PHOTONENERGY & dataAvailable ) ) {
 
-				double etax = -125;
+				double etax = etaxPV;
 				/* shot-to-shot photon energy is calculated using following variables which arrive via CA from matlab */
 				double eVave = bldStaticPVs[PHOTONEV].pTD->value;	/* SIOC:SYS0:ML00:AO627 - a single number - Slow update (1 sec or so) over CA from matlab */
 				double x450ave = bldStaticPVs[X450AVE].pTD->value;	/* SIOC:SYS0:ML02:AO041 - Slow update (1 sec or so) over CA from matlab - typically there should be the last few hundred data points in x450 */
