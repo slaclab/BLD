@@ -43,8 +43,7 @@ DBD += devBLDSndr.dbd
 # or Multicast Sender only or Receiver and Sender.
 PROD_IOC      += BLDSender
 PROD_IOC      += BLDReceiver
-
-PROD_IOC 			+= BLDSenderSXR
+PROD_IOC      += BLDSenderSXR
 
 # PROD_IOC      += bldget
 # PROD_IOC      += bldrx
@@ -148,9 +147,10 @@ BLDSenderSXR_LIBS_RTEMS += udpComm
 BLDSenderSXR_LIBS_Linux += udpCommBSD
 BLDSenderSXR_LIBS += $(EPICS_BASE_IOC_LIBS)
 
+
 # BLDSenderSXR_registerRecordDeviceDriver.cpp derives from BLDSenderSXR.dbd
-BLDSenderSXR_SRCS += BLDMCast.c
-BLDSenderSXR_SRCS += multicast_eOrbits.c
+BLDSenderSXR_SRCS += BLDMCastSXR.c
+BLDSenderSXR_SRCS += multicast_eOrbitsSXR.c
 BLDSenderSXR_SRCS += devBLDMCastStatus.c
 BLDSenderSXR_SRCS += devBLDMCastWfRecv.c
 BLDSenderSXR_SRCS += devBLDScalars.c
@@ -170,7 +170,6 @@ BLDSenderSXR_SRCS += BLDSenderSXR_registerRecordDeviceDriver.cpp
 BLDSenderSXR_SRCS_DEFAULT += BLDMain.cpp
 BLDSenderSXR_SRCS_vxWorks += -nil-
 
-BLDSenderSXR_CFLAGS += -DBLD_SXR
 
 #=============================
 # BLDReceiver product
