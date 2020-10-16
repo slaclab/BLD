@@ -277,9 +277,9 @@ BLDBLOB bldPulseBlobs[] =
     */
     /* BMENERGY1X: BlobSet mask bit 0x0002 */
     // TODO (rreno): Get these energy PVs from Physics
-    [BMENERGY1X] = { name: "BPMS:LTUS:180:X", blob: 0, aMsk: AVAIL_BMENERGY1X },    /* Actually X pos in mm */
+    [BMENERGY1X] = { name: "BPMS:LTUS:235:X", blob: 0, aMsk: AVAIL_BMENERGY1X },    /* Actually X pos in mm */
     /* BMENERGY2X: BlobSet mask bit 0x0004 */
-    [BMENERGY2X] = { name: "BPMS:LTUS:450:X", blob: 0, aMsk: AVAIL_BMENERGY2X },    /* Actually X pos in mm */
+    [BMENERGY2X] = { name: "BPMS:LTUS:370:X", blob: 0, aMsk: AVAIL_BMENERGY2X },    /* Actually X pos in mm */
 
     /**
     * Position X, Y, Angle X, Y at LTU:
