@@ -27,6 +27,7 @@ DB += dispersion.db
 DB += simAo.db
 DB += eBeamFcomSim.db
 DB += eOrbitsFcom.db
+DB += eOrbitsFcomSXR.db
 DB += eOrbitsFcomSim.db
 
 DB += evrFidTest.db
