@@ -20,20 +20,8 @@
 #		Otherwise, set to "<device>:FANOUTSLC".
 #==============================================================================
 #
-file bsaBLDReceiverPhaseCavityEdef.db {
+file bsaBLDEdef.db {
     pattern
     { DEVICE, LOC, UN, SLCLNK }
-    { BLD:SYS0:600, SYS0, 600, "" }
-}
-
-file bsaBLDReceiverImbEdef.db {
-    pattern
-    { DEVICE, LOC, UN, SLCLNK }
-    { BLD:SYS0:600, SYS0, 600, "" }
-}
-
-file bsaBLDReceiverGdetEdef.db {
-    pattern
-    { DEVICE, LOC, UN, SLCLNK }
-    { BLD:SYS0:600, SYS0, 600, "" }
+    { BLD:SYS0:500, SYS0, 500, "" }
 }
