@@ -582,13 +582,11 @@ void EVRFire( void * pBlobSet )
 		return;
 	}
 #if defined(BLD_SXR)
-	/* check for LCLS SXR beam */
-	if ( ((modifier_a[MOD3_IDX] & BKRCUS) == 0) ||
-         ((modifier_a[MOD5_IDX] & MOD5_BEAMFULL_MASK) == 0) )
+	/* check for No LCLS SXR beam */
+	if ( (modifier_a[MOD3_IDX] & BKRCUS) == 0)
 #else
-	/* check for LCLS HXR beam */
-	if ( ((modifier_a[MOD3_IDX] & BKRCUS) != 0) ||
-         ((modifier_a[MOD5_IDX] & MOD5_BEAMFULL_MASK) == 0) )
+	/* check for No LCLS HXR beam */
+	if ( (modifier_a[MOD5_IDX] & MOD5_BEAMFULL_MASK) == 0)
 #endif
 	{
 		/* This is 360Hz. So printf will really screw timing. Only enable briefly */
