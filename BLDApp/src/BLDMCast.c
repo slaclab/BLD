@@ -232,7 +232,6 @@ BLDPV bldStaticPVs[]=
     [DSPR2]    = { "BLD:SYS0:600:DSPR2",   1,  AVAIL_DSPR2,    NULL, NULL },	/* For Energy */
     [E0BDES]   = { "BEND:LTUS:525:BDES",   1,  AVAIL_E0BDES,   NULL, NULL },	/* Energy in MeV */
     [FMTRX]    = { "BLD:SYS0:600:FMTRX",   32, AVAIL_FMTRX,    NULL, NULL },	/* For Position */
-    // TODO (rreno): Get the SXR varaints of the following PVs from Physics
     [PHOTONEV] = { "SIOC:SYS0:ML00:AO628", 1,  AVAIL_PHOTONEV, NULL, NULL },    /* For shot-to-shot Photon Energy */
     [X450AVE]  = { "SIOC:SYS0:ML02:AO170", 1,  AVAIL_X450AVE,  NULL, NULL },	/* Average of last few hundred data points of X POS in LTU BPM x450 */
     [X250AVE]  = { "SIOC:SYS0:ML02:AO171", 1,  AVAIL_X250AVE,  NULL, NULL },	/* Average of last few hundred data points of X POS in LTU BPM x250 */
