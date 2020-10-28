@@ -159,11 +159,11 @@ BLDSenderSXR_SRCS += devBLDScalars.c
 #BLDSenderSXR_SRCS += getBLD.c
 
 # Include Multicast Receiver support
-# BLDSenderSXR_SRCS += BLDMCastReceiver.c
-# BLDSenderSXR_SRCS += BLDMCastReceiverGdet.c
-# BLDSenderSXR_SRCS += BLDMCastReceiverImb.c
-# BLDSenderSXR_SRCS += BLDMCastReceiverPhaseCavity.c
-# BLDSenderSXR_SRCS += devBLDMCastReceiver.c
+BLDSenderSXR_SRCS += BLDMCastReceiver.c
+BLDSenderSXR_SRCS += BLDMCastReceiverGdet.c
+BLDSenderSXR_SRCS += BLDMCastReceiverImb.c
+BLDSenderSXR_SRCS += BLDMCastReceiverPhaseCavity.c
+BLDSenderSXR_SRCS += devBLDMCastReceiver.c
 
 # Build the main IOC entry point on workstation OSs.
 BLDSenderSXR_SRCS += BLDSenderSXR_registerRecordDeviceDriver.cpp
