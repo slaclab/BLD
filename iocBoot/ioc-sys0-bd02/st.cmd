@@ -69,7 +69,7 @@ fcomInit(getenv("FCOM_MC_PREFIX",0),1000)
 # Set IOC Shell Prompt as well:
 epicsEnvSet("IOCSH_PS1","ioc-sys0-bd02>")
 
-setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
+setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.2.169")
 setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 
 ## Register all support components
