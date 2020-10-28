@@ -906,6 +906,8 @@ epicsTimeStamp *p_refTime;
 FcomBlobSetMask got_mask;
 
 epicsUInt32     this_time;
+if (BLD_MCAST_DEBUG >= 2)
+    errlogPrintf("Preparing Multicast\n");
 
 	/******** Prepare MultiCast **************************************************/
 
@@ -913,6 +915,8 @@ epicsUInt32     this_time;
 #ifdef MULTICAST_UDPCOMM
 
 	sFd = udpCommSocket(0);
+    if (BLD_MCAST_DEBUG >= 2)
+        errlogPrintf("created udpComm socket with file descriptor: %d\n", sFd);
 
 	if ( sFd < 0 ) {
 		errlogPrintf("Failed to create socket for multicast: %s\n", strerror(-sFd));
@@ -948,6 +952,8 @@ epicsUInt32     this_time;
 #else
 
 	sFd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (BLD_MCAST_DEBUG >= 2)
+        errlogPrintf("created raw socket with file descriptor: %d\n", sFd);
 
 	if(sFd == -1)
 	{
@@ -1501,6 +1507,8 @@ passed:
 		if ( BLD_MCAST_ENABLE )
 		{
 #ifdef MULTICAST_UDPCOMM
+            if (BLD_MCAST_DEBUG >= 3)
+                errlogPrintf("Sending UDP Multicast Packet\n");
 			rtncode = udpCommSend( sFd, &bldEbeamInfo, sizeof(bldEbeamInfo) );
 			if ( rtncode < 0 ) {
 				if ( BLD_MCAST_DEBUG >= 1 )
