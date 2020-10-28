@@ -1,0 +1,27 @@
+#
+# Create eOrbits FCOM Blob subscription and monitoring PV's
+#
+file fcomBlobBPMS.db
+{
+	pattern
+	{	SET,	BLOB,				EC				}
+	{	0,		"BPMS:LTUS:860:",	"\$(EC=40)"		}
+	{	0,		"BPMS:LTUS:880:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDS:1690:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDS:1990:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDS:2190:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDS:2490:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDS:2590:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDS:2690:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDS:2790:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDS:2890:",	"\$(EC=40)"		}
+	{	0,		"BPMS:UNDS:2990:",	"\$(EC=40)"		}
+}
+
+# Need one of these per set.  Pick one BLOB from the set to name it.
+file fcomBlobSet.template
+{
+	pattern
+	{	SET,	BLOB,				EC				}
+	{	0,		"BPMS:LTUS:860:",	"\$(EC=40)"		}
+}

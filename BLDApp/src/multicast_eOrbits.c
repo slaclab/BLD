@@ -45,10 +45,93 @@ just one host and as a receiver on all the other hosts
 
 #define MCAST_TTL	8
 #define DEF_PORT	10148
-#define	N_BPMS		36
-#define DEF_GROUP	"239.255.24.63"
+
+#if defined(BLD_SXR)
+#define DEF_GROUP	"239.255.25.63"
+#else
+#define DEF_GROUP   "239.255.24.63"
+#endif
+
 #define EORBITS_ID	63
 #define LOGICAL_ID	0x06000000
+
+#if defined(BLD_SXR)
+const char * blobNames[] =
+{
+    "BPMS:LTUS:860:X",
+    "BPMS:LTUS:880:X",
+    "BPMS:UNDS:1690:X",
+    "BPMS:UNDS:1990:X",
+    "BPMS:UNDS:2190:X",
+    "BPMS:UNDS:2490:X",
+    "BPMS:UNDS:2590:X",
+    "BPMS:UNDS:2690:X",
+    "BPMS:UNDS:2790:X",
+    "BPMS:UNDS:2890:X",
+    "BPMS:UNDS:2990:X",
+    "BPMS:UNDS:3090:X",
+    "BPMS:UNDS:3190:X",
+    "BPMS:UNDS:3290:X",
+    "BPMS:UNDS:3390:X",
+    "BPMS:UNDS:3490:X",
+    "BPMS:UNDS:3590:X",
+    "BPMS:UNDS:3690:X",
+    "BPMS:UNDS:3790:X",
+    "BPMS:UNDS:3890:X",
+    "BPMS:UNDS:3990:X",
+    "BPMS:UNDS:4090:X",
+    "BPMS:UNDS:4190:X",
+    "BPMS:UNDS:4290:X",
+    "BPMS:UNDS:4390:X",
+    "BPMS:UNDS:4490:X",
+    "BPMS:UNDS:4590:X",
+    "BPMS:UNDS:4690:X",
+    "BPMS:UNDS:4790:X",
+    "BPMS:UNDS:5190:X",
+};
+#else
+const char * blobNames[] =
+{
+	"BPMS:LTUH:910:X",
+	"BPMS:LTUH:960:X",
+	"BPMS:UNDH:100:X",
+	"BPMS:UNDH:190:X",
+	"BPMS:UNDH:290:X",
+	"BPMS:UNDH:390:X",
+	"BPMS:UNDH:490:X",
+	"BPMS:UNDH:590:X",
+	"BPMS:UNDH:690:X",
+	"BPMS:UNDH:790:X",
+	"BPMS:UNDH:890:X",
+	"BPMS:UNDH:990:X",
+	"BPMS:UNDH:1090:X",
+	"BPMS:UNDH:1190:X",
+	"BPMS:UNDH:1290:X",
+	"BPMS:UNDH:1390:X",
+	"BPMS:UNDH:1490:X",
+	"BPMS:UNDH:1590:X",
+	"BPMS:UNDH:1690:X",
+	"BPMS:UNDH:1790:X",
+	"BPMS:UNDH:1890:X",
+	"BPMS:UNDH:1990:X",
+	"BPMS:UNDH:2090:X",
+	"BPMS:UNDH:2190:X",
+	"BPMS:UNDH:2290:X",
+	"BPMS:UNDH:2390:X",
+	"BPMS:UNDH:2490:X",
+	"BPMS:UNDH:2590:X",
+	"BPMS:UNDH:2690:X",
+	"BPMS:UNDH:2790:X",
+	"BPMS:UNDH:2890:X",
+	"BPMS:UNDH:2990:X",
+	"BPMS:UNDH:3090:X",
+	"BPMS:UNDH:3190:X",
+	"BPMS:UNDH:3290:X",
+	"BPMS:UNDH:3390:X",
+};
+#endif // BLD_SXR
+
+#define N_BPMS    (sizeof(blobNames)/sizeof(blobNames[0]))
 
 int			EORBITS_ENABLE = 0;
 epicsExportAddress(int, EORBITS_ENABLE);
@@ -91,45 +174,6 @@ typedef struct EORBITS
 	Flt64_LE	fBPM_T[N_BPMS];
 }	EORBITS;
 
-const char		*	blobNames[N_BPMS] =
-{
-	"BPMS:LTUH:910:X",
-	"BPMS:LTUH:960:X",
-	"BPMS:UNDH:100:X",
-	"BPMS:UNDH:190:X",
-	"BPMS:UNDH:290:X",
-	"BPMS:UNDH:390:X",
-	"BPMS:UNDH:490:X",
-	"BPMS:UNDH:590:X",
-	"BPMS:UNDH:690:X",
-	"BPMS:UNDH:790:X",
-	"BPMS:UNDH:890:X",
-	"BPMS:UNDH:990:X",
-	"BPMS:UNDH:1090:X",
-	"BPMS:UNDH:1190:X",
-	"BPMS:UNDH:1290:X",
-	"BPMS:UNDH:1390:X",
-	"BPMS:UNDH:1490:X",
-	"BPMS:UNDH:1590:X",
-	"BPMS:UNDH:1690:X",
-	"BPMS:UNDH:1790:X",
-	"BPMS:UNDH:1890:X",
-	"BPMS:UNDH:1990:X",
-	"BPMS:UNDH:2090:X",
-	"BPMS:UNDH:2190:X",
-	"BPMS:UNDH:2290:X",
-	"BPMS:UNDH:2390:X",
-	"BPMS:UNDH:2490:X",
-	"BPMS:UNDH:2590:X",
-	"BPMS:UNDH:2690:X",
-	"BPMS:UNDH:2790:X",
-	"BPMS:UNDH:2890:X",
-	"BPMS:UNDH:2990:X",
-	"BPMS:UNDH:3090:X",
-	"BPMS:UNDH:3190:X",
-	"BPMS:UNDH:3290:X",
-	"BPMS:UNDH:3390:X",
-};
 
 static epicsEventId eOrbitsSyncEvent = NULL;
 

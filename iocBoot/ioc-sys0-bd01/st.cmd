@@ -147,7 +147,7 @@ dbLoadRecords("db/fcom_stats.db","LOCA=SYS0,NMBR=500, STAT_SCAN=5")
 dbLoadRecords("db/BLDMCastReceiverGdets.db","DEVICE=BLD:SYS0:500")
 
 # Only load this on the production IOC
-dbLoadRecords( "db/dispersion.db" )
+dbLoadRecords( "db/dispersion.db", "IOC=BLD:SYS0:600" )
 
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.
@@ -157,7 +157,7 @@ dbLoadRecords( "db/dispersion.db" )
 #       records holding the event number we use here and it
 #       must have VME interrupts (.VME field) enabled.
 #
-#       Furthermore, you cannot use any event but only 
+#       Furthermore, you cannot use any event but only
 #       such ones for which an event record has been
 #       instantiated with MRF ER device support -- this
 #       is thanks to the event module software design, yeah!
@@ -168,7 +168,7 @@ dbLoadRecords( "db/dispersion.db" )
 # then does post_event().
 # (Well, the VME ISR firing 'event' could IMHO directly post_event(event)
 # which would be faster, simpler and more flexible)
-# 
+#
 
 dbLoadRecords("db/BLDMCastWfRecv.db","name=IOC:SYS0:BD01:BLDWAV, scan=Event, evnt=146, rarm=2")
 
@@ -229,4 +229,3 @@ bootConfigShow()
 
 # Start rtems spy utility:
 #iocshCmd("spy(2)")
-

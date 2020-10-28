@@ -1,4 +1,5 @@
 device(ai, INST_IO, devAiBLD, "BLD_SNDR")
+device(ao, INST_IO, devAoBLD, "BLD_SCALAR")
 driver(drvBLD)
 
 variable(BLD_MCAST_DEBUG)
