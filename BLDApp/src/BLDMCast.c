@@ -152,6 +152,7 @@ enum PULSEPVSINDEX
     UNDSTATE, /* For X, X', Y and Y' */
     DMP_CHARGE,
     XTCAV_AMP,
+    LTUSTATE,
 	/* Define Y after everything else so that fcom array doesn't have to use them */
     BMPOSITION1Y,
     BMPOSITION2Y,
@@ -187,6 +188,9 @@ enum PULSEPVSINDEX
 #define AVAIL_PHOTONEV     0x400000
 #define AVAIL_X450AVE      0x800000
 #define AVAIL_X250AVE     0x1000000
+
+/* LTU States from FastFeedback */
+#define AVAIL_LTUSTATE    0x2000000
 
 /* Structure representing one PV (= channel) */
 typedef struct BLDPV
@@ -326,6 +330,12 @@ BLDBLOB bldPulseBlobs[] =
     /* TODO (rreno): There does not seem to be an equivalent PV for DMPS in LLRF */
     [XTCAV_AMP]    = { name: "TCAV:DMPH:360:AV", blob: 0, aMsk: AVAIL_XTCAV_AMP },
 
+    /**
+     * Soft LTU Launch 120Hz Feedback States (FB04:TR03)
+     */
+    [LTUSTATE]     = { name: "FBCK:FB04:TR03:STATES",    blob: 0, aMsk: AVAIL_LTUSTATE },
+
+
 };
 #else
 BLDBLOB bldPulseBlobs[] =
@@ -390,25 +400,30 @@ BLDBLOB bldPulseBlobs[] =
 /* BC1ENERGY:    BlobSet mask bit 0x0400 */
   [BC1ENERGY]    = { name: "BPMS:LI21:233:X"    , blob: 0, aMsk: AVAIL_BC1ENERGY },	/* BC1 Energy in mm */
 
-  /**
-   * Undulator Launch 120Hz Feedback States X, X', Y, Y' (running on FB03:TR05)
-   * scondam: 11-Nov-2014: L.Piccoli moved Und Launch Feeback to FB05:TR05
-   * Blob name changed from FBCK:FB03:TR05:STATES
-   */
-/* UNDSTATE:    BlobSet mask bit 0x0800 */
-  [UNDSTATE]     = { name: "FBCK:FB05:TR05:STATES", blob: 0, aMsk: AVAIL_UNDSTATE},
+    /**
+    * Undulator Launch 120Hz Feedback States X, X', Y, Y' (running on FB03:TR05)
+    * scondam: 11-Nov-2014: L.Piccoli moved Und Launch Feeback to FB05:TR05
+    * Blob name changed from FBCK:FB03:TR05:STATES
+    */
+    /* UNDSTATE:    BlobSet mask bit 0x0800 */
+    [UNDSTATE]     = { name: "FBCK:FB05:TR05:STATES", blob: 0, aMsk: AVAIL_UNDSTATE},
 
-  /**
-   * Charge at the DMP
-   */
-/* DMP_CHARGE: BlobSet mask bit 0x1000 */
-  [DMP_CHARGE]     = { name: "BPMS:DMPH:502:TMIT", blob: 0, aMsk: AVAIL_DMP_CHARGE},
+    /**
+    * Charge at the DMP
+    */
+    /* DMP_CHARGE: BlobSet mask bit 0x1000 */
+    [DMP_CHARGE]     = { name: "BPMS:DMPH:502:TMIT", blob: 0, aMsk: AVAIL_DMP_CHARGE},
 
-  /**
-   * XTCAV Voltage and Phase
-   */
-/* XTCAV_AMP:    BlobSet mask bit 0x2000 */
-  [XTCAV_AMP]  = { name: "TCAV:DMPH:360:AV", blob: 0, aMsk: AVAIL_XTCAV_AMP},
+    /**
+    * XTCAV Voltage and Phase
+    */
+    /* XTCAV_AMP:    BlobSet mask bit 0x2000 */
+    [XTCAV_AMP]  = { name: "TCAV:DMPH:360:AV", blob: 0, aMsk: AVAIL_XTCAV_AMP},
+
+    /**
+    * Hard LTU Launch 120Hz Feedback States (running on FB03:TR01 - fast LTU launch)
+    */
+    [LTUSTATE]    = { name: "FBCK:FB03:TR01:STATES", blob: 0, aMsk: AVAIL_LTUSTATE },
 
 };
 #endif // BLD_SXR
@@ -1163,41 +1178,6 @@ passed:
 				bldEbeamInfo.uDamageMask |= __le32(EBEAML3ENERGY_DAMAGEMASK);
 			}
 
-#define AVAIL_LTUPOS	\
-	(	AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y | \
-		AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y | \
-		AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y | \
-		AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y | \
-		AVAIL_FMTRX )
-
-			/* Calculate beam position */
-			if( AVAIL_LTUPOS == (AVAIL_LTUPOS & dataAvailable) ) {
-				dbr_double_t *pMatrixValue;
-				double tempDA[4];
-				int i;
-
-				pMatrixValue = &(bldStaticPVs[FMTRX].pTD->value);
-				for ( i=0; i<4; i++, pMatrixValue+=8 ) {
-					double acc = 0.0;
-					acc += pMatrixValue[0] * bldPulseBlobs[BMPOSITION1X].blob->fcbl_bpm_X;
-					acc += pMatrixValue[1] * bldPulseBlobs[BMPOSITION1X].blob->fcbl_bpm_Y;
-					acc += pMatrixValue[2] * bldPulseBlobs[BMPOSITION2X].blob->fcbl_bpm_X;
-					acc += pMatrixValue[3] * bldPulseBlobs[BMPOSITION2X].blob->fcbl_bpm_Y;
-					acc += pMatrixValue[4] * bldPulseBlobs[BMPOSITION3X].blob->fcbl_bpm_X;
-					acc += pMatrixValue[5] * bldPulseBlobs[BMPOSITION3X].blob->fcbl_bpm_Y;
-					acc += pMatrixValue[6] * bldPulseBlobs[BMPOSITION4X].blob->fcbl_bpm_X;
-					acc += pMatrixValue[7] * bldPulseBlobs[BMPOSITION4X].blob->fcbl_bpm_Y;
-
-					tempDA[i] = acc;
-				}
-				__st_le64(&bldEbeamInfo.ebeamLTUPosX, tempDA[0]);
-				__st_le64(&bldEbeamInfo.ebeamLTUPosY, tempDA[1]);
-				__st_le64(&bldEbeamInfo.ebeamLTUAngX, tempDA[2]);
-				__st_le64(&bldEbeamInfo.ebeamLTUAngY, tempDA[3]);
-			} else {
-				bldEbeamInfo.uDamageMask |= __le32(EBEAMLTUPOSX_DAMAGEMASK | EBEAMLTUPOSY_DAMAGEMASK | EBEAMLTUANGX_DAMAGEMASK | EBEAMLTUANGY_DAMAGEMASK);
-			}
-
 			/* Copy BC2 Charge */
 			if( AVAIL_BC2CHARGE & dataAvailable )
 			{
@@ -1248,6 +1228,18 @@ passed:
 			} else {
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(0);
 			}
+
+            /* LTU Launch 120Hz FastFeedback states, X, X', Y, and Y' */
+            if ( AVAIL_LTUSTATE & dataAvailable ) {
+				__st_le64(&bldEbeamInfo.ebeamLTUPosX, (double)bldPulseBlobs[LTUSTATE].blob->fc_flt[0]);
+				__st_le64(&bldEbeamInfo.ebeamLTUAngX, (double)bldPulseBlobs[LTUSTATE].blob->fc_flt[1]);
+				__st_le64(&bldEbeamInfo.ebeamLTUPosY, (double)bldPulseBlobs[LTUSTATE].blob->fc_flt[2]);
+				__st_le64(&bldEbeamInfo.ebeamLTUAngY, (double)bldPulseBlobs[LTUSTATE].blob->fc_flt[3]);
+            }
+            else {
+                bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+				bldEbeamInfo.uDamageMask |= __le32(EBEAMLTUPOSX_DAMAGEMASK | EBEAMLTUPOSY_DAMAGEMASK | EBEAMLTUANGX_DAMAGEMASK | EBEAMLTUANGY_DAMAGEMASK);
+            }
 
 			/* Undulator Launch 120Hz feedback states, X, X', Y and Y' */
 			if( AVAIL_UNDSTATE & dataAvailable ) {

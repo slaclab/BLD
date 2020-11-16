@@ -23,5 +23,7 @@ file fcom_stats.template
 	{	11,		"UND"		}
 	{	12,		"DMP_CHARGE"}
 	{	13,		"XTCAV_AMP"	}
+# LTU States from FastFeedback. This replaces POS{1,2,3,4} above.
+    {   14,     "LTU"       }
 }
 
