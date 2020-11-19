@@ -223,27 +223,27 @@ record(ai, "BLD:$(LOCA):$(NMBR):PHOTONENERGY") {
   field(PRIO, "HIGH")
 }
 
-record(ai, "BLD:$(LOCA):$(NMBR):LTU450_POS_X") {
+record(ai, "BLD:$(LOCA):$(NMBR):$(BPM2)_POS_X") {
   field(DESC, "Beam Position X")
   field(SCAN, "$(DIAG_SCAN)")
   field(DTYP, "BLD_SNDR")
-  field(INP,  "@LTU450_POS_X")
+  field(INP,  "@$(BPM2)_POS_X")
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "mm")
-  field(FLNK, "BLD:$(LOCA):$(NMBR):EFLTU450_POS_X")
+  field(FLNK, "BLD:$(LOCA):$(NMBR):EF$(BPM2)_POS_X")
   field(PRIO, "HIGH")
 }
 
-record(ai, "BLD:$(LOCA):$(NMBR):LTU250_POS_X") {
+record(ai, "BLD:$(LOCA):$(NMBR):$(BPM1)_POS_X") {
   field(DESC, "Beam Position X")
   field(SCAN, "$(DIAG_SCAN)")
   field(DTYP, "BLD_SNDR")
-  field(INP,  "@LTU250_POS_X")
+  field(INP,  "@$(BPM1)_POS_X")
   field(PREC, "5")
   field(TSE,  "-2")
   field(EGU,  "mm")
-  field(FLNK, "BLD:$(LOCA):$(NMBR):EFLTU250_POS_X")
+  field(FLNK, "BLD:$(LOCA):$(NMBR):EF$(BPM1)_POS_X")
   field(PRIO, "HIGH")
 }
 
