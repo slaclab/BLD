@@ -264,10 +264,8 @@ BLDBLOB bldPulseBlobs[] =
     * BPM1x = [BPMS:LTUH:250:X(mm)/(dspr1(m/Mev)*1000(mm/m))]
     * BPM2x = [BPMS:LTUH:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
     */
+
     /* BMENERGY1X: BlobSet mask bit 0x0002 */
-
-    // TODO (rreno): Get these energy PVs from Physics
-
     [BMENERGY1X] = { name: "BPMS:LTUS:235:X", blob: 0, aMsk: AVAIL_BMENERGY1X },    /* Actually X pos in mm */
     /* BMENERGY2X: BlobSet mask bit 0x0004 */
     [BMENERGY2X] = { name: "BPMS:LTUS:370:X", blob: 0, aMsk: AVAIL_BMENERGY2X },    /* Actually X pos in mm */
@@ -973,9 +971,6 @@ if (BLD_MCAST_DEBUG >= 2)
 		return -1; /* error message already printed */
 
 	ca_flush_io();
-
-	/* ca_pend_event(2.0); */
-
 
 	/* All ready to go, create event and register with EVR */
 	EVRFireEvent = epicsEventMustCreate(epicsEventEmpty);
