@@ -265,6 +265,9 @@ BLDBLOB bldPulseBlobs[] =
     * BPM2x = [BPMS:LTUH:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
     */
     /* BMENERGY1X: BlobSet mask bit 0x0002 */
+
+    // TODO (rreno): Get these energy PVs from Physics
+
     [BMENERGY1X] = { name: "BPMS:LTUS:235:X", blob: 0, aMsk: AVAIL_BMENERGY1X },    /* Actually X pos in mm */
     /* BMENERGY2X: BlobSet mask bit 0x0004 */
     [BMENERGY2X] = { name: "BPMS:LTUS:370:X", blob: 0, aMsk: AVAIL_BMENERGY2X },    /* Actually X pos in mm */
@@ -330,10 +333,12 @@ BLDBLOB bldPulseBlobs[] =
     /* TODO (rreno): There does not seem to be an equivalent PV for DMPS in LLRF */
     [XTCAV_AMP]    = { name: "TCAV:DMPH:360:AV", blob: 0, aMsk: AVAIL_XTCAV_AMP },
 
+
     /**
      * Soft LTU Launch 120Hz Feedback States (FB04:TR03)
      */
     [LTUSTATE]     = { name: "FBCK:FB04:TR03:STATES",    blob: 0, aMsk: AVAIL_LTUSTATE },
+
 
 
 };
@@ -399,6 +404,7 @@ BLDBLOB bldPulseBlobs[] =
   [BC1CHARGE]    = { name: "BLEN:LI21:265:AIMAX", blob: 0, aMsk: AVAIL_BC1CHARGE },	/* BC1 Charge in Amps */
 /* BC1ENERGY:    BlobSet mask bit 0x0400 */
   [BC1ENERGY]    = { name: "BPMS:LI21:233:X"    , blob: 0, aMsk: AVAIL_BC1ENERGY },	/* BC1 Energy in mm */
+
 
     /**
     * Undulator Launch 120Hz Feedback States X, X', Y, Y' (running on FB03:TR05)
@@ -968,6 +974,9 @@ if (BLD_MCAST_DEBUG >= 2)
 
 	ca_flush_io();
 
+	/* ca_pend_event(2.0); */
+
+
 	/* All ready to go, create event and register with EVR */
 	EVRFireEvent = epicsEventMustCreate(epicsEventEmpty);
 
@@ -1177,6 +1186,8 @@ passed:
 			} else {
 				bldEbeamInfo.uDamageMask |= __le32(EBEAML3ENERGY_DAMAGEMASK);
 			}
+
+
 
 			/* Copy BC2 Charge */
 			if( AVAIL_BC2CHARGE & dataAvailable )
