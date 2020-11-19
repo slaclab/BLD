@@ -7,9 +7,9 @@
 # Associated Displays: bsa_sys0_maint.edl
 #
 # Rem:  Instantiate one line for every beam synchronous item.
-# 
+#
 # Macros:
-#	DEVICE	Name of the beam synchronous triggered device.  Must match the 
+#	DEVICE	Name of the beam synchronous triggered device.  Must match the
 #		name in <ioc>trig.substitutions without the 3rd colon and beyond.
 #	LOC	IOC location.
 #	UN	IOC unit number.
@@ -22,9 +22,6 @@
 #
 file bsaBLDEdef.db {
     pattern
-    { DEVICE, LOC, UN, SLCLNK }
-    { BLD:SYS0:500, SYS0, 500, "" }
+    { DEVICE, LOC, UN, SLCLNK, BPM1, BPM2 }
+    { BLD:SYS0:500, SYS0, 500, "", LTU_250, LTU_450 }
 }
-
-
-

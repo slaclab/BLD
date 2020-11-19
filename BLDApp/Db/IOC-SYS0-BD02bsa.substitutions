@@ -22,6 +22,6 @@
 #
 file bsaBLDEdef.db {
     pattern
-    { DEVICE, LOC, UN, SLCLNK }
-    { BLD:SYS0:600, SYS0, 600, "" }
+    { DEVICE, LOC, UN, SLCLNK, BPM1, BPM2}
+    { BLD:SYS0:600, SYS0, 600, "", LTU_235, LTU_370 }
 }

@@ -4,7 +4,7 @@
 #
 # Name: bsaBLDEdef.substitutions
 #
-# Note: Must follow the LCLS naming conventions.  
+# Note: Must follow the LCLS naming conventions.
 #
 #==============================================================================
 #
@@ -28,9 +28,8 @@ file bsaATTREdef.db
     { $(DEVICE), UND_ANG_X,     $(DEVICE):UND_ANG_X,    mrad,   0,  0,  3, .001, ""		}
     { $(DEVICE), UND_ANG_Y,     $(DEVICE):UND_ANG_Y,    mrad,   0,  0,  3, .001, ""		}
     { $(DEVICE), PHOTONENERGY,  $(DEVICE):PHOTONENERGY, eV,     0,  0,  3, .001, ""		}
-    { $(DEVICE), LTU450_POS_X,  $(DEVICE):LTU450_POS_X, mm,     0,  0,  3, .001, ""		}
-    { $(DEVICE), LTU250_POS_X,  $(DEVICE):LTU250_POS_X, mm,     0,  0,  3, .001, ""		}
+    { $(DEVICE), $(BPM2)_POS_X,  $(DEVICE):$(BPM2)_POS_X, mm,     0,  0,  3, .001, ""		}
+    { $(DEVICE), $(BPM1)_POS_X,  $(DEVICE):$(BPM1)_POS_X, mm,     0,  0,  3, .001, ""		}
     { $(DEVICE), DMP_CHARGE,    $(DEVICE):DMP_CHARGE,   Nel,    0,  0,  3, .001, ""		}
     { $(DEVICE), XTCAV_AMP,     $(DEVICE):XTCAV_AMP,    MV,     0,  0,  3, .001, ""		}
 }
-
