@@ -102,12 +102,6 @@ extern int	fcomUtilFlag;
 #define MULTICAST_UDPCOMM   /* Use UDPCOMM for data output; BSD sockets otherwise */
 #endif
 
-/*
-#ifdef FB05_TEST / * If running of FB05, disable multicast - this is already done by the BLD IOC * /
-#undef MULTICAST
-#undef MULTICAST_UDPCOMM
-#endif
-*/
 
 #define BSPTIMER    0       /* Timer instance -- use first timer */
 
@@ -158,6 +152,7 @@ enum PULSEPVSINDEX
     UNDSTATE, /* For X, X', Y and Y' */
     DMP_CHARGE,
     XTCAV_AMP,
+    LTUSTATE,
 	/* Define Y after everything else so that fcom array doesn't have to use them */
     BMPOSITION1Y,
     BMPOSITION2Y,
@@ -194,6 +189,9 @@ enum PULSEPVSINDEX
 #define AVAIL_X450AVE      0x800000
 #define AVAIL_X250AVE     0x1000000
 
+/* LTU States from FastFeedback */
+#define AVAIL_LTUSTATE    0x2000000
+
 /* Structure representing one PV (= channel) */
 typedef struct BLDPV
 {
@@ -208,14 +206,6 @@ typedef struct BLDPV
   unsigned int			subscribed;
   int					status;
 
-/* No need for eventId, never cancel subscription *\
-   evid  pvEvId;
-\* No need for eventId, never cancel subscription */
-
-/* No need to hold type, always double *\
-    long  dbfType;
-    long  dbrType;
-\* No need to hold type, always double */
 } BLDPV;
 
 typedef struct BLDBLOB
@@ -275,7 +265,6 @@ BLDBLOB bldPulseBlobs[] =
     * BPM2x = [BPMS:LTUH:450:X(mm)/(dspr2(m/Mev)*1000(mm/m))]
     */
     /* BMENERGY1X: BlobSet mask bit 0x0002 */
-    // TODO (rreno): Get these energy PVs from Physics
     [BMENERGY1X] = { name: "BPMS:LTUS:235:X", blob: 0, aMsk: AVAIL_BMENERGY1X },    /* Actually X pos in mm */
     /* BMENERGY2X: BlobSet mask bit 0x0004 */
     [BMENERGY2X] = { name: "BPMS:LTUS:370:X", blob: 0, aMsk: AVAIL_BMENERGY2X },    /* Actually X pos in mm */
@@ -341,6 +330,12 @@ BLDBLOB bldPulseBlobs[] =
     /* TODO (rreno): There does not seem to be an equivalent PV for DMPS in LLRF */
     [XTCAV_AMP]    = { name: "TCAV:DMPH:360:AV", blob: 0, aMsk: AVAIL_XTCAV_AMP },
 
+    /**
+     * Soft LTU Launch 120Hz Feedback States (FB04:TR03)
+     */
+    [LTUSTATE]     = { name: "FBCK:FB04:TR03:STATES",    blob: 0, aMsk: AVAIL_LTUSTATE },
+
+
 };
 #else
 BLDBLOB bldPulseBlobs[] =
@@ -405,25 +400,30 @@ BLDBLOB bldPulseBlobs[] =
 /* BC1ENERGY:    BlobSet mask bit 0x0400 */
   [BC1ENERGY]    = { name: "BPMS:LI21:233:X"    , blob: 0, aMsk: AVAIL_BC1ENERGY },	/* BC1 Energy in mm */
 
-  /**
-   * Undulator Launch 120Hz Feedback States X, X', Y, Y' (running on FB03:TR05)
-   * scondam: 11-Nov-2014: L.Piccoli moved Und Launch Feeback to FB05:TR05
-   * Blob name changed from FBCK:FB03:TR05:STATES
-   */
-/* UNDSTATE:    BlobSet mask bit 0x0800 */
-  [UNDSTATE]     = { name: "FBCK:FB05:TR05:STATES", blob: 0, aMsk: AVAIL_UNDSTATE},
+    /**
+    * Undulator Launch 120Hz Feedback States X, X', Y, Y' (running on FB03:TR05)
+    * scondam: 11-Nov-2014: L.Piccoli moved Und Launch Feeback to FB05:TR05
+    * Blob name changed from FBCK:FB03:TR05:STATES
+    */
+    /* UNDSTATE:    BlobSet mask bit 0x0800 */
+    [UNDSTATE]     = { name: "FBCK:FB05:TR05:STATES", blob: 0, aMsk: AVAIL_UNDSTATE},
 
-  /**
-   * Charge at the DMP
-   */
-/* DMP_CHARGE: BlobSet mask bit 0x1000 */
-  [DMP_CHARGE]     = { name: "BPMS:DMPH:502:TMIT", blob: 0, aMsk: AVAIL_DMP_CHARGE},
+    /**
+    * Charge at the DMP
+    */
+    /* DMP_CHARGE: BlobSet mask bit 0x1000 */
+    [DMP_CHARGE]     = { name: "BPMS:DMPH:502:TMIT", blob: 0, aMsk: AVAIL_DMP_CHARGE},
 
-  /**
-   * XTCAV Voltage and Phase
-   */
-/* XTCAV_AMP:    BlobSet mask bit 0x2000 */
-  [XTCAV_AMP]  = { name: "TCAV:DMPH:360:AV", blob: 0, aMsk: AVAIL_XTCAV_AMP},
+    /**
+    * XTCAV Voltage and Phase
+    */
+    /* XTCAV_AMP:    BlobSet mask bit 0x2000 */
+    [XTCAV_AMP]  = { name: "TCAV:DMPH:360:AV", blob: 0, aMsk: AVAIL_XTCAV_AMP},
+
+    /**
+    * Hard LTU Launch 120Hz Feedback States (running on FB03:TR01 - fast LTU launch)
+    */
+    [LTUSTATE]    = { name: "FBCK:FB03:TR01:STATES", blob: 0, aMsk: AVAIL_LTUSTATE },
 
 };
 #endif // BLD_SXR
@@ -564,7 +564,6 @@ epicsUInt32 idref, idcmp, diff;
 void EVRFire( void * pBlobSet )
 {
 	epicsTimeStamp time40;
-/*	int		fidlast, fidLast40; */
 	int		fid40, fidpipeline;
 	unsigned long long	tscLast;
 	/* evrRWMutex is locked while calling these user functions so don't do anything that might block. */
@@ -788,33 +787,6 @@ connectCaPv( BLDPV * pPv )
 		fflush(stdout);
 	}
 
-#if 0
-	{
-	/* We could do subscription in connection callback. But in this case, better to enforce all connection */
-	if ( BLD_MCAST_DEBUG >= 2 ) {
-		printf("pending for IO ...\n");
-		fflush(stdout);
-	}
-	rtncode = ca_pend_io(10.0);
-	if ( ECA_NORMAL != rtncode )
-	{
-		ca_clear_channel( pPV->caChId );
-		pPv->caChId = 0;
-		if (rtncode == ECA_TIMEOUT) {
-			errlogPrintf("Channel connect timed out: '%s' not found.\n", pPv->name);
-			fflush(stdout);
-			if ( ! bldConnectAbort ) {
-				errlogPrintf("Continuing to try -- set bldConnectAbort nonzero to abort\n");
-				continue;
-			}
-		} else {
-			errlogPrintf("ca_pend_io() returned %i\n", rtncode);
-		}
-		return -1;
-	}
-	}
-#endif
-
 	return 0;
 }
 
@@ -830,28 +802,6 @@ init_pvarray(BLDPV *p_pvs, int n_pvs, int subscribe)
 			nFailedConnections++;
 			continue;
 		}
-
-#if 0
-		{
-		unsigned long cnt;
-		if ( p_pvs[loop].nElems != (cnt = ca_element_count(p_pvs[loop].caChId)) ) {
-			errlogPrintf("Number of elements [%ld] of '%s' does not match expectation.\n", cnt, p_pvs[loop].name);
-			return -1;
-		}
-
-		if ( DBF_DOUBLE != ca_field_type(p_pvs[loop].caChId) ) {/* Native data type has to be double */
-			errlogPrintf("Native data type of '%s' is not double.\n", p_pvs[loop].name);
-			return -1;
-		}
-
-		/* Everything should be double, even not, do conversion */
-		p_pvs[loop].pTD = callocMustSucceed(1, dbr_size_n(DBR_TIME_DOUBLE, p_pvs[loop].nElems), "callocMustSucceed");
-
-		if ( subscribe ) {
-			SEVCHK(ca_create_subscription(DBR_TIME_DOUBLE, p_pvs[loop].nElems, p_pvs[loop].caChId, DBE_VALUE|DBE_ALARM, eventCallback, &(p_pvs[loop]), NULL), "ca_create_subscription");
-		}
-		}
-#endif
 	}
 
 	if ( nFailedConnections > 5 ) {
@@ -971,23 +921,6 @@ if (BLD_MCAST_DEBUG >= 2)
 	sockaddrDst.sin_addr.s_addr = inet_addr(getenv("BLDMCAST_DST_IP"));
 	sockaddrDst.sin_port        = htons(BLDMCAST_DST_PORT);
 
-#if 0	/* bind should not be necessary as this is xmit only */
-	{
-	struct sockaddr_in sockaddrSrc;
-	memset(&sockaddrSrc, 0, sizeof(struct sockaddr_in));
-	sockaddrSrc.sin_family      = AF_INET;
-	sockaddrSrc.sin_addr.s_addr = INADDR_ANY;
-	sockaddrSrc.sin_port        = 0;
-	if( bind( sFd, (struct sockaddr *) &sockaddrSrc, sizeof(struct sockaddr_in) ) == -1 )
-	{
-		errlogPrintf("Failed to bind local socket for multicast\n");
-		close(sFd);
-		epicsMutexDestroy(bldMutex);
-		return -1;
-	}
-	}
-#endif
-
 	if(BLD_MCAST_DEBUG >= 2)
 	{
 		struct sockaddr_in	sockaddrName;
@@ -1034,7 +967,6 @@ if (BLD_MCAST_DEBUG >= 2)
 		return -1; /* error message already printed */
 
 	ca_flush_io();
-	/* ca_pend_event(2.0); */
 
 	/* All ready to go, create event and register with EVR */
 	EVRFireEvent = epicsEventMustCreate(epicsEventEmpty);
@@ -1043,7 +975,6 @@ if (BLD_MCAST_DEBUG >= 2)
 	evrTimeRegister(EVRFire, bldBlobSet);
 
 	bldAllPVsConnected       = 1;
-	/* printf("All PVs are successfully connected!\n"); Maybe, maybe not. */
 
 	/* Prefill EBEAMINFO with constant values */
 	bldEbeamInfo.uMBZ1       = __le32(0);
@@ -1247,41 +1178,6 @@ passed:
 				bldEbeamInfo.uDamageMask |= __le32(EBEAML3ENERGY_DAMAGEMASK);
 			}
 
-#define AVAIL_LTUPOS	\
-	(	AVAIL_BMPOSITION1X | AVAIL_BMPOSITION1Y | \
-		AVAIL_BMPOSITION2X | AVAIL_BMPOSITION2Y | \
-		AVAIL_BMPOSITION3X | AVAIL_BMPOSITION3Y | \
-		AVAIL_BMPOSITION4X | AVAIL_BMPOSITION4Y | \
-		AVAIL_FMTRX )
-
-			/* Calculate beam position */
-			if( AVAIL_LTUPOS == (AVAIL_LTUPOS & dataAvailable) ) {
-				dbr_double_t *pMatrixValue;
-				double tempDA[4];
-				int i;
-
-				pMatrixValue = &(bldStaticPVs[FMTRX].pTD->value);
-				for ( i=0; i<4; i++, pMatrixValue+=8 ) {
-					double acc = 0.0;
-					acc += pMatrixValue[0] * bldPulseBlobs[BMPOSITION1X].blob->fcbl_bpm_X;
-					acc += pMatrixValue[1] * bldPulseBlobs[BMPOSITION1X].blob->fcbl_bpm_Y;
-					acc += pMatrixValue[2] * bldPulseBlobs[BMPOSITION2X].blob->fcbl_bpm_X;
-					acc += pMatrixValue[3] * bldPulseBlobs[BMPOSITION2X].blob->fcbl_bpm_Y;
-					acc += pMatrixValue[4] * bldPulseBlobs[BMPOSITION3X].blob->fcbl_bpm_X;
-					acc += pMatrixValue[5] * bldPulseBlobs[BMPOSITION3X].blob->fcbl_bpm_Y;
-					acc += pMatrixValue[6] * bldPulseBlobs[BMPOSITION4X].blob->fcbl_bpm_X;
-					acc += pMatrixValue[7] * bldPulseBlobs[BMPOSITION4X].blob->fcbl_bpm_Y;
-
-					tempDA[i] = acc;
-				}
-				__st_le64(&bldEbeamInfo.ebeamLTUPosX, tempDA[0]);
-				__st_le64(&bldEbeamInfo.ebeamLTUPosY, tempDA[1]);
-				__st_le64(&bldEbeamInfo.ebeamLTUAngX, tempDA[2]);
-				__st_le64(&bldEbeamInfo.ebeamLTUAngY, tempDA[3]);
-			} else {
-				bldEbeamInfo.uDamageMask |= __le32(EBEAMLTUPOSX_DAMAGEMASK | EBEAMLTUPOSY_DAMAGEMASK | EBEAMLTUANGX_DAMAGEMASK | EBEAMLTUANGY_DAMAGEMASK);
-			}
-
 			/* Copy BC2 Charge */
 			if( AVAIL_BC2CHARGE & dataAvailable )
 			{
@@ -1333,13 +1229,24 @@ passed:
 				bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(0);
 			}
 
+            /* LTU Launch 120Hz FastFeedback states, X, X', Y, and Y' */
+            if ( AVAIL_LTUSTATE & dataAvailable ) {
+				__st_le64(&bldEbeamInfo.ebeamLTUPosX, (double)bldPulseBlobs[LTUSTATE].blob->fc_flt[0]);
+				__st_le64(&bldEbeamInfo.ebeamLTUAngX, (double)bldPulseBlobs[LTUSTATE].blob->fc_flt[1]);
+				__st_le64(&bldEbeamInfo.ebeamLTUPosY, (double)bldPulseBlobs[LTUSTATE].blob->fc_flt[2]);
+				__st_le64(&bldEbeamInfo.ebeamLTUAngY, (double)bldPulseBlobs[LTUSTATE].blob->fc_flt[3]);
+            }
+            else {
+                bldEbeamInfo.uDamage = bldEbeamInfo.uDamage2 = __le32(EBEAM_INFO_ERROR);
+				bldEbeamInfo.uDamageMask |= __le32(EBEAMLTUPOSX_DAMAGEMASK | EBEAMLTUPOSY_DAMAGEMASK | EBEAMLTUANGX_DAMAGEMASK | EBEAMLTUANGY_DAMAGEMASK);
+            }
+
 			/* Undulator Launch 120Hz feedback states, X, X', Y and Y' */
 			if( AVAIL_UNDSTATE & dataAvailable ) {
 			  __st_le64(&bldEbeamInfo.ebeamUndPosX, (double)bldPulseBlobs[UNDSTATE].blob->fc_flt[0]);
 			  __st_le64(&bldEbeamInfo.ebeamUndAngX, (double)bldPulseBlobs[UNDSTATE].blob->fc_flt[1]);
 			  __st_le64(&bldEbeamInfo.ebeamUndPosY, (double)bldPulseBlobs[UNDSTATE].blob->fc_flt[2]);
 			  __st_le64(&bldEbeamInfo.ebeamUndAngY, (double)bldPulseBlobs[UNDSTATE].blob->fc_flt[3]);
-			  /*__st_le64(&bldEbeamInfo.ebeamCharge, (double)PULSEID((*p_refTime)));*/
 			}
 			else
 			{
@@ -1565,8 +1472,6 @@ passed:
 			fprintf(stderr, "Unable to unsubscribe %s from FCOM: %s\n", bldPulseBlobs[loop].name, fcomStrerror(rtncode));
 	}
 
-	/*Should never return from following call*/
-	/*SEVCHK(ca_pend_event(0.0),"ca_pend_event");*/
 	return(0);
 }
 
@@ -1752,9 +1657,6 @@ static long BLD_EPICS_Init()
 	}
 
 	if ( BLD_MCAST_ENABLE ) {
-#if 0
-		fcomUtilFlag = DP_DEBUG;
-#endif
 		for ( loop=0; loop < N_PULSE_BLOBS; loop++) {
 			if ( BLD_MCAST_DEBUG >= 3 ) printf( "INFO: Looking up fcom ID for %s\n", bldPulseBlobs[loop].name );
 			if ( FCOM_ID_NONE == (fcomBlobIDs[loop] = fcomLCLSPV2FcomID(bldPulseBlobs[loop].name)) ) {
