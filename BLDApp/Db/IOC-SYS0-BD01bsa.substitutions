@@ -23,5 +23,5 @@
 file bsaBLDEdef.db {
     pattern
     { DEVICE, LOC, UN, SLCLNK, BPM1, BPM2 }
-    { BLD:SYS0:500, SYS0, 500, "", LTU_250, LTU_450 }
+    { BLD:SYS0:500, SYS0, 500, "", LTU250, LTU450 }
 }
