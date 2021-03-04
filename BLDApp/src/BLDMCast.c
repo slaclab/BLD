@@ -75,6 +75,7 @@
 #include "fcomLclsBlen.h"
 #include "fcomLclsLlrf.h"
 #include "debugPrint.h"
+#include "fcomLclsXtcav.h"
 extern int	fcomUtilFlag;
 
 #include "devBusMapped.h"
@@ -1264,12 +1265,12 @@ passed:
 			if( AVAIL_XTCAV_AMP & dataAvailable )
 			{
 			  if(BLD_XTCAV_DEBUG >= 1) {
-			    errlogPrintf("Got XTCAV blob %f %f\n", (double)bldPulseBlobs[XTCAV_AMP].blob->fcbl_llrf_aavg,
-					 (double)bldPulseBlobs[XTCAV_AMP].blob->fcbl_llrf_pavg);
+			    errlogPrintf("Got XTCAV blob %f %f\n", (double)bldPulseBlobs[XTCAV_AMP].blob->fcbl_xtcav_aavg,
+					 (double)bldPulseBlobs[XTCAV_AMP].blob->fcbl_xtcav_pavg);
 			  }
 
-			  __st_le64(&bldEbeamInfo.ebeamXTCAVAmpl, (double)bldPulseBlobs[XTCAV_AMP].blob->fcbl_llrf_aavg);
-			  __st_le64(&bldEbeamInfo.ebeamXTCAVPhase, (double)bldPulseBlobs[XTCAV_AMP].blob->fcbl_llrf_pavg);
+			  __st_le64(&bldEbeamInfo.ebeamXTCAVAmpl, (double)bldPulseBlobs[XTCAV_AMP].blob->fcbl_xtcav_aavg);
+			  __st_le64(&bldEbeamInfo.ebeamXTCAVPhase, (double)bldPulseBlobs[XTCAV_AMP].blob->fcbl_xtcav_pavg);
 			}
 			else
 			{
