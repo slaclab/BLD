@@ -23,10 +23,6 @@ file bsaATTREdef.db
     { $(DEVICE), BC2ENERGY,     $(DEVICE):BC2ENERGY,    mm,     0,  0,  3, .001, ""		}
     { $(DEVICE), BC1CHARGE,     $(DEVICE):BC1CHARGE,    Amps,   0,  0,  3, .001, ""		}
     { $(DEVICE), BC1ENERGY,     $(DEVICE):BC1ENERGY,    mm,     0,  0,  3, .001, ""		}
-    #{ $(DEVICE), UND_POS_X,     $(DEVICE):UND_POS_X,    mm,     0,  0,  3, .001, ""		}
-    #{ $(DEVICE), UND_POS_Y,     $(DEVICE):UND_POS_Y,    mm,     0,  0,  3, .001, ""		}
-    #{ $(DEVICE), UND_ANG_X,     $(DEVICE):UND_ANG_X,    mrad,   0,  0,  3, .001, ""		}
-    #{ $(DEVICE), UND_ANG_Y,     $(DEVICE):UND_ANG_Y,    mrad,   0,  0,  3, .001, ""		}
     { $(DEVICE), PHOTONENERGY,  $(DEVICE):PHOTONENERGY, eV,     0,  0,  3, .001, ""		}
     { $(DEVICE), $(BPM2)_POS_X,  $(DEVICE):LTU450_POS_X, mm,     0,  0,  3, .001, ""		}
     { $(DEVICE), $(BPM1)_POS_X,  $(DEVICE):LTU250_POS_X, mm,     0,  0,  3, .001, ""		}
