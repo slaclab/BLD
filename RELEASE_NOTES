@@ -1,5 +1,9 @@
 # Put your release notes or change log information
 # in here.
+
+R2.21.1 19-Jul-2022  jmock
+  * Add missing macros BPM1 and BPM2 to ioc-sys0-bd01/st.cmd
+
 R2.21.0 18-Jul-2022  jmock
   * Standardize version number for HXR, SXR
   * Change log level for SXR BLD to 1 from 2
