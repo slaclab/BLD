@@ -147,7 +147,7 @@ dbLoadRecords("db/fcom_stats.db","LOCA=SYS0,NMBR=500, STAT_SCAN=5")
 dbLoadRecords("db/BLDMCastReceiverGdets.db","DEVICE=BLD:SYS0:500")
 
 # Only load this on the production IOC
-dbLoadRecords( "db/dispersion.db", "IOC=BLD:SYS0:600" )
+dbLoadRecords( "db/dispersion.db", "IOC=BLD:SYS0:500" )
 
 # Have a BLD listener running on this IOC and fill a waveform
 # with the BLD data.
