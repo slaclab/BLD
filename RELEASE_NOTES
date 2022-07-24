@@ -1,6 +1,10 @@
 # Put your release notes or change log information
 # in here.
 
+R2.22.0 24-July-2022
+  * Fix PV names in ioc-sys0-bd01 to load dispersion PVs
+  * Build against fcomUtil fcomUtil-R1-2-4-BR-3 to get correct addressing for FEE1
+
 R2.21.1 19-Jul-2022  jmock
   * Add missing macros BPM1 and BPM2 to ioc-sys0-bd01/st.cmd
 
