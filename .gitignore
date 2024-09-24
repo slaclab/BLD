@@ -12,3 +12,4 @@ iocBoot/*/envPaths
 *.log
 *.swp
 tags
+*._*

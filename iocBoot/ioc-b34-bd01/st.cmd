@@ -145,7 +145,7 @@ dbLoadRecords( "db/Pattern.db",  "IOC=IOC:B34:BD01,SYS=SYS0" )
 # the BLDMcastWfRecv waveform should be used instead)
 # to 'Passive' to effectively disable them.
 
-dbLoadRecords("db/BLDMCast.db","LOCA=B34,NMBR=504, DIAG_SCAN=I/O Intr, STAT_SCAN=5")
+dbLoadRecords("db/BLDMCast.db","LOCA=B34,NMBR=504, DIAG_SCAN=I/O Intr, STAT_SCAN=5, ETAX=-125")
 dbLoadRecords("db/fcom_stats.db","LOCA=B34,NMBR=504, STAT_SCAN=5")
 
 # Load these only on the production IOC or in a development environment as they

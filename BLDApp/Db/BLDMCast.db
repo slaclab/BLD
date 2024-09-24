@@ -368,6 +368,8 @@ record(ao,     "BLD:$(LOCA):$(NMBR):FC_POLL_DELAY") {
 
 record(ao, "BLD:$(LOCA):$(NMBR):ETAX") {
     field(DESC, "ETAX used in Photon Energy Calculation")
+    field(VAL,  "$(ETAX)")
+    field(PINI, "1")
     field(SCAN, "Passive")
     field(DTYP, "BLD_SCALAR")
     field(OUT,  "@ETAX")

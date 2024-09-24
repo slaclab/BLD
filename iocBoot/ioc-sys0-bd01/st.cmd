@@ -142,7 +142,7 @@ dbLoadRecords("db/IOC-SYS0-BD01trig.db")	# has only one EVRs' triggers
 # the BLDMcastWfRecv waveform should be used instead)
 # to 'Passive' to effectively disable them.
 
-dbLoadRecords("db/BLDMCast.db","LOCA=SYS0,NMBR=500, DIAG_SCAN=I/O Intr, STAT_SCAN=5, BPM1=LTU250, BPM2=LTU450")
+dbLoadRecords("db/BLDMCast.db","LOCA=SYS0,NMBR=500, DIAG_SCAN=I/O Intr, STAT_SCAN=5, BPM1=LTU250, BPM2=LTU450, ETAX=-125")
 dbLoadRecords("db/fcom_stats.db","LOCA=SYS0,NMBR=500, STAT_SCAN=5")
 dbLoadRecords("db/BLDMCastReceiverGdets.db","DEVICE=BLD:SYS0:500")
 
