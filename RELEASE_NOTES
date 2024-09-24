@@ -1,6 +1,10 @@
 # Put your release notes or change log information
 # in here.
 
+R2.23.0 24-Sep-2024
+  Remove viocs 
+  Add initial ETAX values
+
 R2.22.0 24-July-2022
   * Fix PV names in ioc-sys0-bd01 to load dispersion PVs
   * Build against fcomUtil fcomUtil-R1-2-4-BR-3 to get correct addressing for FEE1
