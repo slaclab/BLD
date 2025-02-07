@@ -49,6 +49,8 @@ PROD_IOC      += BLDSenderSXR
 # Build the IOC application
 #============================
 PROD_IOC_RTEMS-beatnik = BLDReceiver
+PROD_IOC_RTEMS-beatnik += BLDSender
+PROD_IOC_RTEMS-beatnik += BLDSenderSXR
 PROD_IOC = $(PROD_IOC_$(T_A))
 
 # PROD_IOC      += bldget
