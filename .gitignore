@@ -10,4 +10,6 @@ iocBoot/*/cdCommands
 iocBoot/*/envPaths
 *~
 *.log
+*.swp
 tags
+*._*

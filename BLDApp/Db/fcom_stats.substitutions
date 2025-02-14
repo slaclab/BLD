@@ -8,22 +8,6 @@ file fcom_stats.template
 {
 	pattern
 	{	NUM,	BLOB		}
-# TODO:	Change names to match blob enumerations in BLDMCast.c
-#	{	0,		"BMCHARGE"		}
-#	{	1,		"BMENERGY1X"		}
-#	{	2,		"ENG2"		}
-#	{	3,		"POS1"		}
-#	{	4,		"POS2"		}
-#	{	5,		"POS3"		}
-#	{	6,		"POS4"		}
-#	# TODO: Rename BLEN to BC2CH here and in BLDMCast.c
-#	{	7,		"BLEN"		}
-#	{	8,		"BC2EN"		}
-#	{	9,		"BC1CH"		}
-#	{	10,		"BC1EN"		}
-#	{	11,		"UND"		}
-#	{	12,		"DMPCH"		}
-#	{	13,		"XTCAVRF"	}
 	{	0,		"TMIT"		}
 	{	1,		"ENG1"		}
 	{	2,		"ENG2"		}
@@ -39,5 +23,7 @@ file fcom_stats.template
 	{	11,		"UND"		}
 	{	12,		"DMP_CHARGE"}
 	{	13,		"XTCAV_AMP"	}
+# LTU States from FastFeedback. This replaces POS{1,2,3,4} above.
+    {   14,     "LTU"       }
 }
 
