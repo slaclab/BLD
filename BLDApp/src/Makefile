@@ -62,9 +62,9 @@ DBD += BLDSender.dbd
 
 # BLDSender.dbd will be made up from these files:
 BLDSender_DBD += base.dbd
-BLDSender_DBD += evrSupport.dbd
-BLDSender_DBD += devMrfEr.dbd
-BLDSender_DBD += autosaveSupport.dbd
+#BLDSender_DBD += evrSupport.dbd
+#BLDSender_DBD += devMrfEr.dbd
+BLDSender_DBD += asSupport.dbd
 BLDSender_DBD += iocAdmin.dbd
 BLDSender_DBD += diagTimer.dbd
 BLDSender_DBD += fcomIocshSupport.dbd
@@ -83,8 +83,8 @@ BLDSender_LIBS += diagTimer
 BLDSender_LIBS += fcomIocshSupport
 BLDSender_LIBS += fcomUtil
 BLDSender_LIBS += fcom
-BLDSender_LIBS += evrSupport
-BLDSender_LIBS += devMrfEr
+#BLDSender_LIBS += evrSupport
+#BLDSender_LIBS += devMrfEr
 BLDSender_LIBS_RTEMS += mrfVme64x
 BLDSender_LIBS_Linux += drvMrf
 #BLDSender_LIBS_Linux += evrma
@@ -124,9 +124,9 @@ DBD += BLDSenderSXR.dbd
 
 # BLDSenderSXR.dbd will be made up from these files:
 BLDSenderSXR_DBD += base.dbd
-BLDSenderSXR_DBD += evrSupport.dbd
-BLDSenderSXR_DBD += devMrfEr.dbd
-BLDSenderSXR_DBD += autosaveSupport.dbd
+#BLDSenderSXR_DBD += evrSupport.dbd
+#BLDSenderSXR_DBD += devMrfEr.dbd
+BLDSenderSXR_DBD += asSupport.dbd
 BLDSenderSXR_DBD += iocAdmin.dbd
 BLDSenderSXR_DBD += diagTimer.dbd
 BLDSenderSXR_DBD += fcomIocshSupport.dbd
@@ -145,7 +145,7 @@ BLDSenderSXR_LIBS += diagTimer
 BLDSenderSXR_LIBS += fcomIocshSupport
 BLDSenderSXR_LIBS += fcomUtil
 BLDSenderSXR_LIBS += fcom
-BLDSenderSXR_LIBS += evrSupport
+#BLDSenderSXR_LIBS += evrSupport
 BLDSenderSXR_LIBS += devMrfEr
 BLDSenderSXR_LIBS_RTEMS += mrfVme64x
 BLDSenderSXR_LIBS_Linux += drvMrf
@@ -187,9 +187,9 @@ DBD += BLDReceiver.dbd
 
 # BLDReceiver.dbd will be made up from these files:
 BLDReceiver_DBD += base.dbd
-BLDReceiver_DBD += evrSupport.dbd
-BLDReceiver_DBD += devMrfEr.dbd
-BLDReceiver_DBD += autosaveSupport.dbd
+#BLDReceiver_DBD += evrSupport.dbd
+#BLDReceiver_DBD += devMrfEr.dbd
+BLDReceiver_DBD += asSupport.dbd
 BLDReceiver_DBD += iocAdmin.dbd
 BLDReceiver_DBD += devBusMapped.dbd
 BLDReceiver_DBD += devBLDRcvr.dbd
@@ -199,8 +199,8 @@ BLDReceiver_DBD += devBLDRcvr.dbd
 # Add all the support libraries needed by this IOC for BLDSender app
 BLDReceiver_LIBS += autosave
 BLDReceiver_LIBS += devIocStats
-BLDReceiver_LIBS += evrSupport
-BLDReceiver_LIBS += devMrfEr
+#BLDReceiver_LIBS += evrSupport
+#BLDReceiver_LIBS += devMrfEr
 BLDReceiver_LIBS_RTEMS += mrfVme64x
 BLDReceiver_LIBS_Linux += drvMrf
 #BLDReceiver_LIBS_Linux += evrma
