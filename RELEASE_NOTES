@@ -1,5 +1,9 @@
 # Put your release notes or change log information
 # in here.
+R3.0.0 26-Feb-2025
+  Update module versions for Epics 7 compatibility
+  Update databases to be compatible with new Epics 7 modules and Epics 7 itself
+  
 R2.23.0 24-Sep-2024
   Remove viocs 
   Add initial ETAX values
