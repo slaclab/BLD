@@ -11,12 +11,12 @@
 
 # For iocAdmin
 setenv("LOCN","B34-R253")
-setenv("IOC_MACRO","IOC=IOC:B34:BD01")
+setenv("IOC_MACRO","IOC=IOC:SYS0:BD01")
 
 # System Location:
-setenv("LOCA","B34")
+setenv("LOCA","SYS0")
 setenv("UNIT","BD01")
-setenv("FAC", "B34")
+setenv("FAC", "SYS0")
 setenv("NMBR","504")
 
 # Set fcom multicast prefix to mc-lcls-fcom for LCLS Prod
@@ -38,7 +38,7 @@ setenv( "BLDMCAST_DST_IP", "239.255.24.254" )	# Test
 
 # =====================================================================
 # Execute common fnet st.cmd
-. "../st.fnetgeneric.lcls.cmd"
+. "../st.fnetgeneric.b34.cmd"
 
 # execute generic part
 . "../st.vmegeneric.cmd"
@@ -69,7 +69,7 @@ fcomInit(getenv("FCOM_MC_PREFIX",0),1000)
 # Set IOC Shell Prompt as well:
 epicsEnvSet("IOCSH_PS1","ioc-sys0-bd01>")
 
-setenv("EPICS_CAS_INTF_ADDR_LIST","172.27.10.162")
+#setenv("EPICS_CAS_INTF_ADDR_LIST","172.25.160.23")
 setenv("EPICS_CAS_BEACON_ADDR_LIST","172.27.11.255")
 
 ## Register all support components

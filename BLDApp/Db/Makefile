@@ -47,12 +47,15 @@ DB += IOC-SYS0-BD02access.db
 # ========================================
 # Install timing/event related databases
 # ========================================
-DB_INSTALLS += $(EVR_MODULE)/db/evrPmc.db
-DB_INSTALLS += $(EVR_MODULE)/db/EvrPci_event.db
+#DB_INSTALLS += $(EVR_MODULE)/db/evrPmc.db
+#DB_INSTALLS += $(EVR_MODULE)/db/EvrPci_event.db
+DB_INSTALLS += $(EVR_MODULE)/db/EvrPmc.db
+DB_INSTALLS += $(EVR_MODULE)/db/EvrPci.db
 
 #DB_INSTALLS += $(EVR_MODULE)/db/evrEventAll_event.db
 
-DB_INSTALLS += $(EVR_MODULE)/db/Pattern_event.db
+#DB_INSTALLS += $(EVR_MODULE)/db/Pattern_event.db
+DB_INSTALLS += $(EVR_MODULE)/db/Pattern.db
 DB_INSTALLS += $(EVR_MODULE)/db/PCI-trig.db
 DB_INSTALLS += $(EVR_MODULE)/db/PMC-trig.db
 DB_INSTALLS += $(EVR_MODULE)/db/VME-trig.db

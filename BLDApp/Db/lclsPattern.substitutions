@@ -47,7 +47,8 @@ file evrPatternAll.db
 # event records to generate simulated data
 #	  { $(IOC) , ""               , $(IOC):FIDP ,  ""   , 1.03E06 ,   1  ,   4   }
 }
-file evrEventAll_event.db 
+#file evrEventAll_event.db 
+file evrEventAll.db
 {
   pattern { DEVICE        }
 	  { $(IOC)        }
