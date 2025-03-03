@@ -37,8 +37,8 @@ epicsThreadSleep(1)
 # request file.
 
 # (Takes a long time)
-#cd("/data/autosave-req")
-#makeAutosaveFiles()
+cd("/data/autosave-req")
+makeAutosaveFiles()
 
 # Start the save_restore task 
 # save changes on change, but no faster

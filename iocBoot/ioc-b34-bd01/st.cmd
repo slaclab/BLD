@@ -211,10 +211,6 @@ iocInit()
 #caPutLogShow(2)
 # =====================================================
 
-# Generate the autosave PV list (Takes a long time)
-#chdir("/data/autosave-req")
-#iocshCmd("makeAutosaveFiles()")
-
 # Start autosave process:
 
 . "iocBoot/start_restore.cmd"
