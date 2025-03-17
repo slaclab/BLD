@@ -364,6 +364,7 @@ record(ao,     "BLD:$(LOCA):$(NMBR):FC_POLL_DELAY") {
 	field(DRVH, "8000")
 	field(VAL,  "5000")
 	field(PINI, "YES")
+    	info(autosaveFields, "VAL")
 }
 
 record(ao, "BLD:$(LOCA):$(NMBR):ETAX") {
