@@ -1,5 +1,7 @@
 # Put your release notes or change log information
 # in here.
+R3.0.2 17-Mar-2025 lujko
+  Add FC_POLL_DELAY to autosave
 
 R3.0.1 04-Mar-2025
   Change the start_restore script to remove redendant code from ioc st.cmds
